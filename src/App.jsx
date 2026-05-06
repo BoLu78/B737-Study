@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import { loadQuestionsFromSupabase } from './lib/supabaseClient'
 
-const APP_VERSION = 'v4.5'
+const APP_VERSION = 'v4.6'
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
