@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import { loadQuestionsFromSupabase } from './lib/supabaseClient'
 
-const APP_VERSION = 'v4.9'
+const APP_VERSION = 'v5.0'
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
@@ -197,6 +197,30 @@ function normalizeQuizOptions(question) {
   }).filter(Boolean)
 }
 
+function displayReferenceValue(value) {
+  const text = value === null || value === undefined ? '' : String(value).trim()
+  return text || '—'
+}
+
+function hasReferenceMetadata(question) {
+  return Boolean(
+    displayReferenceValue(question?.manualReference) !== '—' ||
+      displayReferenceValue(question?.sourceDocument) !== '—' ||
+      displayReferenceValue(question?.sourcePage) !== '—' ||
+      displayReferenceValue(question?.sourceId) !== '—',
+  )
+}
+
+function getUniqueReferenceValues(questions, field) {
+  return Array.from(
+    new Set(
+      questions
+        .map((item) => displayReferenceValue(item[field]))
+        .filter((value) => value !== '—'),
+    ),
+  ).sort((first, second) => first.localeCompare(second, undefined, { numeric: true }))
+}
+
 function App() {
   const [questions, setQuestions] = useState(FALLBACK_QUESTIONS)
   const [isLoading, setIsLoading] = useState(true)
@@ -212,6 +236,9 @@ function App() {
   const [adminMode, setAdminMode] = useState(null)
   const [adminFormError, setAdminFormError] = useState('')
   const [adminPreview, setAdminPreview] = useState(null)
+  const [referenceSourceFilter, setReferenceSourceFilter] = useState('')
+  const [referenceTopicFilter, setReferenceTopicFilter] = useState('')
+  const [referenceSearch, setReferenceSearch] = useState('')
 
   const applyDatabaseResult = useCallback((data, error) => {
     if (error || !data) {
@@ -259,6 +286,30 @@ function App() {
   const currentAnswerOptions = normalizeQuizOptions(currentQuestion)
   const completedCount = topicQuestions.length
   const activeQuestions = questions.filter((item) => item.status === 'active').length
+  const sourceDocuments = getUniqueReferenceValues(questions, 'sourceDocument')
+  const referenceTopics = getUniqueReferenceValues(questions, 'topic')
+  const referencedQuestions = questions.filter(hasReferenceMetadata)
+  const questionsWithManualReference = questions.filter(
+    (item) => displayReferenceValue(item.manualReference) !== '—',
+  ).length
+  const questionsWithSourcePage = questions.filter((item) => displayReferenceValue(item.sourcePage) !== '—').length
+  const normalizedReferenceSearch = referenceSearch.trim().toLowerCase()
+  const filteredReferences = questions.filter((item) => {
+    const matchesSource = !referenceSourceFilter || item.sourceDocument === referenceSourceFilter
+    const matchesTopic = !referenceTopicFilter || item.topic === referenceTopicFilter
+    const searchFields = [
+      item.question,
+      item.topic,
+      item.manualReference,
+      item.sourceDocument,
+      item.sourceId,
+    ]
+    const matchesSearch =
+      !normalizedReferenceSearch ||
+      searchFields.some((field) => String(field ?? '').toLowerCase().includes(normalizedReferenceSearch))
+
+    return matchesSource && matchesTopic && matchesSearch
+  })
 
   const handleRefreshDatabase = async () => {
     await loadQuestionDatabase()
@@ -301,6 +352,12 @@ function App() {
     setSelectedAnswer(null)
     setAnswered(false)
     setQuestionIndex(0)
+  }
+
+  const handleResetReferenceFilters = () => {
+    setReferenceSourceFilter('')
+    setReferenceTopicFilter('')
+    setReferenceSearch('')
   }
 
   const handleOpenAdmin = () => {
@@ -360,9 +417,9 @@ function App() {
       <header className="app-header">
         <div>
           <p className="eyebrow">B737 Study App</p>
-          <h1>Quiz database, manual search and AI explanations</h1>
+          <h1>Quiz database and manual references</h1>
           <p className="subtitle">
-            A pilot-focused dashboard for study readiness and future manual intelligence.
+            A pilot-focused dashboard for study readiness and source metadata review.
           </p>
         </div>
         <span className="version-badge">{APP_VERSION}</span>
@@ -441,15 +498,17 @@ function App() {
               </article>
 
               <article className="card">
-                <h2>Manuals & AI Search</h2>
-                <p>Future feature will search manuals and generate research-backed explanations.</p>
+                <h2>Manual References</h2>
+                <p>
+                  Browse question references by manual, topic and source page. Manual upload and AI search will be enabled later.
+                </p>
                 <div className="card-actions">
                   <button
                     className="button button-secondary"
-                    onClick={() => setView('manuals')}
+                    onClick={() => setView('manual-references')}
                     disabled={isLoading}
                   >
-                    Preview Feature
+                    Open References
                   </button>
                 </div>
               </article>
@@ -502,6 +561,24 @@ function App() {
               <article className="question-card">
                 <p className="question-id">{currentQuestion.id}</p>
                 <h3>{currentQuestion.question}</h3>
+                <dl className="quiz-reference">
+                  <div>
+                    <dt>Manual</dt>
+                    <dd>{displayReferenceValue(currentQuestion.manualReference)}</dd>
+                  </div>
+                  <div>
+                    <dt>Source</dt>
+                    <dd>{displayReferenceValue(currentQuestion.sourceDocument)}</dd>
+                  </div>
+                  <div>
+                    <dt>Page</dt>
+                    <dd>{displayReferenceValue(currentQuestion.sourcePage)}</dd>
+                  </div>
+                  <div>
+                    <dt>Source ID</dt>
+                    <dd>{displayReferenceValue(currentQuestion.sourceId ?? currentQuestion.id)}</dd>
+                  </div>
+                </dl>
                 {currentQuestion.difficulty && (
                   <p className="question-meta">Difficulty: {currentQuestion.difficulty}</p>
                 )}
@@ -593,6 +670,8 @@ function App() {
                     <th>Correct</th>
                     <th>Difficulty</th>
                     <th>Status</th>
+                    <th>Manual reference</th>
+                    <th>Source page</th>
                     <th>Source document</th>
                   </tr>
                 </thead>
@@ -600,13 +679,15 @@ function App() {
                   {questions.map((item) => (
                     <tr key={item.id}>
                       <td>{item.id}</td>
-                      <td>{item.sourceId || '—'}</td>
+                      <td>{displayReferenceValue(item.sourceId)}</td>
                       <td>{item.topic}</td>
-                      <td>{item.question.substring(0, 50)}...</td>
+                      <td>{item.question}</td>
                       <td>{item.correctAnswerLetter || String.fromCharCode(65 + item.correctAnswer)}</td>
                       <td>{item.difficulty || '—'}</td>
                       <td>{item.status}</td>
-                      <td>{item.sourceDocument || '—'}</td>
+                      <td>{displayReferenceValue(item.manualReference)}</td>
+                      <td>{displayReferenceValue(item.sourcePage)}</td>
+                      <td>{displayReferenceValue(item.sourceDocument)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -615,14 +696,14 @@ function App() {
           </section>
         )}
 
-        {view === 'manuals' && (
-          <section className="placeholder-view">
+        {view === 'manual-references' && (
+          <section className="manual-references-view">
             <div className="section-header">
               <div>
-                <p className="eyebrow">Manuals & AI Search</p>
-                <h2>Research assistant preview</h2>
+                <p className="eyebrow">Manual References</p>
+                <h2>Manual References</h2>
                 <p className="subtitle">
-                  Future capability will search uploaded manuals and generate source-based explanations.
+                  Browse the source metadata linked to the current question bank. Manual upload and AI explanations are not enabled yet.
                 </p>
               </div>
               <button className="button button-ghost" onClick={handleBackToDashboard}>
@@ -630,12 +711,102 @@ function App() {
               </button>
             </div>
 
-            <div className="placeholder-card">
-              <p>
-                In a future release, manuals and technical data will be indexed so the AI assistant can provide
-                research-backed explanations. The official question database answer remains the authoritative
-                reference; AI explanations are supplementary study support.
-              </p>
+            <div className="reference-summary-grid">
+              <div className="stat-card">
+                <span>Total referenced questions</span>
+                <strong>{referencedQuestions.length}</strong>
+              </div>
+              <div className="stat-card">
+                <span>Source documents</span>
+                <strong>{sourceDocuments.length}</strong>
+              </div>
+              <div className="stat-card">
+                <span>Topics</span>
+                <strong>{referenceTopics.length}</strong>
+              </div>
+              <div className="stat-card">
+                <span>Questions with source page</span>
+                <strong>{questionsWithSourcePage}</strong>
+              </div>
+              <div className="stat-card">
+                <span>Current data source</span>
+                <strong>{dataSource}</strong>
+              </div>
+            </div>
+
+            <div className="reference-filters">
+              <label className="field-label">
+                Source document
+                <select value={referenceSourceFilter} onChange={(event) => setReferenceSourceFilter(event.target.value)}>
+                  <option value="">All source documents</option>
+                  {sourceDocuments.map((sourceDocument) => (
+                    <option key={sourceDocument} value={sourceDocument}>
+                      {sourceDocument}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field-label">
+                Topic
+                <select value={referenceTopicFilter} onChange={(event) => setReferenceTopicFilter(event.target.value)}>
+                  <option value="">All topics</option>
+                  {referenceTopics.map((topic) => (
+                    <option key={topic} value={topic}>
+                      {topic}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field-label">
+                Search
+                <input
+                  type="search"
+                  value={referenceSearch}
+                  onChange={(event) => setReferenceSearch(event.target.value)}
+                  placeholder="Question, topic, manual, document, source ID"
+                />
+              </label>
+              <button className="button button-secondary" onClick={handleResetReferenceFilters}>
+                Reset Filters
+              </button>
+            </div>
+
+            <div className="reference-result-count">
+              Showing {filteredReferences.length} of {questions.length} questions
+            </div>
+
+            <div className="reference-list">
+              {filteredReferences.map((item) => (
+                <article className="reference-card" key={item.id}>
+                  <div className="reference-card-header">
+                    <span className="question-id">Source ID {displayReferenceValue(item.sourceId)}</span>
+                    <span>{displayReferenceValue(item.topic)}</span>
+                  </div>
+                  <h3>{item.question}</h3>
+                  <dl className="reference-meta">
+                    <div>
+                      <dt>Manual reference</dt>
+                      <dd>{displayReferenceValue(item.manualReference)}</dd>
+                    </div>
+                    <div>
+                      <dt>Source document</dt>
+                      <dd>{displayReferenceValue(item.sourceDocument)}</dd>
+                    </div>
+                    <div>
+                      <dt>Source page</dt>
+                      <dd>{displayReferenceValue(item.sourcePage)}</dd>
+                    </div>
+                    <div>
+                      <dt>Difficulty</dt>
+                      <dd>{displayReferenceValue(item.difficulty)}</dd>
+                    </div>
+                    <div>
+                      <dt>Status</dt>
+                      <dd>{displayReferenceValue(item.status)}</dd>
+                    </div>
+                  </dl>
+                </article>
+              ))}
             </div>
           </section>
         )}
@@ -849,13 +1020,25 @@ function App() {
                 <span>Data source</span>
                 <strong>{dataSource}</strong>
               </div>
+              <div className="stat-card">
+                <span>Source documents</span>
+                <strong>{sourceDocuments.length}</strong>
+              </div>
+              <div className="stat-card">
+                <span>Questions with manual reference</span>
+                <strong>{questionsWithManualReference}</strong>
+              </div>
+              <div className="stat-card">
+                <span>Questions with source page</span>
+                <strong>{questionsWithSourcePage}</strong>
+              </div>
             </div>
           </section>
         )}
       </main>
 
       <footer className="app-footer">
-        Online-first study cockpit ready for future Supabase integration.
+        Online-first study cockpit with Supabase question sync.
       </footer>
     </div>
   )

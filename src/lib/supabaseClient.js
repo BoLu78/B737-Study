@@ -47,7 +47,7 @@ export async function loadQuestionsFromSupabase() {
 
         return {
           id: row.id,
-          sourceId: row.source_id || null,
+          sourceId: row.source_id ?? null,
           topic: row.topic,
           subtopic: row.subtopic || null,
           question: row.question,
@@ -57,6 +57,7 @@ export async function loadQuestionsFromSupabase() {
           explanation: row.explanation,
           manualReference: row.manual_reference || null,
           sourceDocument: row.source_document || null,
+          sourcePage: row.source_page ?? null,
           status: row.status,
           difficulty: row.difficulty || null,
         }
