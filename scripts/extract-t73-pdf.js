@@ -175,6 +175,7 @@ function splitIdQuestion(text) {
 
 function normalizeQuestionRow(row) {
   repairMissingCorrect(row)
+  repairKnownMissingTopic(row)
 
   const normalized = {
     source_id: row.source_id,
@@ -200,6 +201,12 @@ function normalizeQuestionRow(row) {
   repairMissingAnswerCells(normalized)
 
   return normalized
+}
+
+function repairKnownMissingTopic(row) {
+  if (row.source_id === 536 && !normalizeWhitespace(row.topic)) {
+    row.topic = 'Dangerous Goods'
+  }
 }
 
 function normalizeTopic(topic) {
