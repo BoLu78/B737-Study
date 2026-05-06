@@ -17,6 +17,7 @@ dist-ssr
 data/import/*.pdf
 data/generated/*.json
 data/generated/*.sql
+!data/generated/manual_documents_seed_v5_3.sql
 
 # Editor directories and files
 .vscode/*

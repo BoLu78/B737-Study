@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import './App.css'
-import { loadQuestionsFromSupabase } from './lib/supabaseClient'
+import { loadManualDocuments, loadQuestionsFromSupabase } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v5.2'
-const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
+const APP_VERSION = 'v5.3'
+const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
@@ -247,6 +247,8 @@ function App() {
   const [referenceSourceFilter, setReferenceSourceFilter] = useState('')
   const [referenceTopicFilter, setReferenceTopicFilter] = useState('')
   const [referenceSearch, setReferenceSearch] = useState('')
+  const [manualDocuments, setManualDocuments] = useState([])
+  const [isManualCatalogLoading, setIsManualCatalogLoading] = useState(true)
 
   const applyDatabaseResult = useCallback((data, error) => {
     if (error || !data) {
@@ -273,14 +275,20 @@ function App() {
   useEffect(() => {
     let isMounted = true
 
-    const loadInitialQuestions = async () => {
-      const { data, error } = await loadQuestionsFromSupabase()
+    const loadInitialData = async () => {
+      const [{ data, error }, manualResult] = await Promise.all([
+        loadQuestionsFromSupabase(),
+        loadManualDocuments(),
+      ])
+
       if (isMounted) {
         applyDatabaseResult(data, error)
+        setManualDocuments(manualResult.data || [])
+        setIsManualCatalogLoading(false)
       }
     }
 
-    loadInitialQuestions()
+    loadInitialData()
 
     return () => {
       isMounted = false
@@ -318,6 +326,7 @@ function App() {
 
     return matchesSource && matchesTopic && matchesSearch
   })
+  const hasManualCatalog = manualDocuments.length > 0
 
   const handleRefreshDatabase = async () => {
     await loadQuestionDatabase()
@@ -788,17 +797,48 @@ function App() {
                 <p className="eyebrow">Manual Library</p>
                 <h3>Manual Library</h3>
                 <p>
-                  Manual catalog foundation is ready. Manual upload and protected storage will be configured in the next step.
+                  Files are stored in a private Supabase Storage bucket. Direct opening will be enabled after protected access is configured.
                 </p>
               </div>
-              <div className="manual-type-list">
-                {PLANNED_MANUAL_TYPES.map((manualType) => (
-                  <div className="manual-type-item" key={manualType}>
-                    <span>{manualType}</span>
-                    <strong>Planned</strong>
-                  </div>
-                ))}
-              </div>
+              {hasManualCatalog ? (
+                <div className="manual-catalog-list">
+                  {manualDocuments.map((manual) => (
+                    <article className="manual-catalog-item" key={manual.id}>
+                      <div className="manual-catalog-header">
+                        <strong>{manual.title}</strong>
+                        <span>{manual.status}</span>
+                      </div>
+                      <dl className="reference-meta">
+                        <div>
+                          <dt>Aircraft</dt>
+                          <dd>{displayReferenceValue(manual.aircraft)}</dd>
+                        </div>
+                        <div>
+                          <dt>Manual type</dt>
+                          <dd>{displayReferenceValue(manual.manual_type)}</dd>
+                        </div>
+                        <div>
+                          <dt>Revision</dt>
+                          <dd>{displayReferenceValue(manual.revision)}</dd>
+                        </div>
+                        <div>
+                          <dt>Storage path</dt>
+                          <dd>{displayReferenceValue(manual.storage_path)}</dd>
+                        </div>
+                      </dl>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="manual-type-list" aria-busy={isManualCatalogLoading}>
+                  {PLANNED_MANUAL_TYPES.map((manualType) => (
+                    <div className="manual-type-item" key={manualType}>
+                      <span>{manualType}</span>
+                      <strong>Planned</strong>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
 
             <div className="reference-list">

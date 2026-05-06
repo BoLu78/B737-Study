@@ -20,5 +20,5 @@ If you are developing a production application, we recommend using TypeScript wi
 - Manuals must not be committed to GitHub.
 - Manuals must not be placed in `public/`.
 - Future upload should use protected Supabase Storage.
-- Current v5.2 only prepares metadata tables and UI placeholders.
+- Current v5.3 prepares the manual catalog for private Supabase Storage metadata.
 - No AI/manual search is active yet.

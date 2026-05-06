@@ -73,3 +73,39 @@ export async function loadQuestionsFromSupabase() {
     }
   }
 }
+
+export async function loadManualDocuments() {
+  if (!supabase) {
+    return {
+      data: null,
+      error: 'Supabase is not configured. Check environment variables.',
+    }
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('manual_documents')
+      .select('id, title, code, aircraft, manual_type, revision, storage_bucket, storage_path, status, notes')
+      .eq('status', 'active')
+      .order('aircraft', { ascending: true })
+      .order('manual_type', { ascending: true })
+      .order('title', { ascending: true })
+
+    if (error) {
+      return {
+        data: null,
+        error: error.message,
+      }
+    }
+
+    return {
+      data: data || [],
+      error: null,
+    }
+  } catch (err) {
+    return {
+      data: null,
+      error: err.message || 'An unexpected error occurred while loading manual documents.',
+    }
+  }
+}
