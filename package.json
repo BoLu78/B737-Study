@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "extract:t73": "node scripts/extract-t73-pdf.js",
+    "sql:t73": "node scripts/generate-t73-sql.js",
+    "import:t73": "node scripts/import-t73-to-supabase.js",
+    "prepare:t73": "npm run extract:t73 && npm run sql:t73"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",
@@ -23,6 +27,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
+    "pdf-parse": "^1.1.1",
     "vite": "^8.0.10"
   }
 }

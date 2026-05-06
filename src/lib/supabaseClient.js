@@ -47,6 +47,7 @@ export async function loadQuestionsFromSupabase() {
 
         return {
           id: row.id,
+          sourceId: row.source_id || null,
           topic: row.topic,
           subtopic: row.subtopic || null,
           question: row.question,

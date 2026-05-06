@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import { loadQuestionsFromSupabase } from './lib/supabaseClient'
 
-const APP_VERSION = 'v4.2'
+const APP_VERSION = 'v4.3'
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
@@ -22,6 +22,7 @@ const REQUIRED_ADMIN_FIELDS = [
 
 const EMPTY_ADMIN_FORM = {
   topic: '',
+  source_id: '',
   subtopic: '',
   question: '',
   answer_a: '',
@@ -102,6 +103,7 @@ const FALLBACK_QUESTIONS = [
 function buildAdminFormFromQuestion(question) {
   return {
     topic: question.topic || '',
+    source_id: question.sourceId || '',
     subtopic: question.subtopic || '',
     question: question.question || '',
     answer_a: question.answers?.[0] || '',
@@ -120,6 +122,7 @@ function buildAdminFormFromQuestion(question) {
 function normalizeAdminForm(form) {
   return {
     topic: form.topic.trim(),
+    source_id: form.source_id === '' ? null : Number(form.source_id),
     subtopic: form.subtopic.trim(),
     question: form.question.trim(),
     answer_a: form.answer_a.trim(),
@@ -152,6 +155,10 @@ function validateAdminForm(form) {
 
   if (!DIFFICULTY_OPTIONS.includes(form.difficulty)) {
     return 'Difficulty must be easy, normal, or hard.'
+  }
+
+  if (form.source_id && !Number.isInteger(Number(form.source_id))) {
+    return 'Source ID must be a whole number.'
   }
 
   return null
@@ -545,6 +552,7 @@ function App() {
                 <thead>
                   <tr>
                     <th>ID</th>
+                    <th>Source ID</th>
                     <th>Topic</th>
                     <th>Question</th>
                     <th>Correct</th>
@@ -557,6 +565,7 @@ function App() {
                   {questions.map((item) => (
                     <tr key={item.id}>
                       <td>{item.id}</td>
+                      <td>{item.sourceId || '—'}</td>
                       <td>{item.topic}</td>
                       <td>{item.question.substring(0, 50)}...</td>
                       <td>{item.correctAnswerLetter || String.fromCharCode(65 + item.correctAnswer)}</td>
@@ -634,6 +643,10 @@ function App() {
                   <label className="field-label">
                     Topic
                     <input name="topic" value={adminForm.topic} onChange={handleAdminFieldChange} />
+                  </label>
+                  <label className="field-label">
+                    Source ID
+                    <input name="source_id" value={adminForm.source_id} onChange={handleAdminFieldChange} />
                   </label>
                   <label className="field-label">
                     Subtopic
@@ -736,6 +749,10 @@ function App() {
                     <span className="question-id">{item.id}</span>
                     <h3>{item.question}</h3>
                     <dl className="admin-question-meta">
+                      <div>
+                        <dt>Source ID</dt>
+                        <dd>{item.sourceId || '—'}</dd>
+                      </div>
                       <div>
                         <dt>Topic</dt>
                         <dd>{item.topic}</dd>
