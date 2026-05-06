@@ -3,6 +3,7 @@ import './App.css'
 import {
   createSignedManualUrl,
   getCurrentSession,
+  loadManualChunksSearch,
   loadManualDocuments,
   loadQuestionsFromSupabase,
   onAuthStateChange,
@@ -11,7 +12,7 @@ import {
 } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v5.5'
+const APP_VERSION = 'v5.6'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
@@ -237,6 +238,32 @@ function getUniqueReferenceValues(questions, field) {
   ).sort((first, second) => first.localeCompare(second, undefined, { numeric: true }))
 }
 
+function createManualChunkExcerpt(text, query) {
+  const normalizedText = String(text || '').replace(/\s+/g, ' ').trim()
+  const normalizedQuery = String(query || '').trim().toLowerCase()
+
+  if (!normalizedText) {
+    return '—'
+  }
+
+  if (!normalizedQuery) {
+    return normalizedText.length > 260 ? `${normalizedText.slice(0, 260)}...` : normalizedText
+  }
+
+  const matchIndex = normalizedText.toLowerCase().indexOf(normalizedQuery)
+
+  if (matchIndex === -1) {
+    return normalizedText.length > 260 ? `${normalizedText.slice(0, 260)}...` : normalizedText
+  }
+
+  const start = Math.max(matchIndex - 90, 0)
+  const end = Math.min(matchIndex + normalizedQuery.length + 170, normalizedText.length)
+  const prefix = start > 0 ? '...' : ''
+  const suffix = end < normalizedText.length ? '...' : ''
+
+  return `${prefix}${normalizedText.slice(start, end)}${suffix}`
+}
+
 function App() {
   const [questions, setQuestions] = useState(FALLBACK_QUESTIONS)
   const [isLoading, setIsLoading] = useState(true)
@@ -265,6 +292,14 @@ function App() {
   const [openingManualId, setOpeningManualId] = useState(null)
   const [manualCardErrors, setManualCardErrors] = useState({})
   const [fallbackManualLink, setFallbackManualLink] = useState(null)
+  const [manualSearchQuery, setManualSearchQuery] = useState('')
+  const [manualSearchManualType, setManualSearchManualType] = useState('')
+  const [manualSearchAircraft, setManualSearchAircraft] = useState('')
+  const [manualSearchResults, setManualSearchResults] = useState([])
+  const [manualSearchError, setManualSearchError] = useState('')
+  const [isManualSearchLoading, setIsManualSearchLoading] = useState(false)
+  const [hasManualChunks, setHasManualChunks] = useState(false)
+  const [hasManualSearchRun, setHasManualSearchRun] = useState(false)
 
   const applyDatabaseResult = useCallback((data, error) => {
     if (error || !data) {
@@ -352,6 +387,24 @@ function App() {
     }
   }, [fallbackManualLink])
 
+  useEffect(() => {
+    let isMounted = true
+
+    const checkManualChunks = async () => {
+      const { data, error } = await loadManualChunksSearch({ limit: 1 })
+
+      if (isMounted) {
+        setHasManualChunks(Boolean(!error && data?.length))
+      }
+    }
+
+    checkManualChunks()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   const topics = Array.from(new Set(questions.map((item) => item.topic)))
   const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
   const topicQuestions = questions.filter((item) => item.topic === currentTopic)
@@ -385,6 +438,8 @@ function App() {
   })
   const hasManualCatalog = manualDocuments.length > 0
   const isManualSignedIn = Boolean(manualSession)
+  const manualSearchManualTypes = getUniqueReferenceValues(manualDocuments, 'manual_type')
+  const manualSearchAircraftOptions = getUniqueReferenceValues(manualDocuments, 'aircraft')
 
   const handleRefreshDatabase = async () => {
     await loadQuestionDatabase()
@@ -501,6 +556,32 @@ function App() {
 
     window.open(fallbackManualLink.signedUrl, '_blank', 'noopener,noreferrer')
     setFallbackManualLink(null)
+  }
+
+  const handleManualSearch = async (event) => {
+    event.preventDefault()
+    setIsManualSearchLoading(true)
+    setManualSearchError('')
+    setHasManualSearchRun(true)
+
+    const { data, error } = await loadManualChunksSearch({
+      query: manualSearchQuery,
+      manualType: manualSearchManualType,
+      aircraft: manualSearchAircraft,
+      limit: 10,
+    })
+
+    setIsManualSearchLoading(false)
+
+    if (error) {
+      setManualSearchResults([])
+      setHasManualChunks(false)
+      setManualSearchError('Manual search index is not available yet.')
+      return
+    }
+
+    setManualSearchResults(data || [])
+    setHasManualChunks((current) => current || Boolean(data?.length))
   }
 
   const handleOpenAdmin = () => {
@@ -722,6 +803,16 @@ function App() {
                     <dd>{displayReferenceValue(currentQuestion.sourceId ?? currentQuestion.id)}</dd>
                   </div>
                 </dl>
+                <div className="ask-manuals-row">
+                  <button className="button button-secondary" disabled>
+                    Ask manuals
+                  </button>
+                  <span>
+                    {hasManualChunks
+                      ? 'AI explanations will be enabled after backend processing is configured.'
+                      : 'Manual index not ready yet.'}
+                  </span>
+                </div>
                 {currentQuestion.difficulty && (
                   <p className="question-meta">Difficulty: {currentQuestion.difficulty}</p>
                 )}
@@ -1023,6 +1114,94 @@ function App() {
                       <span>{manualType}</span>
                       <strong>Planned</strong>
                     </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            <section className="manual-search-panel">
+              <div>
+                <p className="eyebrow">Manual Search</p>
+                <h3>Manual Search</h3>
+                <p>
+                  Search indexed manual text. AI explanations will be enabled after backend processing is configured.
+                </p>
+              </div>
+              <form className="manual-search-form" onSubmit={handleManualSearch}>
+                <label className="field-label">
+                  Search indexed text
+                  <input
+                    type="search"
+                    value={manualSearchQuery}
+                    onChange={(event) => setManualSearchQuery(event.target.value)}
+                    placeholder="Hydraulic pressure, anti-ice, QRH memory items"
+                  />
+                </label>
+                <label className="field-label">
+                  Manual type
+                  <select
+                    value={manualSearchManualType}
+                    onChange={(event) => setManualSearchManualType(event.target.value)}
+                  >
+                    <option value="">All manual types</option>
+                    {manualSearchManualTypes.map((manualType) => (
+                      <option key={manualType} value={manualType}>
+                        {manualType}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field-label">
+                  Aircraft
+                  <select
+                    value={manualSearchAircraft}
+                    onChange={(event) => setManualSearchAircraft(event.target.value)}
+                  >
+                    <option value="">All aircraft</option>
+                    {manualSearchAircraftOptions.map((aircraft) => (
+                      <option key={aircraft} value={aircraft}>
+                        {aircraft}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button className="button button-secondary" type="submit" disabled={isManualSearchLoading}>
+                  {isManualSearchLoading ? 'Searching…' : 'Search'}
+                </button>
+              </form>
+              {manualSearchError && <p className="form-error">{manualSearchError}</p>}
+              {!hasManualChunks && (
+                <p className="manual-search-empty">
+                  No indexed manual text yet. Run local indexing and import chunks before using manual search.
+                </p>
+              )}
+              {hasManualChunks && hasManualSearchRun && manualSearchResults.length === 0 && !manualSearchError && (
+                <p className="manual-search-empty">No manual chunks matched your search.</p>
+              )}
+              {manualSearchResults.length > 0 && (
+                <div className="manual-search-results">
+                  {manualSearchResults.map((result) => (
+                    <article className="manual-search-result" key={result.id}>
+                      <div className="manual-catalog-header">
+                        <strong>{displayReferenceValue(result.title || result.manual_code)}</strong>
+                        <span>Page {displayReferenceValue(result.page_number)}</span>
+                      </div>
+                      <dl className="reference-meta">
+                        <div>
+                          <dt>Manual</dt>
+                          <dd>{displayReferenceValue(result.manual_code)}</dd>
+                        </div>
+                        <div>
+                          <dt>Aircraft</dt>
+                          <dd>{displayReferenceValue(result.aircraft)}</dd>
+                        </div>
+                        <div>
+                          <dt>Manual type</dt>
+                          <dd>{displayReferenceValue(result.manual_type)}</dd>
+                        </div>
+                      </dl>
+                      <p>{createManualChunkExcerpt(result.chunk_text, manualSearchQuery)}</p>
+                    </article>
                   ))}
                 </div>
               )}

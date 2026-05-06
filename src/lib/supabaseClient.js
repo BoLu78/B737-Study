@@ -272,3 +272,76 @@ export async function loadManualDocuments() {
     }
   }
 }
+
+export async function loadManualChunksSearch({ query = '', manualType = '', aircraft = '', limit = 10 } = {}) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: 'Supabase is not configured. Check environment variables.',
+    }
+  }
+
+  const normalizedQuery = String(query || '').trim()
+  const normalizedManualType = String(manualType || '').trim()
+  const normalizedAircraft = String(aircraft || '').trim()
+  const safeLimit = Number.isInteger(Number(limit)) ? Math.min(Math.max(Number(limit), 1), 10) : 10
+
+  const buildBaseQuery = () => {
+    let request = supabase
+      .from('manual_chunks')
+      .select('id, manual_document_id, manual_code, aircraft, manual_type, title, page_number, chunk_index, chunk_text, status')
+      .eq('status', 'active')
+      .limit(safeLimit)
+
+    if (normalizedManualType) {
+      request = request.eq('manual_type', normalizedManualType)
+    }
+
+    if (normalizedAircraft) {
+      request = request.eq('aircraft', normalizedAircraft)
+    }
+
+    return request
+  }
+
+  try {
+    let request = buildBaseQuery()
+
+    if (normalizedQuery) {
+      request = request.textSearch('chunk_text', normalizedQuery, {
+        config: 'english',
+        type: 'websearch',
+      })
+    }
+
+    let { data, error } = await request.order('manual_code', { ascending: true }).order('page_number', { ascending: true })
+
+    if (error && normalizedQuery) {
+      const fallbackRequest = buildBaseQuery()
+        .ilike('chunk_text', `%${normalizedQuery}%`)
+        .order('manual_code', { ascending: true })
+        .order('page_number', { ascending: true })
+
+      const fallbackResult = await fallbackRequest
+      data = fallbackResult.data
+      error = fallbackResult.error
+    }
+
+    if (error) {
+      return {
+        data: null,
+        error: error.message,
+      }
+    }
+
+    return {
+      data: data || [],
+      error: null,
+    }
+  } catch (err) {
+    return {
+      data: null,
+      error: err.message || 'Unable to search manual chunks.',
+    }
+  }
+}

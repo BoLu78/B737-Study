@@ -20,8 +20,8 @@ If you are developing a production application, we recommend using TypeScript wi
 - Manuals must not be committed to GitHub.
 - Manuals must not be placed in `public/`.
 - Future upload should use protected Supabase Storage.
-- Current v5.5 prepares protected manual opening through authenticated Supabase Storage access.
-- No AI/manual search is active yet.
+- Current v5.6 adds the manual chunk/index foundation for read-only manual search.
+- No AI provider calls are active yet.
 
 ## Protected Manual Access
 
@@ -29,4 +29,13 @@ If you are developing a production application, we recommend using TypeScript wi
 - Manual PDF files are not committed to GitHub.
 - Opening a manual requires a Supabase Auth user and an authenticated read policy for the private storage bucket.
 - Signed URLs are generated only on demand and are short-lived.
-- No AI/manual search is active yet.
+- No AI/manual search generation is active yet.
+
+## Manual AI Search Roadmap
+
+- v5.6 adds the manual chunk/index foundation.
+- PDFs remain private and are not committed to GitHub.
+- Local indexing requires placing PDFs in `data/manuals-local/`, which is gitignored.
+- Generated SQL must be reviewed before running in Supabase.
+- No AI provider calls are active yet.
+- A future backend or Edge Function will generate AI answers using indexed chunks.

@@ -11,7 +11,9 @@
     "extract:t73": "node scripts/extract-t73-pdf.js",
     "sql:t73": "node scripts/generate-t73-sql.js",
     "import:t73": "node scripts/import-t73-to-supabase.js",
-    "prepare:t73": "npm run extract:t73 && npm run sql:t73"
+    "prepare:t73": "npm run extract:t73 && npm run sql:t73",
+    "manuals:index": "node scripts/index-manuals-local.js",
+    "manuals:index:dry": "node scripts/index-manuals-local.js --dry-run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",
