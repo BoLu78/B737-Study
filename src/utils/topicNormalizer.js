@@ -22,6 +22,7 @@ export const CANONICAL_TOPICS = [
   'Load balance and servicing',
   'Flight management, navigation',
   'Low visibility operations',
+  'Warning System',
 ]
 
 function cleanTopic(rawTopic) {
@@ -48,6 +49,7 @@ const TOPIC_ALIASES = new Map(
     ['flightmanagementnavigatio', 'Flight management, navigation'],
     ['flightmanagementnavigati', 'Flight management, navigation'],
     ['lowvisibilityoperation', 'Low visibility operations'],
+    ['warningsystem', 'Warning System'],
   ],
 )
 

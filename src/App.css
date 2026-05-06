@@ -727,6 +727,54 @@ td:nth-child(10) {
   gap: 16px;
 }
 
+.manual-library-panel {
+  display: grid;
+  gap: 18px;
+  border-radius: 20px;
+  padding: 22px;
+  background: rgba(12, 20, 35, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.manual-library-panel h3 {
+  font-size: 1.16rem;
+  line-height: 1.25;
+}
+
+.manual-library-panel p {
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.manual-type-list {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.manual-type-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(15, 24, 42, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.manual-type-item span {
+  overflow-wrap: anywhere;
+}
+
+.manual-type-item strong {
+  flex: 0 0 auto;
+  color: #bae6fd;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
 .reference-card {
   min-width: 0;
   border-radius: 20px;
@@ -847,7 +895,8 @@ td:nth-child(10) {
   }
 
   .quiz-reference,
-  .reference-summary-grid {
+  .reference-summary-grid,
+  .manual-type-list {
     grid-template-columns: 1fr;
   }
 

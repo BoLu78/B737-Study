@@ -3,7 +3,8 @@ import './App.css'
 import { loadQuestionsFromSupabase } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v5.1'
+const APP_VERSION = 'v5.2'
+const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
@@ -781,6 +782,24 @@ function App() {
             <div className="reference-result-count">
               Showing {filteredReferences.length} of {questions.length} questions
             </div>
+
+            <section className="manual-library-panel">
+              <div>
+                <p className="eyebrow">Manual Library</p>
+                <h3>Manual Library</h3>
+                <p>
+                  Manual catalog foundation is ready. Manual upload and protected storage will be configured in the next step.
+                </p>
+              </div>
+              <div className="manual-type-list">
+                {PLANNED_MANUAL_TYPES.map((manualType) => (
+                  <div className="manual-type-item" key={manualType}>
+                    <span>{manualType}</span>
+                    <strong>Planned</strong>
+                  </div>
+                ))}
+              </div>
+            </section>
 
             <div className="reference-list">
               {filteredReferences.map((item) => (
