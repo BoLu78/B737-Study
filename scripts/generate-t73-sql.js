@@ -4,7 +4,26 @@ import process from 'node:process'
 
 const INPUT_PATH = 'data/generated/t73_r01_questions.json'
 const OUTPUT_PATH = 'data/generated/t73_r01_questions_insert.sql'
-const COLUMNS = [
+const JSON_RECORDSET_COLUMNS = [
+  ['source_id', 'integer'],
+  ['topic', 'text'],
+  ['subtopic', 'text'],
+  ['question', 'text'],
+  ['answer_a', 'text'],
+  ['answer_b', 'text'],
+  ['answer_c', 'text'],
+  ['answer_d', 'text'],
+  ['correct_answer', 'text'],
+  ['explanation', 'text'],
+  ['manual_reference', 'text'],
+  ['source_document', 'text'],
+  ['source_revision', 'text'],
+  ['source_page', 'integer'],
+  ['status', 'text'],
+  ['difficulty', 'text'],
+  ['import_batch', 'text'],
+]
+const INSERT_COLUMNS = [
   'topic',
   'subtopic',
   'question',
@@ -23,31 +42,13 @@ const COLUMNS = [
   'difficulty',
   'import_batch',
 ]
-const NULLABLE_COLUMNS = new Set(['subtopic', 'source_page'])
-
-function normalizeSqlText(value) {
-  return String(value)
-    .replace(/[\r\n]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function sqlValue(value, columnName) {
-  if (value === null || value === undefined || (value === '' && NULLABLE_COLUMNS.has(columnName))) {
-    return 'NULL'
-  }
-
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? String(value) : 'NULL'
-  }
-
-  const escapedValue = normalizeSqlText(value).replaceAll("'", "''")
-  return `'${escapedValue}'`
-}
+const DOLLAR_QUOTE_DELIMITER = 'T73_JSON_PAYLOAD_V47'
 
 function validateSql(sql) {
   const checks = [
-    [sql.trim().startsWith('insert into public.questions'), 'SQL must start with insert into public.questions.'],
+    [sql.trim().startsWith('with payload as'), 'SQL must start with the payload CTE.'],
+    [sql.includes('jsonb_to_recordset'), 'SQL must load rows with jsonb_to_recordset.'],
+    [!/\nvalues\s*\n\(/i.test(sql), 'SQL must not contain raw VALUES rows.'],
     [
       sql.includes('on conflict (source_document, source_revision, source_id) do update'),
       'SQL must contain the expected on conflict clause.',
@@ -64,12 +65,52 @@ function validateSql(sql) {
   }
 }
 
-function buildInsert(rows) {
-  const values = rows
-    .map((row) => `  (${COLUMNS.map((column) => sqlValue(row[column], column)).join(', ')})`)
-    .join(',\n')
+function getDollarQuoteDelimiter(jsonPayload) {
+  const delimiter = `$${DOLLAR_QUOTE_DELIMITER}$`
 
-  return `insert into public.questions (${COLUMNS.join(', ')})\nvalues\n${values}\non conflict (source_document, source_revision, source_id) do update set\n  topic = excluded.topic,\n  subtopic = excluded.subtopic,\n  question = excluded.question,\n  answer_a = excluded.answer_a,\n  answer_b = excluded.answer_b,\n  answer_c = excluded.answer_c,\n  answer_d = excluded.answer_d,\n  correct_answer = excluded.correct_answer,\n  explanation = excluded.explanation,\n  manual_reference = excluded.manual_reference,\n  source_page = excluded.source_page,\n  status = excluded.status,\n  difficulty = excluded.difficulty,\n  import_batch = excluded.import_batch,\n  updated_at = now();\n`
+  if (jsonPayload.includes(delimiter)) {
+    throw new Error(`JSON payload contains the dollar quote delimiter ${delimiter}.`)
+  }
+
+  return delimiter
+}
+
+function buildInsert(rows) {
+  const jsonPayload = JSON.stringify(rows, null, 2)
+  const dollarQuoteDelimiter = getDollarQuoteDelimiter(jsonPayload)
+  const recordsetColumns = JSON_RECORDSET_COLUMNS.map(([column, type]) => `    ${column} ${type}`).join(',\n')
+
+  return `with payload as (
+  select *
+  from jsonb_to_recordset(${dollarQuoteDelimiter}
+${jsonPayload}
+${dollarQuoteDelimiter}::jsonb) as x(
+${recordsetColumns}
+  )
+)
+insert into public.questions (
+  ${INSERT_COLUMNS.join(',\n  ')}
+)
+select
+  ${INSERT_COLUMNS.join(',\n  ')}
+from payload
+on conflict (source_document, source_revision, source_id) do update set
+  topic = excluded.topic,
+  subtopic = excluded.subtopic,
+  question = excluded.question,
+  answer_a = excluded.answer_a,
+  answer_b = excluded.answer_b,
+  answer_c = excluded.answer_c,
+  answer_d = excluded.answer_d,
+  correct_answer = excluded.correct_answer,
+  explanation = excluded.explanation,
+  manual_reference = excluded.manual_reference,
+  source_page = excluded.source_page,
+  status = excluded.status,
+  difficulty = excluded.difficulty,
+  import_batch = excluded.import_batch,
+  updated_at = now();
+`
 }
 
 async function main() {
