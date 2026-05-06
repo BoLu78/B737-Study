@@ -119,6 +119,61 @@ code {
   font-weight: 600;
 }
 
+.warning-banner,
+.info-banner {
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+}
+
+.warning-banner {
+  background: rgba(248, 113, 28, 0.16);
+  border: 1px solid rgba(248, 113, 28, 0.32);
+  color: #fed7aa;
+}
+
+.info-banner {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.24);
+  color: #bae6fd;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgba(15, 24, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+.dashboard-header > div {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.database-badge,
+.database-count {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.database-badge {
+  padding: 6px 12px;
+  background: rgba(56, 189, 248, 0.12);
+  border-radius: 8px;
+  color: #bae6fd;
+  font-weight: 600;
+}
+
 .app-main {
   margin-top: 28px;
 }
@@ -132,16 +187,8 @@ code {
 .card,
 .question-card,
 .placeholder-card,
-.table-wrap,
-.stats-grid,
-.stat-card {
-  border-radius: 22px;
-}
-
-.card,
-.question-card,
-.placeholder-card,
 .table-wrap {
+  border-radius: 22px;
   padding: 28px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -206,6 +253,11 @@ button.button {
 
 button.button:hover {
   transform: translateY(-1px);
+}
+
+button.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .button-primary {
@@ -306,6 +358,12 @@ button.button:hover {
   margin-bottom: 12px;
 }
 
+.question-meta {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
 .feedback {
   border-radius: 16px;
   padding: 16px 18px;
@@ -336,6 +394,12 @@ button.button:hover {
   font-weight: 600;
   margin-bottom: 10px;
   display: block;
+}
+
+.explanation-reference {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-top: 10px;
 }
 
 .table-wrap {
@@ -378,10 +442,11 @@ td {
 .stats-grid {
   display: grid;
   gap: 18px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
 .stat-card {
+  border-radius: 22px;
   padding: 24px;
   background: rgba(12, 20, 35, 0.95);
   border: 1px solid rgba(148, 163, 184, 0.12);

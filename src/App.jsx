@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
+import { loadQuestionsFromSupabase, isSupabaseConfigured } from './lib/supabaseClient'
 
-const APP_VERSION = 'v3.8'
+const APP_VERSION = 'v3.9'
 
-const QUESTION_BANK = [
+const FALLBACK_QUESTIONS = [
   {
     id: 'AS-01',
     topic: 'Air System',
@@ -67,18 +68,83 @@ const QUESTION_BANK = [
 ]
 
 function App() {
-  const topics = Array.from(new Set(QUESTION_BANK.map((item) => item.topic)))
+  const [questions, setQuestions] = useState(FALLBACK_QUESTIONS)
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
+  const [dataSource, setDataSource] = useState('local')
   const [view, setView] = useState('dashboard')
-  const [selectedTopic, setSelectedTopic] = useState(topics[0] ?? '')
+  const [selectedTopic, setSelectedTopic] = useState('')
   const [questionIndex, setQuestionIndex] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState(null)
   const [answered, setAnswered] = useState(false)
   const [correct, setCorrect] = useState(false)
 
-  const topicQuestions = QUESTION_BANK.filter((item) => item.topic === selectedTopic)
+  // Load questions from Supabase on mount
+  useEffect(() => {
+    const loadQuestions = async () => {
+      setIsLoading(true)
+      setLoadError(null)
+
+      if (!isSupabaseConfigured) {
+        setIsLoading(false)
+        setDataSource('local')
+        return
+      }
+
+      const { data, error } = await loadQuestionsFromSupabase()
+
+      if (error || !data) {
+        setIsLoading(false)
+        setDataSource('local')
+        setLoadError(error)
+        return
+      }
+
+      setQuestions(data)
+      setDataSource('supabase')
+      setIsLoading(false)
+    }
+
+    loadQuestions()
+  }, [])
+
+  // Set initial topic when questions load
+  useEffect(() => {
+    if (questions && questions.length > 0 && !selectedTopic) {
+      const firstTopic = Array.from(new Set(questions.map((q) => q.topic)))[0]
+      setSelectedTopic(firstTopic || '')
+    }
+  }, [questions, selectedTopic])
+
+  const topics = Array.from(new Set(questions.map((item) => item.topic)))
+  const topicQuestions = questions.filter((item) => item.topic === selectedTopic)
   const currentQuestion = topicQuestions[questionIndex]
   const completedCount = topicQuestions.length
-  const activeQuestions = QUESTION_BANK.filter((item) => item.status === 'active').length
+  const activeQuestions = questions.filter((item) => item.status === 'active').length
+
+  const handleRefreshDatabase = async () => {
+    setIsLoading(true)
+    setLoadError(null)
+
+    if (!isSupabaseConfigured) {
+      setIsLoading(false)
+      setDataSource('local')
+      return
+    }
+
+    const { data, error } = await loadQuestionsFromSupabase()
+
+    if (error || !data) {
+      setIsLoading(false)
+      setDataSource('local')
+      setLoadError(error)
+      return
+    }
+
+    setQuestions(data)
+    setDataSource('supabase')
+    setIsLoading(false)
+  }
 
   const handleSelectTopic = (event) => {
     setSelectedTopic(event.target.value)
@@ -131,9 +197,41 @@ function App() {
         <span className="version-badge">{APP_VERSION}</span>
       </header>
 
+      {!isSupabaseConfigured && (
+        <div className="warning-banner">
+          <strong>⚠ Supabase not configured</strong>
+          <span> Check VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local</span>
+        </div>
+      )}
+
+      {loadError && (
+        <div className="warning-banner">
+          <strong>⚠ Database load failed:</strong>
+          <span> {loadError} Using local fallback.</span>
+        </div>
+      )}
+
+      {isLoading && (
+        <div className="info-banner">
+          <span>Loading question database…</span>
+        </div>
+      )}
+
       <main className="app-main">
         {view === 'dashboard' && (
           <section className="dashboard-view">
+            <div className="dashboard-header">
+              <div>
+                <span className="database-badge">
+                  Database: {dataSource === 'supabase' ? 'Supabase' : 'Local fallback'}
+                </span>
+                <span className="database-count">Loaded: {questions.length} questions</span>
+              </div>
+              <button className="button button-secondary" onClick={handleRefreshDatabase}>
+                Refresh Database
+              </button>
+            </div>
+
             <div className="dashboard-grid">
               <article className="card card-strong">
                 <h2>Start Quiz</h2>
@@ -145,6 +243,7 @@ function App() {
                   id="topic-select"
                   value={selectedTopic}
                   onChange={handleSelectTopic}
+                  disabled={isLoading}
                 >
                   {topics.map((topic) => (
                     <option key={topic} value={topic}>
@@ -153,7 +252,11 @@ function App() {
                   ))}
                 </select>
                 <div className="card-actions">
-                  <button className="button button-primary" onClick={handleStartQuiz}>
+                  <button
+                    className="button button-primary"
+                    onClick={handleStartQuiz}
+                    disabled={isLoading || topicQuestions.length === 0}
+                  >
                     Begin {selectedTopic}
                   </button>
                 </div>
@@ -163,7 +266,11 @@ function App() {
                 <h2>Question Database</h2>
                 <p>Browse the current bank of questions, topics, and official correct answers.</p>
                 <div className="card-actions">
-                  <button className="button button-secondary" onClick={() => setView('database')}>
+                  <button
+                    className="button button-secondary"
+                    onClick={() => setView('database')}
+                    disabled={isLoading}
+                  >
                     View Database
                   </button>
                 </div>
@@ -173,7 +280,11 @@ function App() {
                 <h2>Manuals & AI Search</h2>
                 <p>Future feature will search manuals and generate research-backed explanations.</p>
                 <div className="card-actions">
-                  <button className="button button-secondary" onClick={() => setView('manuals')}>
+                  <button
+                    className="button button-secondary"
+                    onClick={() => setView('manuals')}
+                    disabled={isLoading}
+                  >
                     Preview Feature
                   </button>
                 </div>
@@ -183,7 +294,11 @@ function App() {
                 <h2>Statistics</h2>
                 <p>Quick overview of your study bank with counts for topics and active questions.</p>
                 <div className="card-actions">
-                  <button className="button button-secondary" onClick={() => setView('stats')}>
+                  <button
+                    className="button button-secondary"
+                    onClick={() => setView('stats')}
+                    disabled={isLoading}
+                  >
                     Open Statistics
                   </button>
                 </div>
@@ -209,6 +324,9 @@ function App() {
               <article className="question-card">
                 <p className="question-id">{currentQuestion.id}</p>
                 <h3>{currentQuestion.question}</h3>
+                {currentQuestion.difficulty && (
+                  <p className="question-meta">Difficulty: {currentQuestion.difficulty}</p>
+                )}
                 <div className="answer-grid">
                   {currentQuestion.answers.map((answer, index) => {
                     const isSelected = selectedAnswer === index
@@ -245,6 +363,11 @@ function App() {
                   <div className="explanation-box">
                     <p className="explanation-label">Explanation</p>
                     <p>{currentQuestion.explanation}</p>
+                    {currentQuestion.manualReference && (
+                      <p className="explanation-reference">
+                        <strong>Manual Reference:</strong> {currentQuestion.manualReference}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -288,18 +411,22 @@ function App() {
                     <th>ID</th>
                     <th>Topic</th>
                     <th>Question</th>
-                    <th>Answer</th>
+                    <th>Correct</th>
+                    <th>Difficulty</th>
                     <th>Status</th>
+                    <th>Source</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {QUESTION_BANK.map((item) => (
+                  {questions.map((item) => (
                     <tr key={item.id}>
                       <td>{item.id}</td>
                       <td>{item.topic}</td>
-                      <td>{item.question}</td>
-                      <td>{String.fromCharCode(65 + item.correctAnswer)}</td>
+                      <td>{item.question.substring(0, 50)}...</td>
+                      <td>{item.correctAnswerLetter || String.fromCharCode(65 + item.correctAnswer)}</td>
+                      <td>{item.difficulty || '—'}</td>
                       <td>{item.status}</td>
+                      <td>{item.sourceDocument || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -349,7 +476,7 @@ function App() {
             <div className="stats-grid">
               <div className="stat-card">
                 <span>Total questions</span>
-                <strong>{QUESTION_BANK.length}</strong>
+                <strong>{questions.length}</strong>
               </div>
               <div className="stat-card">
                 <span>Topics</span>
@@ -358,6 +485,10 @@ function App() {
               <div className="stat-card">
                 <span>Active questions</span>
                 <strong>{activeQuestions}</strong>
+              </div>
+              <div className="stat-card">
+                <span>Data source</span>
+                <strong>{dataSource === 'supabase' ? 'Supabase' : 'Local'}</strong>
               </div>
             </div>
           </section>
