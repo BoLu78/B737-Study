@@ -746,6 +746,38 @@ td:nth-child(10) {
   margin-top: 8px;
 }
 
+.manual-access-panel {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(15, 24, 42, 0.68);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.manual-access-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.manual-access-header span {
+  color: #bae6fd;
+  font-weight: 600;
+}
+
+.manual-sign-in-form {
+  display: grid;
+  align-items: end;
+  gap: 14px;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
+}
+
+.manual-sign-in-form p {
+  grid-column: 1 / -1;
+}
+
 .manual-type-list {
   display: grid;
   gap: 10px;
@@ -783,6 +815,12 @@ td:nth-child(10) {
   color: #bae6fd;
   font-size: 0.86rem;
   font-weight: 600;
+}
+
+.manual-card-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 16px;
 }
 
 .manual-type-item {
@@ -895,6 +933,10 @@ td:nth-child(10) {
     grid-template-columns: 1fr;
   }
 
+  .manual-sign-in-form {
+    grid-template-columns: 1fr;
+  }
+
   .admin-form-grid {
     grid-template-columns: 1fr;
   }
@@ -935,6 +977,12 @@ td:nth-child(10) {
 
   .manual-catalog-header {
     flex-direction: column;
+  }
+
+  .manual-access-header,
+  .manual-card-actions {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   button.button {

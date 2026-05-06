@@ -1,9 +1,17 @@
 import { useState, useEffect, useCallback } from 'react'
 import './App.css'
-import { loadManualDocuments, loadQuestionsFromSupabase } from './lib/supabaseClient'
+import {
+  createSignedManualUrl,
+  getCurrentSession,
+  loadManualDocuments,
+  loadQuestionsFromSupabase,
+  onAuthStateChange,
+  signInWithEmailPassword,
+  signOut,
+} from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v5.3'
+const APP_VERSION = 'v5.4'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
@@ -249,6 +257,12 @@ function App() {
   const [referenceSearch, setReferenceSearch] = useState('')
   const [manualDocuments, setManualDocuments] = useState([])
   const [isManualCatalogLoading, setIsManualCatalogLoading] = useState(true)
+  const [manualSession, setManualSession] = useState(null)
+  const [manualAuthEmail, setManualAuthEmail] = useState('')
+  const [manualAuthPassword, setManualAuthPassword] = useState('')
+  const [manualAuthError, setManualAuthError] = useState('')
+  const [manualOpenError, setManualOpenError] = useState('')
+  const [openingManualId, setOpeningManualId] = useState(null)
 
   const applyDatabaseResult = useCallback((data, error) => {
     if (error || !data) {
@@ -295,6 +309,33 @@ function App() {
     }
   }, [applyDatabaseResult])
 
+  useEffect(() => {
+    let isMounted = true
+
+    const loadSession = async () => {
+      const { data } = await getCurrentSession()
+
+      if (isMounted) {
+        setManualSession(data)
+      }
+    }
+
+    loadSession()
+
+    const subscription = onAuthStateChange((session) => {
+      if (isMounted) {
+        setManualSession(session)
+        setManualAuthError('')
+        setManualOpenError('')
+      }
+    })
+
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
   const topics = Array.from(new Set(questions.map((item) => item.topic)))
   const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
   const topicQuestions = questions.filter((item) => item.topic === currentTopic)
@@ -327,6 +368,7 @@ function App() {
     return matchesSource && matchesTopic && matchesSearch
   })
   const hasManualCatalog = manualDocuments.length > 0
+  const isManualSignedIn = Boolean(manualSession)
 
   const handleRefreshDatabase = async () => {
     await loadQuestionDatabase()
@@ -375,6 +417,62 @@ function App() {
     setReferenceSourceFilter('')
     setReferenceTopicFilter('')
     setReferenceSearch('')
+  }
+
+  const handleManualSignIn = async (event) => {
+    event.preventDefault()
+    setManualAuthError('')
+
+    const { data, error } = await signInWithEmailPassword(
+      manualAuthEmail.trim(),
+      manualAuthPassword,
+    )
+
+    if (error) {
+      setManualAuthError('Unable to sign in. Check the authorized account credentials.')
+      return
+    }
+
+    setManualSession(data)
+    setManualAuthPassword('')
+  }
+
+  const handleManualSignOut = async () => {
+    setManualAuthError('')
+    setManualOpenError('')
+
+    const { error } = await signOut()
+
+    if (error) {
+      setManualAuthError('Unable to sign out. Try again.')
+      return
+    }
+
+    setManualSession(null)
+  }
+
+  const handleOpenManual = async (manual) => {
+    setManualOpenError('')
+    setOpeningManualId(manual.id)
+
+    const manualWindow = window.open('', '_blank', 'noopener,noreferrer')
+    const { data, error } = await createSignedManualUrl(manual.storage_path)
+
+    setOpeningManualId(null)
+
+    if (error || !data) {
+      manualWindow?.close()
+      setManualOpenError('Unable to open manual. Check authorization and storage policy.')
+      return
+    }
+
+    if (manualWindow) {
+      manualWindow.opener = null
+      manualWindow.location.href = data
+      return
+    }
+
+    window.open(data, '_blank', 'noopener,noreferrer')
   }
 
   const handleOpenAdmin = () => {
@@ -797,8 +895,48 @@ function App() {
                 <p className="eyebrow">Manual Library</p>
                 <h3>Manual Library</h3>
                 <p>
-                  Files are stored in a private Supabase Storage bucket. Direct opening will be enabled after protected access is configured.
+                  Files are stored in a private Supabase Storage bucket. Sign in with an authorized account to open private manuals.
                 </p>
+              </div>
+              <div className="manual-access-panel">
+                <div className="manual-access-header">
+                  <span>Manual access: {isManualSignedIn ? 'signed in' : 'signed out'}</span>
+                  {isManualSignedIn && (
+                    <button className="button button-ghost" onClick={handleManualSignOut}>
+                      Sign out
+                    </button>
+                  )}
+                </div>
+                {!isManualSignedIn && (
+                  <form className="manual-sign-in-form" onSubmit={handleManualSignIn}>
+                    <label className="field-label">
+                      Email
+                      <input
+                        type="email"
+                        value={manualAuthEmail}
+                        onChange={(event) => setManualAuthEmail(event.target.value)}
+                        autoComplete="email"
+                      />
+                    </label>
+                    <label className="field-label">
+                      Password
+                      <input
+                        type="password"
+                        value={manualAuthPassword}
+                        onChange={(event) => setManualAuthPassword(event.target.value)}
+                        autoComplete="current-password"
+                      />
+                    </label>
+                    <button className="button button-secondary" type="submit">
+                      Sign in
+                    </button>
+                    <p>
+                      Manual opening is restricted to authorized Supabase Auth users. No public links are generated.
+                    </p>
+                  </form>
+                )}
+                {manualAuthError && <p className="form-error">{manualAuthError}</p>}
+                {manualOpenError && <p className="form-error">{manualOpenError}</p>}
               </div>
               {hasManualCatalog ? (
                 <div className="manual-catalog-list">
@@ -826,6 +964,15 @@ function App() {
                           <dd>{displayReferenceValue(manual.storage_path)}</dd>
                         </div>
                       </dl>
+                      <div className="manual-card-actions">
+                        <button
+                          className="button button-secondary"
+                          onClick={() => handleOpenManual(manual)}
+                          disabled={!isManualSignedIn || openingManualId === manual.id}
+                        >
+                          {isManualSignedIn ? 'Open manual' : 'Sign in to open'}
+                        </button>
+                      </div>
                     </article>
                   ))}
                 </div>
