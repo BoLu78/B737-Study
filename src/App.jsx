@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import './App.css'
-import { loadQuestionsFromSupabase, isSupabaseConfigured } from './lib/supabaseClient'
+import { loadQuestionsFromSupabase } from './lib/supabaseClient'
 
-const APP_VERSION = 'v3.9'
+const APP_VERSION = 'v4.1'
+const DATA_SOURCE_SUPABASE = 'Supabase'
+const DATA_SOURCE_FALLBACK = 'Local fallback'
 
 const FALLBACK_QUESTIONS = [
   {
@@ -71,7 +73,7 @@ function App() {
   const [questions, setQuestions] = useState(FALLBACK_QUESTIONS)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
-  const [dataSource, setDataSource] = useState('local')
+  const [dataSource, setDataSource] = useState(DATA_SOURCE_FALLBACK)
   const [view, setView] = useState('dashboard')
   const [selectedTopic, setSelectedTopic] = useState('')
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -79,71 +81,54 @@ function App() {
   const [answered, setAnswered] = useState(false)
   const [correct, setCorrect] = useState(false)
 
-  // Load questions from Supabase on mount
-  useEffect(() => {
-    const loadQuestions = async () => {
-      setIsLoading(true)
-      setLoadError(null)
-
-      if (!isSupabaseConfigured) {
-        setIsLoading(false)
-        setDataSource('local')
-        return
-      }
-
-      const { data, error } = await loadQuestionsFromSupabase()
-
-      if (error || !data) {
-        setIsLoading(false)
-        setDataSource('local')
-        setLoadError(error)
-        return
-      }
-
-      setQuestions(data)
-      setDataSource('supabase')
+  const applyDatabaseResult = useCallback((data, error) => {
+    if (error || !data) {
+      setQuestions(FALLBACK_QUESTIONS)
+      setDataSource(DATA_SOURCE_FALLBACK)
+      setLoadError(error || 'Unable to load questions from Supabase.')
       setIsLoading(false)
+      return
     }
 
-    loadQuestions()
+    setQuestions(data)
+    setDataSource(DATA_SOURCE_SUPABASE)
+    setIsLoading(false)
   }, [])
 
-  // Set initial topic when questions load
+  const loadQuestionDatabase = useCallback(async () => {
+    setIsLoading(true)
+    setLoadError(null)
+
+    const { data, error } = await loadQuestionsFromSupabase()
+    applyDatabaseResult(data, error)
+  }, [applyDatabaseResult])
+
   useEffect(() => {
-    if (questions && questions.length > 0 && !selectedTopic) {
-      const firstTopic = Array.from(new Set(questions.map((q) => q.topic)))[0]
-      setSelectedTopic(firstTopic || '')
+    let isMounted = true
+
+    const loadInitialQuestions = async () => {
+      const { data, error } = await loadQuestionsFromSupabase()
+      if (isMounted) {
+        applyDatabaseResult(data, error)
+      }
     }
-  }, [questions, selectedTopic])
+
+    loadInitialQuestions()
+
+    return () => {
+      isMounted = false
+    }
+  }, [applyDatabaseResult])
 
   const topics = Array.from(new Set(questions.map((item) => item.topic)))
-  const topicQuestions = questions.filter((item) => item.topic === selectedTopic)
+  const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
+  const topicQuestions = questions.filter((item) => item.topic === currentTopic)
   const currentQuestion = topicQuestions[questionIndex]
   const completedCount = topicQuestions.length
   const activeQuestions = questions.filter((item) => item.status === 'active').length
 
   const handleRefreshDatabase = async () => {
-    setIsLoading(true)
-    setLoadError(null)
-
-    if (!isSupabaseConfigured) {
-      setIsLoading(false)
-      setDataSource('local')
-      return
-    }
-
-    const { data, error } = await loadQuestionsFromSupabase()
-
-    if (error || !data) {
-      setIsLoading(false)
-      setDataSource('local')
-      setLoadError(error)
-      return
-    }
-
-    setQuestions(data)
-    setDataSource('supabase')
-    setIsLoading(false)
+    await loadQuestionDatabase()
   }
 
   const handleSelectTopic = (event) => {
@@ -197,16 +182,9 @@ function App() {
         <span className="version-badge">{APP_VERSION}</span>
       </header>
 
-      {!isSupabaseConfigured && (
-        <div className="warning-banner">
-          <strong>⚠ Supabase not configured</strong>
-          <span> Check VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local</span>
-        </div>
-      )}
-
       {loadError && (
         <div className="warning-banner">
-          <strong>⚠ Database load failed:</strong>
+          <strong>Database warning:</strong>
           <span> {loadError} Using local fallback.</span>
         </div>
       )}
@@ -223,7 +201,7 @@ function App() {
             <div className="dashboard-header">
               <div>
                 <span className="database-badge">
-                  Database: {dataSource === 'supabase' ? 'Supabase' : 'Local fallback'}
+                  Database: {dataSource}
                 </span>
                 <span className="database-count">Loaded: {questions.length} questions</span>
               </div>
@@ -241,7 +219,7 @@ function App() {
                 </label>
                 <select
                   id="topic-select"
-                  value={selectedTopic}
+                  value={currentTopic}
                   onChange={handleSelectTopic}
                   disabled={isLoading}
                 >
@@ -257,7 +235,7 @@ function App() {
                     onClick={handleStartQuiz}
                     disabled={isLoading || topicQuestions.length === 0}
                   >
-                    Begin {selectedTopic}
+                    Begin {currentTopic}
                   </button>
                 </div>
               </article>
@@ -312,7 +290,7 @@ function App() {
             <div className="quiz-header">
               <div>
                 <p className="eyebrow">Quiz mode</p>
-                <h2>{selectedTopic}</h2>
+                <h2>{currentTopic}</h2>
                 <p className="subtitle">Question {questionIndex + 1} of {completedCount}</p>
               </div>
               <button className="button button-ghost" onClick={handleBackToDashboard}>
@@ -414,7 +392,7 @@ function App() {
                     <th>Correct</th>
                     <th>Difficulty</th>
                     <th>Status</th>
-                    <th>Source</th>
+                    <th>Source document</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -488,7 +466,7 @@ function App() {
               </div>
               <div className="stat-card">
                 <span>Data source</span>
-                <strong>{dataSource === 'supabase' ? 'Supabase' : 'Local'}</strong>
+                <strong>{dataSource}</strong>
               </div>
             </div>
           </section>

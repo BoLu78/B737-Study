@@ -41,8 +41,9 @@ export async function loadQuestionsFromSupabase() {
 
     return {
       data: data.map((row) => {
-        const correctAnswerMap = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 }
-        const correctAnswerIndex = correctAnswerMap[row.correct_answer] ?? 0
+        const correctAnswerLetter = String(row.correct_answer || '').trim().toUpperCase()
+        const correctAnswerMap = { A: 0, B: 1, C: 2, D: 3 }
+        const correctAnswerIndex = correctAnswerMap[correctAnswerLetter] ?? 0
 
         return {
           id: row.id,
@@ -51,7 +52,7 @@ export async function loadQuestionsFromSupabase() {
           question: row.question,
           answers: [row.answer_a, row.answer_b, row.answer_c, row.answer_d],
           correctAnswer: correctAnswerIndex,
-          correctAnswerLetter: row.correct_answer,
+          correctAnswerLetter,
           explanation: row.explanation,
           manualReference: row.manual_reference || null,
           sourceDocument: row.source_document || null,
