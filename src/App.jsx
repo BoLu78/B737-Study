@@ -11,7 +11,7 @@ import {
 } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v5.4'
+const APP_VERSION = 'v5.5'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
@@ -263,6 +263,8 @@ function App() {
   const [manualAuthError, setManualAuthError] = useState('')
   const [manualOpenError, setManualOpenError] = useState('')
   const [openingManualId, setOpeningManualId] = useState(null)
+  const [manualCardErrors, setManualCardErrors] = useState({})
+  const [fallbackManualLink, setFallbackManualLink] = useState(null)
 
   const applyDatabaseResult = useCallback((data, error) => {
     if (error || !data) {
@@ -327,6 +329,8 @@ function App() {
         setManualSession(session)
         setManualAuthError('')
         setManualOpenError('')
+        setManualCardErrors({})
+        setFallbackManualLink(null)
       }
     })
 
@@ -335,6 +339,18 @@ function App() {
       subscription.unsubscribe()
     }
   }, [])
+
+  useEffect(() => {
+    if (!fallbackManualLink) return undefined
+
+    const timeoutId = window.setTimeout(() => {
+      setFallbackManualLink(null)
+    }, 300000)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [fallbackManualLink])
 
   const topics = Array.from(new Set(questions.map((item) => item.topic)))
   const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
@@ -440,6 +456,8 @@ function App() {
   const handleManualSignOut = async () => {
     setManualAuthError('')
     setManualOpenError('')
+    setManualCardErrors({})
+    setFallbackManualLink(null)
 
     const { error } = await signOut()
 
@@ -453,26 +471,36 @@ function App() {
 
   const handleOpenManual = async (manual) => {
     setManualOpenError('')
+    setManualCardErrors({})
+    setFallbackManualLink(null)
     setOpeningManualId(manual.id)
 
-    const manualWindow = window.open('', '_blank', 'noopener,noreferrer')
-    const { data, error } = await createSignedManualUrl(manual.storage_path)
+    const { signedUrl, error } = await createSignedManualUrl(manual.storage_path)
 
     setOpeningManualId(null)
 
-    if (error || !data) {
-      manualWindow?.close()
-      setManualOpenError('Unable to open manual. Check authorization and storage policy.')
+    if (error || !signedUrl) {
+      setManualCardErrors({
+        [manual.id]: 'Unable to open manual. Check authorization, storage policy and file path.',
+      })
       return
     }
 
-    if (manualWindow) {
-      manualWindow.opener = null
-      manualWindow.location.href = data
-      return
-    }
+    const manualWindow = window.open(signedUrl, '_blank', 'noopener,noreferrer')
 
-    window.open(data, '_blank', 'noopener,noreferrer')
+    if (!manualWindow) {
+      setFallbackManualLink({
+        manualId: manual.id,
+        signedUrl,
+      })
+    }
+  }
+
+  const handleOpenFallbackManual = () => {
+    if (!fallbackManualLink?.signedUrl) return
+
+    window.open(fallbackManualLink.signedUrl, '_blank', 'noopener,noreferrer')
+    setFallbackManualLink(null)
   }
 
   const handleOpenAdmin = () => {
@@ -900,7 +928,9 @@ function App() {
               </div>
               <div className="manual-access-panel">
                 <div className="manual-access-header">
-                  <span>Manual access: {isManualSignedIn ? 'signed in' : 'signed out'}</span>
+                  <span>
+                    Manual access: {isManualSignedIn ? `signed in as ${manualSession?.user?.email || 'authorized user'}` : 'signed out'}
+                  </span>
                   {isManualSignedIn && (
                     <button className="button button-ghost" onClick={handleManualSignOut}>
                       Sign out
@@ -970,9 +1000,19 @@ function App() {
                           onClick={() => handleOpenManual(manual)}
                           disabled={!isManualSignedIn || openingManualId === manual.id}
                         >
-                          {isManualSignedIn ? 'Open manual' : 'Sign in to open'}
+                          {openingManualId === manual.id
+                            ? 'Preparing secure link…'
+                            : isManualSignedIn
+                              ? 'Open manual'
+                              : 'Sign in to open'}
                         </button>
+                        {fallbackManualLink?.manualId === manual.id && (
+                          <button className="button button-primary" onClick={handleOpenFallbackManual}>
+                            Open manual now
+                          </button>
+                        )}
                       </div>
+                      {manualCardErrors[manual.id] && <p className="form-error">{manualCardErrors[manual.id]}</p>}
                     </article>
                   ))}
                 </div>

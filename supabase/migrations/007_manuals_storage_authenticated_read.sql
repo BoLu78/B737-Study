@@ -1,7 +1,3 @@
-update storage.buckets
-set public = false
-where id = 'manuals';
-
 drop policy if exists "Authenticated users can read manuals"
   on storage.objects;
 

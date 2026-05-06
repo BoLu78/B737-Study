@@ -111,63 +111,65 @@ export async function signOut() {
 export async function createSignedManualUrl(storagePath) {
   if (!supabase) {
     return {
-      data: null,
+      signedUrl: null,
       error: 'Supabase is not configured. Check environment variables.',
     }
   }
 
-  const normalizedStoragePath = String(storagePath || '').trim()
-
-  if (!normalizedStoragePath) {
+  if (typeof storagePath !== 'string' || !storagePath.trim()) {
     return {
-      data: null,
-      error: 'Missing manual storage path.',
+      signedUrl: null,
+      error: 'Manual storage path is missing.',
     }
   }
 
-  const { data: session, error: sessionError } = await getCurrentSession()
-
-  if (sessionError) {
-    return {
-      data: null,
-      error: sessionError,
-    }
-  }
-
-  if (!session) {
-    return {
-      data: null,
-      error: 'Sign in is required to open private manuals.',
-    }
-  }
+  const normalizedStoragePath = storagePath.trim()
 
   try {
+    const { data: session, error: sessionError } = await getCurrentSession()
+
+    if (sessionError || !session) {
+      return {
+        signedUrl: null,
+        error: 'You must sign in before opening manuals.',
+      }
+    }
+
     const { data, error } = await supabase.storage
       .from('manuals')
       .createSignedUrl(normalizedStoragePath, 300)
 
     if (error) {
+      const errorMessage = String(error.message || '').toLowerCase()
+      const isAccessOrMissingFileError =
+        errorMessage.includes('not found') ||
+        errorMessage.includes('denied') ||
+        errorMessage.includes('unauthorized') ||
+        errorMessage.includes('forbidden')
+
       return {
-        data: null,
-        error: error.message,
+        signedUrl: null,
+        error: isAccessOrMissingFileError
+          ? 'Manual file not found or access denied.'
+          : 'Unable to create signed URL. Check storage policy and file path.',
       }
     }
 
     if (!data?.signedUrl) {
       return {
-        data: null,
-        error: 'Unable to create a signed manual URL.',
+        signedUrl: null,
+        error: 'Unable to create signed URL. Check storage policy and file path.',
       }
     }
 
     return {
-      data: data.signedUrl,
+      signedUrl: data.signedUrl,
       error: null,
     }
-  } catch (err) {
+  } catch {
     return {
-      data: null,
-      error: err.message || 'Unable to create a signed manual URL.',
+      signedUrl: null,
+      error: 'Unable to create signed URL. Check storage policy and file path.',
     }
   }
 }

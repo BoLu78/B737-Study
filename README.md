@@ -20,7 +20,7 @@ If you are developing a production application, we recommend using TypeScript wi
 - Manuals must not be committed to GitHub.
 - Manuals must not be placed in `public/`.
 - Future upload should use protected Supabase Storage.
-- Current v5.4 prepares protected manual opening through authenticated Supabase Storage access.
+- Current v5.5 prepares protected manual opening through authenticated Supabase Storage access.
 - No AI/manual search is active yet.
 
 ## Protected Manual Access
