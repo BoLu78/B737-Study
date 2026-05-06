@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { getCanonicalTopic } from '../utils/topicNormalizer'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -48,7 +49,8 @@ export async function loadQuestionsFromSupabase() {
         return {
           id: row.id,
           sourceId: row.source_id ?? null,
-          topic: row.topic,
+          rawTopic: row.topic,
+          topic: getCanonicalTopic(row.topic),
           subtopic: row.subtopic || null,
           question: row.question,
           answers: [row.answer_a, row.answer_b, row.answer_c, row.answer_d],

@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import { loadQuestionsFromSupabase } from './lib/supabaseClient'
+import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v5.0'
+const APP_VERSION = 'v5.1'
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
@@ -39,7 +40,7 @@ const EMPTY_ADMIN_FORM = {
   difficulty: 'normal',
 }
 
-const FALLBACK_QUESTIONS = [
+const RAW_FALLBACK_QUESTIONS = [
   {
     id: 'AS-01',
     topic: 'Air System',
@@ -101,6 +102,12 @@ const FALLBACK_QUESTIONS = [
     status: 'active',
   },
 ]
+
+const FALLBACK_QUESTIONS = RAW_FALLBACK_QUESTIONS.map((question) => ({
+  ...question,
+  rawTopic: question.topic,
+  topic: getCanonicalTopic(question.topic),
+}))
 
 function buildAdminFormFromQuestion(question) {
   return {
