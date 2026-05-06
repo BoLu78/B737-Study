@@ -2,10 +2,12 @@ import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import { loadQuestionsFromSupabase } from './lib/supabaseClient'
 
-const APP_VERSION = 'v4.7'
+const APP_VERSION = 'v4.9'
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
+const ANSWER_KEYS = ['A', 'B', 'C', 'D']
+const PLACEHOLDER_ANSWERS = new Set(['not applicable', 'n/a', 'na'])
 const STATUS_OPTIONS = ['active', 'draft', 'to_verify', 'obsolete']
 const DIFFICULTY_OPTIONS = ['easy', 'normal', 'hard']
 const REQUIRED_ADMIN_FIELDS = [
@@ -164,6 +166,37 @@ function validateAdminForm(form) {
   return null
 }
 
+function getCorrectAnswerKey(question) {
+  const answerLetter = String(question?.correctAnswerLetter || '').trim().toUpperCase()
+
+  if (ANSWER_KEYS.includes(answerLetter)) {
+    return answerLetter
+  }
+
+  const answerIndex = Number(question?.correctAnswer)
+  return Number.isInteger(answerIndex) && ANSWER_KEYS[answerIndex] ? ANSWER_KEYS[answerIndex] : 'A'
+}
+
+function isPlaceholderAnswer(answerText) {
+  return PLACEHOLDER_ANSWERS.has(answerText.toLowerCase())
+}
+
+function normalizeQuizOptions(question) {
+  const correctAnswerKey = getCorrectAnswerKey(question)
+  const answers = Array.isArray(question?.answers) ? question.answers : []
+
+  return ANSWER_KEYS.map((key, originalIndex) => {
+    const answer = answers[originalIndex]
+    const text = typeof answer === 'string' ? answer.replace(/\s+/g, ' ').trim() : ''
+
+    if (!text || (isPlaceholderAnswer(text) && key !== correctAnswerKey)) {
+      return null
+    }
+
+    return { key, text, originalIndex }
+  }).filter(Boolean)
+}
+
 function App() {
   const [questions, setQuestions] = useState(FALLBACK_QUESTIONS)
   const [isLoading, setIsLoading] = useState(true)
@@ -223,6 +256,7 @@ function App() {
   const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
   const topicQuestions = questions.filter((item) => item.topic === currentTopic)
   const currentQuestion = topicQuestions[questionIndex]
+  const currentAnswerOptions = normalizeQuizOptions(currentQuestion)
   const completedCount = topicQuestions.length
   const activeQuestions = questions.filter((item) => item.status === 'active').length
 
@@ -244,10 +278,11 @@ function App() {
     setView('quiz')
   }
 
-  const handleAnswerClick = (index) => {
+  const handleAnswerClick = (option) => {
     if (answered || !currentQuestion) return
-    setSelectedAnswer(index)
-    setCorrect(index === currentQuestion.correctAnswer)
+    const correctAnswerKey = getCorrectAnswerKey(currentQuestion)
+    setSelectedAnswer(option.originalIndex)
+    setCorrect(option.key === correctAnswerKey)
     setAnswered(true)
   }
 
@@ -470,10 +505,10 @@ function App() {
                 {currentQuestion.difficulty && (
                   <p className="question-meta">Difficulty: {currentQuestion.difficulty}</p>
                 )}
-                <div className="answer-grid">
-                  {currentQuestion.answers.map((answer, index) => {
-                    const isSelected = selectedAnswer === index
-                    const isCorrectAnswer = currentQuestion.correctAnswer === index
+                <div className={`answer-grid answer-grid-${currentAnswerOptions.length}`}>
+                  {currentAnswerOptions.map((option) => {
+                    const isSelected = selectedAnswer === option.originalIndex
+                    const isCorrectAnswer = getCorrectAnswerKey(currentQuestion) === option.key
                     const answerClass = answered
                       ? isCorrectAnswer
                         ? 'answer-button answer-correct'
@@ -484,13 +519,13 @@ function App() {
 
                     return (
                       <button
-                        key={answer}
+                        key={`${option.key}-${option.originalIndex}`}
                         className={answerClass}
-                        onClick={() => handleAnswerClick(index)}
+                        onClick={() => handleAnswerClick(option)}
                         disabled={answered}
                       >
-                        <span className="answer-key">{String.fromCharCode(65 + index)}</span>
-                        {answer}
+                        <span className="answer-key">{option.key}</span>
+                        <span className="answer-text">{option.text}</span>
                       </button>
                     )
                   })}
