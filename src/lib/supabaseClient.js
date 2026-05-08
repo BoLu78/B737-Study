@@ -307,7 +307,75 @@ export async function countManualChunks() {
   }
 }
 
-export async function loadManualChunksSearch({ query = '', manualType = '', aircraft = '', limit = 20 } = {}) {
+function getManualSearchWords(query) {
+  return Array.from(
+    new Set(
+      String(query || '')
+        .toLowerCase()
+        .trim()
+        .split(/\s+/)
+        .map((word) => word.replace(/[^\p{L}\p{N}-]/gu, ''))
+        .filter((word) => word.length > 1),
+    ),
+  )
+}
+
+function isLowValueManualChunk(chunkText, pageNumber) {
+  const normalizedText = String(chunkText || '').toLowerCase()
+
+  return (
+    /table of contents|abbreviations|abbreviation list|revision log|revision record|title page|intentionally blank|chapter index/.test(normalizedText) ||
+    (Number(pageNumber) <= 10 && /preface|copyright|proprietary|revision/.test(normalizedText)) ||
+    normalizedText.length < 120
+  )
+}
+
+function scoreManualChunkSearchResult(row, query) {
+  const normalizedQuery = String(query || '').trim().toLowerCase()
+  const words = getManualSearchWords(normalizedQuery)
+  const chunkText = String(row?.chunk_text || '').toLowerCase()
+  const title = String(row?.title || '').toLowerCase()
+  const manualCode = String(row?.manual_code || '').toLowerCase()
+  const matchingWordCount = words.filter((word) => (
+    chunkText.includes(word) ||
+    title.includes(word) ||
+    manualCode.includes(word)
+  )).length
+  const allWordsInText = words.length > 0 && words.every((word) => chunkText.includes(word))
+
+  let score = 0
+
+  if (normalizedQuery && chunkText.includes(normalizedQuery)) score += 1000
+  if (normalizedQuery && (title.includes(normalizedQuery) || manualCode.includes(normalizedQuery))) score += 800
+  if (allWordsInText) score += 600
+
+  score += matchingWordCount * 45
+
+  if (isLowValueManualChunk(row?.chunk_text, row?.page_number)) {
+    score -= 220
+  }
+
+  return score
+}
+
+function sortManualSearchResults(data, query, limit) {
+  return [...(data || [])]
+    .map((row) => ({
+      ...row,
+      rank_score: Number.isFinite(Number(row.rank_score))
+        ? Number(row.rank_score)
+        : scoreManualChunkSearchResult(row, query),
+    }))
+    .sort((first, second) => (
+      Number(second.rank_score || 0) - Number(first.rank_score || 0) ||
+      String(first.manual_code || '').localeCompare(String(second.manual_code || '')) ||
+      Number(first.page_number || 0) - Number(second.page_number || 0) ||
+      Number(first.chunk_index || 0) - Number(second.chunk_index || 0)
+    ))
+    .slice(0, limit)
+}
+
+export async function loadManualChunksSearch(options = {}, fallbackLimit = 20) {
   if (!supabase) {
     return {
       data: null,
@@ -315,47 +383,73 @@ export async function loadManualChunksSearch({ query = '', manualType = '', airc
     }
   }
 
+  const searchOptions = typeof options === 'string'
+    ? { query: options, limit: fallbackLimit }
+    : options || {}
+  const {
+    query = '',
+    manualType = '',
+    aircraft = '',
+    limit = 20,
+  } = searchOptions
   const normalizedQuery = String(query || '').trim()
   const normalizedManualType = String(manualType || '').trim()
   const normalizedAircraft = String(aircraft || '').trim()
   const safeLimit = Number.isInteger(Number(limit)) ? Math.min(Math.max(Number(limit), 1), 20) : 20
 
-  const buildBaseQuery = () => {
-    let request = supabase
-      .from('manual_chunks')
-      .select('id, manual_document_id, manual_code, aircraft, manual_type, title, page_number, chunk_index, chunk_text, status')
-      .eq('status', 'active')
-      .limit(safeLimit)
-
-    if (normalizedManualType) {
-      request = request.eq('manual_type', normalizedManualType)
+  if (!normalizedQuery) {
+    return {
+      data: [],
+      error: null,
     }
-
-    if (normalizedAircraft) {
-      request = request.eq('aircraft', normalizedAircraft)
-    }
-
-    return request
   }
 
-  try {
+  const runDirectFallbackSearch = async () => {
+    const fetchLimit = Math.min(safeLimit * 5, 100)
+    const buildBaseQuery = () => {
+      let request = supabase
+        .from('manual_chunks')
+        .select('id, manual_document_id, manual_code, aircraft, manual_type, title, storage_path, page_number, chunk_index, chunk_text, status')
+        .eq('status', 'active')
+        .limit(fetchLimit)
+
+      if (normalizedManualType) {
+        request = request.eq('manual_type', normalizedManualType)
+      }
+
+      if (normalizedAircraft) {
+        request = request.eq('aircraft', normalizedAircraft)
+      }
+
+      return request
+    }
+
     let request = buildBaseQuery()
 
-    if (normalizedQuery) {
-      request = request.textSearch('chunk_text', normalizedQuery, {
-        config: 'english',
-        type: 'websearch',
-      })
-    }
+    request = request.textSearch('chunk_text', normalizedQuery, {
+      config: 'english',
+      type: 'websearch',
+    })
 
     let { data, error } = await request
       .order('manual_code', { ascending: true })
       .order('page_number', { ascending: true })
       .order('chunk_index', { ascending: true })
 
-    if (error && normalizedQuery) {
+    if (error || !data?.length) {
+      const words = getManualSearchWords(normalizedQuery)
+      const ilikeClauses = [
+        `chunk_text.ilike.%${normalizedQuery}%`,
+        `title.ilike.%${normalizedQuery}%`,
+        `manual_code.ilike.%${normalizedQuery}%`,
+        ...words.flatMap((word) => [
+          `chunk_text.ilike.%${word}%`,
+          `title.ilike.%${word}%`,
+          `manual_code.ilike.%${word}%`,
+        ]),
+      ]
       const fallbackRequest = buildBaseQuery()
-        .ilike('chunk_text', `%${normalizedQuery}%`)
+        .or(ilikeClauses.join(','))
         .order('manual_code', { ascending: true })
         .order('page_number', { ascending: true })
         .order('chunk_index', { ascending: true })
@@ -366,20 +460,46 @@ export async function loadManualChunksSearch({ query = '', manualType = '', airc
     }
 
     if (error) {
+      throw new Error(error.message)
+    }
+
+    return sortManualSearchResults(data || [], normalizedQuery, safeLimit)
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('search_manual_chunks', {
+      search_query: normalizedQuery,
+      aircraft_filter: normalizedAircraft || null,
+      manual_type_filter: normalizedManualType || null,
+      result_limit: safeLimit,
+    })
+
+    if (!error) {
       return {
-        data: null,
-        error: error.message,
+        data: sortManualSearchResults(data || [], normalizedQuery, safeLimit),
+        error: null,
       }
     }
 
+    const fallbackData = await runDirectFallbackSearch()
+
     return {
-      data: data || [],
+      data: fallbackData,
       error: null,
     }
   } catch (err) {
-    return {
-      data: null,
-      error: err.message || 'Unable to search manual chunks.',
+    try {
+      const fallbackData = await runDirectFallbackSearch()
+
+      return {
+        data: fallbackData,
+        error: null,
+      }
+    } catch (fallbackErr) {
+      return {
+        data: null,
+        error: fallbackErr.message || err.message || 'Unable to search manual chunks.',
+      }
     }
   }
 }

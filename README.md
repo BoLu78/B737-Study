@@ -95,7 +95,7 @@ Import the generated files in `data/generated/manual_chunks_sql_parts/` one by o
 
 ## Current Limitation
 
-Manual chunk search is available in the app through Supabase `manual_chunks`. No AI provider call, no Edge Function, no RPC answer generator, and no fake AI answer path is active yet. The "AI answers not enabled yet" control remains disabled until secure backend AI answer generation exists.
+Manual search is keyword/ranked chunk search through Supabase `manual_chunks`, not AI. Use exact Boeing/manual terminology where possible, such as `speed trim` instead of `trim speed`. No AI provider call, no Edge Function, no AI answer generator, and no fake AI answer path is active yet. The "AI answers not enabled yet" control remains disabled until secure backend AI answer generation exists.
 
 ## Next Planned Step
 
