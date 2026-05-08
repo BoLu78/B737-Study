@@ -1,7 +1,7 @@
 {
   "name": "b737-study",
   "private": true,
-  "version": "7.2.0",
+  "version": "7.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,6 +18,8 @@
     "manuals:manifest": "node scripts/prepare-manuals-local-manifest.js",
     "manuals:chunks:split": "node scripts/split-manual-chunks-sql.js",
     "manuals:check": "node scripts/check-manual-pipeline.js",
+    "questions:audit-text": "node scripts/audit-question-text.js",
+    "questions:test-cleaner": "node scripts/test-question-text-cleaner.js",
     "manuals:search:check": "node scripts/check-manual-search.js"
   },
   "dependencies": {

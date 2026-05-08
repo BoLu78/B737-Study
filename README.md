@@ -169,8 +169,16 @@ During topic practice:
 - Topic practice shows a session result summary after completion.
 - Wrong answers can be reviewed after the session.
 - The question flow does not show manual support cards, difficulty badges, or static explanation/manual-reference boxes.
+- Imported question text is cleaned at display time for obvious PDF extraction artifacts.
 
 Manuals are secondary support. Use Manual References and Raw Manual Chunk Search outside the question flow to find official manual/page references, then verify in the private manual PDF.
+
+Original Supabase question records are not automatically modified by display cleanup. To inspect imported text quality, run:
+
+```bash
+npm run questions:test-cleaner
+npm run questions:audit-text
+```
 
 ## Raw Manual Chunk Search
 

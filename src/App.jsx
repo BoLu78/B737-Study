@@ -12,9 +12,10 @@ import {
   signInWithEmailPassword,
   signOut,
 } from './lib/supabaseClient'
+import { cleanAnswerText, cleanQuestionText } from './utils/questionTextCleaner'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v7.2'
+const APP_VERSION = 'v7.3'
 const FINAL_TEST_QUESTION_LIMIT = 100
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v1'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
@@ -208,7 +209,7 @@ function normalizeQuizOptions(question) {
 
   return ANSWER_KEYS.map((key, originalIndex) => {
     const answer = answers[originalIndex]
-    const text = typeof answer === 'string' ? answer.replace(/\s+/g, ' ').trim() : ''
+    const text = cleanAnswerText(answer)
 
     if (!text || (isPlaceholderAnswer(text) && key !== correctAnswerKey)) {
       return null
@@ -1285,7 +1286,7 @@ function App() {
               <div className="practice-layout">
                 <article className="question-card practice-question-card">
                   <p className="question-id">{currentQuestion.id}</p>
-                  <h3>{currentQuestion.question}</h3>
+                  <h3>{cleanQuestionText(currentQuestion.question)}</h3>
                   <div className={`answer-grid answer-grid-${currentAnswerOptions.length}`}>
                     {currentAnswerOptions.map((option) => {
                       const isSelected = selectedAnswer === option.originalIndex
@@ -1332,8 +1333,8 @@ function App() {
 
                   {isReviewingWrongAnswers && currentReviewResult && (
                     <div className="feedback feedback-review">
-                      <strong>Previous answer: {currentReviewResult.selectedAnswerKey} — {currentReviewResult.selectedAnswerText}</strong>
-                      <span>Correct answer: {currentReviewResult.correctAnswerKey} — {currentReviewResult.correctAnswerText}</span>
+                      <strong>Previous answer: {currentReviewResult.selectedAnswerKey} — {cleanAnswerText(currentReviewResult.selectedAnswerText)}</strong>
+                      <span>Correct answer: {currentReviewResult.correctAnswerKey} — {cleanAnswerText(currentReviewResult.correctAnswerText)}</span>
                     </div>
                   )}
 
@@ -1402,7 +1403,7 @@ function App() {
                       <td>{item.id}</td>
                       <td>{displayReferenceValue(item.sourceId)}</td>
                       <td>{item.topic}</td>
-                      <td>{item.question}</td>
+                      <td>{cleanQuestionText(item.question)}</td>
                       <td>{item.correctAnswerLetter || String.fromCharCode(65 + item.correctAnswer)}</td>
                       <td>{item.difficulty || '—'}</td>
                       <td>{item.status}</td>
@@ -1720,7 +1721,7 @@ function App() {
                     <span className="question-id">Source ID {displayReferenceValue(item.sourceId)}</span>
                     <span>{displayReferenceValue(item.topic)}</span>
                   </div>
-                  <h3>{item.question}</h3>
+                  <h3>{cleanQuestionText(item.question)}</h3>
                   <dl className="reference-meta">
                     <div>
                       <dt>Manual reference</dt>
@@ -1891,7 +1892,7 @@ function App() {
                 <article className="admin-question-card" key={item.id}>
                   <div className="admin-question-body">
                     <span className="question-id">{item.id}</span>
-                    <h3>{item.question}</h3>
+                    <h3>{cleanQuestionText(item.question)}</h3>
                     <dl className="admin-question-meta">
                       <div>
                         <dt>Source ID</dt>
