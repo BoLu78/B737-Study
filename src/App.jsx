@@ -14,7 +14,7 @@ import {
 } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v6.8'
+const APP_VERSION = 'v6.9'
 const FINAL_TEST_QUESTION_LIMIT = 100
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
@@ -761,7 +761,7 @@ function App() {
         <div className="header-status">
           {loadError && (
             <span className="status-chip status-chip-warning">
-              {isSupabaseConfigured ? 'Database fallback active' : 'Supabase not configured — local fallback active'}
+              {isSupabaseConfigured ? 'Database connection warning — fallback active' : 'Supabase not configured — local fallback active'}
             </span>
           )}
           <span className="version-badge">{APP_VERSION}</span>

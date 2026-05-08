@@ -64,13 +64,25 @@ GitHub Pages builds need the browser-safe Supabase values as repository secrets:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
 
+Use the project URL format for `VITE_SUPABASE_URL`, for example:
+
+```text
+https://gqziskajamzcinvbyheq.supabase.co
+```
+
+Do not use the REST endpoint form:
+
+```text
+https://gqziskajamzcinvbyheq.supabase.co/rest/v1/
+```
+
 Add them in GitHub:
 
 ```text
 GitHub repo -> Settings -> Secrets and variables -> Actions -> New repository secret
 ```
 
-Do not commit Supabase keys to the repository. The deploy workflow passes these secrets only to `npm run build`.
+After changing secrets, rerun the GitHub Actions deploy workflow or push a new commit. Do not commit Supabase keys to the repository. The deploy workflow checks that required secrets are present, but does not print their values.
 
 ## Supabase Requirements
 
