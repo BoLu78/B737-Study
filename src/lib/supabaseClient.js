@@ -503,3 +503,83 @@ export async function loadManualChunksSearch(options = {}, fallbackLimit = 20) {
     }
   }
 }
+
+export async function askManuals(question, filters = {}) {
+  if (!supabase) {
+    return {
+      data: null,
+      error: 'Supabase is not configured. Check environment variables.',
+    }
+  }
+
+  const normalizedQuestion = String(question || '').replace(/\s+/g, ' ').trim()
+
+  if (!normalizedQuestion) {
+    return {
+      data: null,
+      error: 'Ask a manual question first.',
+    }
+  }
+
+  try {
+    const { data: session, error: sessionError } = await getCurrentSession()
+
+    if (sessionError || !session?.access_token) {
+      return {
+        data: null,
+        error: 'Sign in before asking manuals.',
+      }
+    }
+
+    const { data, error } = await supabase.functions.invoke('manual-answer', {
+      body: {
+        question: normalizedQuestion,
+        aircraft: String(filters.aircraft || '').trim() || null,
+        manual_type: String(filters.manualType || filters.manual_type || '').trim() || null,
+      },
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+    })
+
+    if (error) {
+      let functionErrorMessage = ''
+
+      try {
+        if (error.context && typeof error.context.json === 'function') {
+          const errorBody = await error.context.json()
+          functionErrorMessage = errorBody?.error || ''
+        }
+      } catch {
+        functionErrorMessage = ''
+      }
+
+      return {
+        data: null,
+        error: functionErrorMessage || error.message || 'Manual AI is not configured yet. Deploy the Edge Function and set the OpenAI API key in Supabase secrets.',
+      }
+    }
+
+    if (data?.error) {
+      return {
+        data: null,
+        error: data.error,
+      }
+    }
+
+    return {
+      data: {
+        answer: data?.answer || '',
+        citations: Array.isArray(data?.citations) ? data.citations : [],
+        used_chunks: Number.isInteger(Number(data?.used_chunks)) ? Number(data.used_chunks) : 0,
+        model: data?.model || '',
+      },
+      error: null,
+    }
+  } catch (err) {
+    return {
+      data: null,
+      error: err.message || 'Manual AI is not configured yet. Deploy the Edge Function and set the OpenAI API key in Supabase secrets.',
+    }
+  }
+}

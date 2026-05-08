@@ -1,6 +1,6 @@
 # B737 Study App
 
-Pilot-focused B737 study dashboard with Supabase-backed questions, protected manual catalog access, and read-only manual chunk search.
+Pilot-focused B737 study dashboard with Supabase-backed questions, protected manual catalog access, raw manual chunk search, and server-side Manual AI Answer support.
 
 ## Local Setup
 
@@ -16,6 +16,7 @@ npm run build
 npm run lint
 npm run manuals:manifest
 npm run manuals:check
+npm run manuals:ai:test
 ```
 
 Create `.env.local` with the browser-safe Supabase values used by Vite:
@@ -93,10 +94,38 @@ npm run manuals:chunks:split
 
 Import the generated files in `data/generated/manual_chunks_sql_parts/` one by one through Supabase SQL Editor. Do not commit generated manual content.
 
-## Current Limitation
+## Manual AI Answer Setup
 
-Manual search is keyword/ranked chunk search through Supabase `manual_chunks`, not AI. Use exact Boeing/manual terminology where possible, such as `speed trim` instead of `trim speed`. No AI provider call, no Edge Function, no AI answer generator, and no fake AI answer path is active yet. The "AI answers not enabled yet" control remains disabled until secure backend AI answer generation exists.
+Manual AI Answer uses the Supabase Edge Function `manual-answer`. The frontend sends the signed-in user's Supabase Auth token to the function; it never sees the OpenAI key and never calls OpenAI directly.
 
-## Next Planned Step
+The function uses the OpenAI Responses API server-side. It retrieves relevant rows from `public.manual_chunks`, prefers the ranked `public.search_manual_chunks` RPC when deployed, and returns a concise answer with manual/page citations. Answers are generated from imported manual chunks and must be checked against official manuals.
 
-Add a Supabase Edge Function for AI answers with citations. It should retrieve relevant manual chunks server-side, call the AI provider without exposing secrets to the browser, and return cited answers only from indexed manual material.
+Required Supabase secret:
+
+```bash
+supabase secrets set OPENAI_API_KEY=your_key_here
+```
+
+Optional Supabase secret:
+
+```bash
+supabase secrets set OPENAI_MODEL=gpt-5.4-mini
+```
+
+Deploy the function:
+
+```bash
+supabase functions deploy manual-answer
+```
+
+Local deployed-function check:
+
+```bash
+npm run manuals:ai:test
+```
+
+The test helper uses `.env.local` Supabase values and an authenticated test user, but it never prints secret values.
+
+## Raw Manual Chunk Search
+
+Raw Manual Chunk Search remains available as a technical fallback. It is keyword/ranked chunk search through Supabase `manual_chunks`, not AI. Use exact Boeing/manual terminology where possible, such as `speed trim` instead of `trim speed`.
