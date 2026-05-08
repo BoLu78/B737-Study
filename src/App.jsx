@@ -13,7 +13,8 @@ import {
 } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v6.5'
+const APP_VERSION = 'v6.6'
+const FINAL_TEST_QUESTION_LIMIT = 100
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
@@ -317,6 +318,8 @@ function App() {
   const [selectedAnswer, setSelectedAnswer] = useState(null)
   const [answered, setAnswered] = useState(false)
   const [correct, setCorrect] = useState(false)
+  const [practiceMode, setPracticeMode] = useState('topic')
+  const [markedForReview, setMarkedForReview] = useState(() => new Set())
   const [adminForm, setAdminForm] = useState(null)
   const [adminMode, setAdminMode] = useState(null)
   const [adminFormError, setAdminFormError] = useState('')
@@ -461,9 +464,12 @@ function App() {
   const topics = Array.from(new Set(questions.map((item) => item.topic)))
   const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
   const topicQuestions = questions.filter((item) => item.topic === currentTopic)
-  const currentQuestion = topicQuestions[questionIndex]
+  const finalTestQuestions = questions.slice(0, Math.min(FINAL_TEST_QUESTION_LIMIT, questions.length))
+  const activeQuizQuestions = practiceMode === 'final' ? finalTestQuestions : topicQuestions
+  const activeQuizTitle = practiceMode === 'final' ? 'Final Test Simulation' : currentTopic
+  const currentQuestion = activeQuizQuestions[questionIndex]
   const currentAnswerOptions = normalizeQuizOptions(currentQuestion)
-  const completedCount = topicQuestions.length
+  const completedCount = activeQuizQuestions.length
   const activeQuestions = questions.filter((item) => item.status === 'active').length
   const sourceDocuments = getUniqueReferenceValues(questions, 'sourceDocument')
   const referenceTopics = getUniqueReferenceValues(questions, 'topic')
@@ -493,30 +499,49 @@ function App() {
   const isManualSignedIn = Boolean(manualSession)
   const manualSearchManualTypes = getUniqueReferenceValues(manualDocuments, 'manual_type')
   const manualSearchAircraftOptions = getUniqueReferenceValues(manualDocuments, 'aircraft')
+  const dashboardTopics = topics.slice(0, 8)
+  const studiedToday = answered ? Math.min(questionIndex + 1, completedCount || 1) : 0
+  const accuracyLabel = answered ? (correct ? '100%' : '0%') : 'Start practice'
+  const weakTopicsLabel = markedForReview.size > 0 ? `${markedForReview.size} review` : 'Mark during practice'
+  const progressPercent = completedCount > 0 ? Math.round(((questionIndex + (answered ? 1 : 0)) / completedCount) * 100) : 0
 
   const handleRefreshDatabase = async () => {
     await loadQuestionDatabase()
   }
 
-  const handleSelectTopic = (event) => {
-    setSelectedTopic(event.target.value)
-    setQuestionIndex(0)
-    setAnswered(false)
-    setSelectedAnswer(null)
-  }
-
-  const handleStartQuiz = () => {
+  const handleStartQuiz = (topic = currentTopic) => {
+    setPracticeMode('topic')
+    setSelectedTopic(topic)
     setQuestionIndex(0)
     setAnswered(false)
     setSelectedAnswer(null)
     setView('quiz')
   }
 
+  const handleContinueStudy = () => {
+    setPracticeMode('topic')
+    setView('quiz')
+  }
+
+  const handleStartFinalTest = () => {
+    setPracticeMode('final')
+    setQuestionIndex(0)
+    setAnswered(false)
+    setSelectedAnswer(null)
+    setCorrect(false)
+    setView('quiz')
+  }
+
   const handleAnswerClick = (option) => {
     if (answered || !currentQuestion) return
-    const correctAnswerKey = getCorrectAnswerKey(currentQuestion)
     setSelectedAnswer(option.originalIndex)
-    setCorrect(option.key === correctAnswerKey)
+  }
+
+  const handleCheckAnswer = () => {
+    if (answered || !currentQuestion || selectedAnswer === null) return
+    const correctAnswerKey = getCorrectAnswerKey(currentQuestion)
+    const selectedOption = currentAnswerOptions.find((option) => option.originalIndex === selectedAnswer)
+    setCorrect(selectedOption?.key === correctAnswerKey)
     setAnswered(true)
   }
 
@@ -526,7 +551,7 @@ function App() {
     setCorrect(false)
     setQuestionIndex((current) => {
       const next = current + 1
-      return next < topicQuestions.length ? next : 0
+      return next < activeQuizQuestions.length ? next : 0
     })
   }
 
@@ -534,7 +559,22 @@ function App() {
     setView('dashboard')
     setSelectedAnswer(null)
     setAnswered(false)
-    setQuestionIndex(0)
+  }
+
+  const handleToggleMarkForReview = () => {
+    if (!currentQuestion) return
+
+    setMarkedForReview((current) => {
+      const next = new Set(current)
+
+      if (next.has(currentQuestion.id)) {
+        next.delete(currentQuestion.id)
+      } else {
+        next.add(currentQuestion.id)
+      }
+
+      return next
+    })
   }
 
   const handleResetReferenceFilters = () => {
@@ -712,9 +752,9 @@ function App() {
       <header className="app-header">
         <div>
           <p className="eyebrow">B737 Study App</p>
-          <h1>Quiz database and manual references</h1>
+          <h1>Study questions. Master the 737.</h1>
           <p className="subtitle">
-            A pilot-focused dashboard for study readiness and source metadata review.
+            Focus your study, strengthen weak areas, and build exam-ready confidence.
           </p>
         </div>
         <span className="version-badge">{APP_VERSION}</span>
@@ -733,107 +773,271 @@ function App() {
         </div>
       )}
 
+      <div className="app-layout">
+        <aside className="sidebar-nav" aria-label="Primary navigation">
+          {[
+            ['dashboard', 'Dashboard', '⌂'],
+            ['quiz', 'Study', '▶'],
+            ['topics', 'Topics', '▦'],
+            ['stats', 'Statistics', '◷'],
+            ['final-test', 'Final Test', '✓'],
+            ['settings', 'Settings', '⚙'],
+          ].map(([targetView, label, icon]) => (
+            <button
+              key={targetView}
+              className={view === targetView || (targetView === 'quiz' && view === 'quiz') ? 'sidebar-link sidebar-link-active' : 'sidebar-link'}
+              onClick={() => {
+                if (targetView === 'quiz') {
+                  handleContinueStudy()
+                } else {
+                  setView(targetView)
+                }
+              }}
+            >
+              <span>{icon}</span>
+              {label}
+            </button>
+          ))}
+        </aside>
+
       <main className="app-main">
         {view === 'dashboard' && (
           <section className="dashboard-view">
-            <div className="dashboard-header">
+            <div className="dashboard-hero">
               <div>
-                <span className="database-badge">
-                  Database: {dataSource}
-                </span>
-                <span className="database-count">Loaded: {questions.length} questions</span>
+                <p className="eyebrow">Exam preparation</p>
+                <h2>Study questions. Master the 737.</h2>
+                <p>Focus your study, strengthen weak areas, and build exam-ready confidence.</p>
               </div>
-              <button className="button button-secondary" onClick={handleRefreshDatabase}>
-                Refresh Database
-              </button>
+              <div className="goal-card">
+                <span>Goal</span>
+                <strong>Exam Ready</strong>
+                <div className="progress-track">
+                  <span style={{ width: `${progressPercent}%` }} />
+                </div>
+                <small>{progressPercent}% current session progress</small>
+              </div>
             </div>
 
-            <div className="dashboard-grid">
-              <article className="card card-strong">
-                <h2>Start Quiz</h2>
-                <p>Select a topic and begin a timed study run with instant feedback.</p>
-                <label className="field-label" htmlFor="topic-select">
-                  Topic
-                </label>
-                <select
-                  id="topic-select"
-                  value={currentTopic}
-                  onChange={handleSelectTopic}
-                  disabled={isLoading}
-                >
-                  {topics.map((topic) => (
-                    <option key={topic} value={topic}>
-                      {topic}
-                    </option>
-                  ))}
-                </select>
+            <div className="primary-actions-grid">
+              <article className="action-card action-card-primary">
+                <p className="eyebrow">Continue Study</p>
+                <h3>{currentTopic || 'Select a topic'}</h3>
+                <p>Resume the current topic practice session.</p>
                 <div className="card-actions">
                   <button
                     className="button button-primary"
-                    onClick={handleStartQuiz}
-                    disabled={isLoading || topicQuestions.length === 0}
+                    onClick={handleContinueStudy}
+                    disabled={isLoading || completedCount === 0}
                   >
-                    Begin {currentTopic}
+                    Continue
                   </button>
                 </div>
               </article>
 
-              <article className="card">
-                <h2>Question Database</h2>
-                <p>Browse the current bank of questions, topics, and official correct answers.</p>
+              <article className="action-card">
+                <p className="eyebrow">Start Topic Practice</p>
+                <h3>Practice by topic</h3>
+                <p>Choose one system area and work its question set deliberately.</p>
                 <div className="card-actions">
                   <button
                     className="button button-secondary"
-                    onClick={() => setView('database')}
+                    onClick={() => setView('topics')}
                     disabled={isLoading}
                   >
-                    View Database
+                    Explore all topics
                   </button>
                 </div>
               </article>
 
-              <article className="card">
-                <h2>Manual References</h2>
-                <p>
-                  Browse question references by manual, topic and source page. Manual files are private and chunk search is available.
-                </p>
+              <article className="action-card">
+                <p className="eyebrow">Final Test Simulation</p>
+                <h3>Exam-style run</h3>
+                <p>{finalTestQuestions.length} questions • focused session</p>
                 <div className="card-actions">
                   <button
-                    className="button button-secondary"
-                    onClick={() => setView('manual-references')}
-                    disabled={isLoading}
+                    className="button button-primary"
+                    onClick={handleStartFinalTest}
+                    disabled={isLoading || finalTestQuestions.length === 0}
                   >
-                    Open References
+                    Start Final Test
                   </button>
                 </div>
               </article>
+            </div>
 
-              <article className="card">
-                <h2>Statistics</h2>
-                <p>Quick overview of your study bank with counts for topics and active questions.</p>
-                <div className="card-actions">
-                  <button
-                    className="button button-secondary"
-                    onClick={() => setView('stats')}
-                    disabled={isLoading}
-                  >
-                    Open Statistics
-                  </button>
+            <div className="metrics-strip">
+              <div>
+                <span>Total Questions</span>
+                <strong>{questions.length}</strong>
+              </div>
+              <div>
+                <span>Studied Today</span>
+                <strong>{studiedToday}</strong>
+              </div>
+              <div>
+                <span>Accuracy</span>
+                <strong>{accuracyLabel}</strong>
+              </div>
+              <div>
+                <span>Weak Topics</span>
+                <strong>{weakTopicsLabel}</strong>
+              </div>
+            </div>
+
+            <section className="dashboard-topics-section">
+              <div className="section-header section-header-compact">
+                <div>
+                  <p className="eyebrow">Topics</p>
+                  <h2>Start where it matters</h2>
                 </div>
+                <button className="button button-ghost" onClick={() => setView('topics')}>
+                  View All Topics
+                </button>
+              </div>
+              <div className="topic-grid">
+                {dashboardTopics.map((topic) => {
+                  const count = questions.filter((item) => item.topic === topic).length
+                  return (
+                    <article className="topic-card" key={topic}>
+                      <h3>{topic}</h3>
+                      <p>{count} questions</p>
+                      <div className="progress-track">
+                        <span style={{ width: topic === currentTopic ? `${progressPercent}%` : '0%' }} />
+                      </div>
+                      <button className="button button-secondary" onClick={() => handleStartQuiz(topic)}>
+                        Practice
+                      </button>
+                    </article>
+                  )
+                })}
+              </div>
+            </section>
+
+            <section className="dashboard-secondary-panel">
+              <div>
+                <p className="eyebrow">Manual Reference (Secondary Support)</p>
+                <h3>Use manuals as a reference only</h3>
+                <p>Use manuals as a reference only. Focus on practice to build exam readiness.</p>
+              </div>
+              <div className="secondary-actions">
+                <button className="button button-secondary" onClick={() => setView('manual-references')}>
+                  Open Manuals
+                </button>
+                <button className="button button-ghost" onClick={() => setView('database')}>
+                  Browse Question Database
+                </button>
+                <button className="button button-ghost" onClick={() => setView('stats')}>
+                  View Statistics
+                </button>
+                <button className="button button-ghost" onClick={handleRefreshDatabase}>
+                  Refresh Database
+                </button>
+              </div>
+            </section>
+          </section>
+        )}
+
+        {view === 'topics' && (
+          <section className="topics-view">
+            <div className="section-header">
+              <div>
+                <p className="eyebrow">Topics</p>
+                <h2>Topic Practice</h2>
+                <p className="subtitle">Pick one area and work through its questions deliberately.</p>
+              </div>
+              <button className="button button-ghost" onClick={handleBackToDashboard}>
+                Back to dashboard
+              </button>
+            </div>
+            <div className="topic-grid topic-grid-full">
+              {topics.map((topic) => {
+                const count = questions.filter((item) => item.topic === topic).length
+                return (
+                  <article className="topic-card" key={topic}>
+                    <h3>{topic}</h3>
+                    <p>{count} questions</p>
+                    <div className="progress-track">
+                      <span style={{ width: topic === currentTopic ? `${progressPercent}%` : '0%' }} />
+                    </div>
+                    <button className="button button-secondary" onClick={() => handleStartQuiz(topic)}>
+                      Start practice
+                    </button>
+                  </article>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {view === 'final-test' && (
+          <section className="final-test-view">
+            <article className="final-test-panel">
+              <p className="eyebrow">Final Test</p>
+              <h2>Final Test Simulation</h2>
+              <p>
+                Run an exam-style practice session using the loaded question bank. Keep manuals as support after the session, not during the first pass.
+              </p>
+              <dl className="reference-meta">
+                <div>
+                  <dt>Questions</dt>
+                  <dd>{finalTestQuestions.length}</dd>
+                </div>
+                <div>
+                  <dt>Source</dt>
+                  <dd>{dataSource}</dd>
+                </div>
+                <div>
+                  <dt>Mode</dt>
+                  <dd>Focused session</dd>
+                </div>
+              </dl>
+              <div className="card-actions">
+                <button className="button button-primary" onClick={handleStartFinalTest}>
+                  Start Final Test
+                </button>
+                <button className="button button-ghost" onClick={handleBackToDashboard}>
+                  Back to dashboard
+                </button>
+              </div>
+            </article>
+          </section>
+        )}
+
+        {view === 'settings' && (
+          <section className="settings-view">
+            <div className="section-header">
+              <div>
+                <p className="eyebrow">Settings</p>
+                <h2>Study App Settings</h2>
+                <p className="subtitle">Operational status for the local study workflow.</p>
+              </div>
+              <button className="button button-ghost" onClick={handleBackToDashboard}>
+                Back to dashboard
+              </button>
+            </div>
+            <div className="settings-grid">
+              <article className="stat-card">
+                <span>Data source</span>
+                <strong>{dataSource}</strong>
               </article>
-
-              <article className="card">
-                <h2>Admin Questions</h2>
-                <p>Add, review and prepare question updates. Secure write access will be enabled in the next step.</p>
-                <div className="card-actions">
-                  <button
-                    className="button button-secondary"
-                    onClick={handleOpenAdmin}
-                    disabled={isLoading}
-                  >
-                    Open Admin
-                  </button>
-                </div>
+              <article className="stat-card">
+                <span>Manual AI</span>
+                <strong>Disabled</strong>
+              </article>
+              <article className="stat-card">
+                <span>Manual chunks</span>
+                <strong>{manualChunksCount !== null ? manualChunksCount.toLocaleString() : 'Checking'}</strong>
+              </article>
+              <article className="stat-card">
+                <span>Version</span>
+                <strong>{APP_VERSION}</strong>
+              </article>
+              <article className="stat-card">
+                <span>Admin</span>
+                <button className="button button-secondary" onClick={handleOpenAdmin}>
+                  Open Admin
+                </button>
               </article>
             </div>
           </section>
@@ -841,105 +1045,121 @@ function App() {
 
         {view === 'quiz' && (
           <section className="quiz-view">
-            <div className="quiz-header">
+            <div className="practice-topbar">
               <div>
-                <p className="eyebrow">Quiz mode</p>
-                <h2>{currentTopic}</h2>
+                <p className="eyebrow">{practiceMode === 'final' ? 'Final test simulation' : 'Topic practice'}</p>
+                <h2>{activeQuizTitle}</h2>
                 <p className="subtitle">Question {questionIndex + 1} of {completedCount}</p>
               </div>
+              <div className="practice-progress">
+                <div className="progress-track">
+                  <span style={{ width: `${progressPercent}%` }} />
+                </div>
+                <span>{progressPercent}%</span>
+              </div>
               <button className="button button-ghost" onClick={handleBackToDashboard}>
-                Back to dashboard
+                Exit practice
               </button>
             </div>
 
             {currentQuestion ? (
-              <article className="question-card">
-                <p className="question-id">{currentQuestion.id}</p>
-                <h3>{currentQuestion.question}</h3>
-                <dl className="quiz-reference">
-                  <div>
-                    <dt>Manual</dt>
-                    <dd>{displayReferenceValue(currentQuestion.manualReference)}</dd>
-                  </div>
-                  <div>
-                    <dt>Source</dt>
-                    <dd>{displayReferenceValue(currentQuestion.sourceDocument)}</dd>
-                  </div>
-                  <div>
-                    <dt>Page</dt>
-                    <dd>{displayReferenceValue(currentQuestion.sourcePage)}</dd>
-                  </div>
-                  <div>
-                    <dt>Source ID</dt>
-                    <dd>{displayReferenceValue(currentQuestion.sourceId ?? currentQuestion.id)}</dd>
-                  </div>
-                </dl>
-                <div className="ask-manuals-row">
-                  <button className="button button-secondary" disabled>
-                    AI answers not enabled yet
-                  </button>
-                  <span>
-                    {hasManualChunks
-                      ? 'Manual chunk search is available in Manual References.'
-                      : 'Manual index not ready yet.'}
-                  </span>
-                </div>
-                {currentQuestion.difficulty && (
-                  <p className="question-meta">Difficulty: {currentQuestion.difficulty}</p>
-                )}
-                <div className={`answer-grid answer-grid-${currentAnswerOptions.length}`}>
-                  {currentAnswerOptions.map((option) => {
-                    const isSelected = selectedAnswer === option.originalIndex
-                    const isCorrectAnswer = getCorrectAnswerKey(currentQuestion) === option.key
-                    const answerClass = answered
-                      ? isCorrectAnswer
-                        ? 'answer-button answer-correct'
+              <div className="practice-layout">
+                <article className="question-card practice-question-card">
+                  <p className="question-id">{currentQuestion.id}</p>
+                  <h3>{currentQuestion.question}</h3>
+                  {currentQuestion.difficulty && (
+                    <p className="question-meta">Difficulty: {currentQuestion.difficulty}</p>
+                  )}
+                  <div className={`answer-grid answer-grid-${currentAnswerOptions.length}`}>
+                    {currentAnswerOptions.map((option) => {
+                      const isSelected = selectedAnswer === option.originalIndex
+                      const isCorrectAnswer = getCorrectAnswerKey(currentQuestion) === option.key
+                      const answerClass = answered
+                        ? isCorrectAnswer
+                          ? 'answer-button answer-correct'
+                          : isSelected
+                          ? 'answer-button answer-wrong'
+                          : 'answer-button answer-disabled'
                         : isSelected
-                        ? 'answer-button answer-wrong'
-                        : 'answer-button answer-disabled'
-                      : 'answer-button'
+                        ? 'answer-button answer-selected'
+                        : 'answer-button'
 
-                    return (
-                      <button
-                        key={`${option.key}-${option.originalIndex}`}
-                        className={answerClass}
-                        onClick={() => handleAnswerClick(option)}
-                        disabled={answered}
-                      >
-                        <span className="answer-key">{option.key}</span>
-                        <span className="answer-text">{option.text}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-
-                {answered && (
-                  <div className={correct ? 'feedback feedback-correct' : 'feedback feedback-wrong'}>
-                    {correct ? 'Correct answer' : 'Incorrect answer'}
+                      return (
+                        <button
+                          key={`${option.key}-${option.originalIndex}`}
+                          className={answerClass}
+                          onClick={() => handleAnswerClick(option)}
+                          disabled={answered}
+                        >
+                          <span className="answer-key">{option.key}</span>
+                          <span className="answer-text">{option.text}</span>
+                        </button>
+                      )
+                    })}
                   </div>
-                )}
 
-                {answered && (
-                  <div className="explanation-box">
-                    <p className="explanation-label">Explanation</p>
-                    <p>{currentQuestion.explanation}</p>
-                    {currentQuestion.manualReference && (
-                      <p className="explanation-reference">
-                        <strong>Manual Reference:</strong> {currentQuestion.manualReference}
-                      </p>
-                    )}
+                  {answered && (
+                    <div className={correct ? 'feedback feedback-correct' : 'feedback feedback-wrong'}>
+                      {correct ? 'Correct answer' : 'Incorrect answer'}
+                    </div>
+                  )}
+
+                  {answered && (
+                    <div className="explanation-box">
+                      <p className="explanation-label">Explanation</p>
+                      <p>{currentQuestion.explanation}</p>
+                      {currentQuestion.manualReference && (
+                        <p className="explanation-reference">
+                          <strong>Manual Reference:</strong> {currentQuestion.manualReference}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="quiz-actions">
+                    <button className="button button-primary" onClick={answered ? handleNextQuestion : handleCheckAnswer} disabled={!answered && selectedAnswer === null}>
+                      {answered ? (questionIndex + 1 < completedCount ? 'Next Question' : 'Restart Session') : 'Check Answer'}
+                    </button>
+                    <button className="button button-secondary" onClick={handleToggleMarkForReview}>
+                      {markedForReview.has(currentQuestion.id) ? 'Marked for Review' : 'Mark for Review'}
+                    </button>
                   </div>
-                )}
+                </article>
 
-                <div className="quiz-actions">
-                  <button className="button button-primary" onClick={handleNextQuestion}>
-                    {questionIndex + 1 < completedCount ? 'Next question' : 'Restart topic'}
+                <aside className="practice-aids">
+                  <div>
+                    <p className="eyebrow">Study aids</p>
+                    <h3>Progress</h3>
+                    <p>{questionIndex + 1} of {completedCount} questions</p>
+                  </div>
+                  <dl className="quiz-reference">
+                    <div>
+                      <dt>Manual</dt>
+                      <dd>{displayReferenceValue(currentQuestion.manualReference)}</dd>
+                    </div>
+                    <div>
+                      <dt>Source</dt>
+                      <dd>{displayReferenceValue(currentQuestion.sourceDocument)}</dd>
+                    </div>
+                    <div>
+                      <dt>Page</dt>
+                      <dd>{displayReferenceValue(currentQuestion.sourcePage)}</dd>
+                    </div>
+                    <div>
+                      <dt>Review marks</dt>
+                      <dd>{markedForReview.size}</dd>
+                    </div>
+                  </dl>
+                  <button className="button button-secondary" onClick={() => setView('manual-references')}>
+                    Open Manual Support
                   </button>
-                  <button className="button button-secondary" onClick={handleBackToDashboard}>
-                    Back to dashboard
-                  </button>
-                </div>
-              </article>
+                  <p className="question-meta">
+                    {hasManualChunks
+                      ? 'Raw manual chunk search is available as secondary support.'
+                      : 'Manual index not ready yet.'}
+                  </p>
+                </aside>
+              </div>
             ) : (
               <article className="question-card">
                 <p>No questions are available for this topic.</p>
@@ -1558,6 +1778,7 @@ function App() {
           </section>
         )}
       </main>
+      </div>
 
       <footer className="app-footer">
         Online-first study cockpit with Supabase question sync.

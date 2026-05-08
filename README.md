@@ -1,6 +1,6 @@
 # B737 Study App
 
-Pilot-focused B737 study dashboard with Supabase-backed questions, protected manual catalog access, and raw manual chunk search.
+Pilot-focused B737 question study app for topic practice and final-test preparation, with protected manual catalog access and raw manual chunk search as secondary support.
 
 ## Local Setup
 
@@ -98,6 +98,16 @@ Import the generated files in `data/generated/manual_chunks_sql_parts/` one by o
 Internal AI answers are disabled. No OpenAI API key is required, and no Supabase Edge Function deployment is required. The app does not call an AI provider from React or from Supabase.
 
 ChatGPT Plus can be used externally by copying a manual excerpt and page reference from Raw Manual Chunk Search. The app remains focused on private manual access, manual catalog review, raw manual chunk search, and manual/page references.
+
+## Study Workflow
+
+The dashboard is centered on question practice:
+
+- Continue Study resumes the current topic session.
+- Start Topic Practice opens the topic grid.
+- Final Test Simulation starts an exam-style run from the loaded question bank.
+
+Manuals are secondary support. Use Manual References and Raw Manual Chunk Search to find official manual/page references, then verify in the private manual PDF.
 
 ## Raw Manual Chunk Search
 
