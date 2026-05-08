@@ -4,6 +4,7 @@ import {
   countManualChunks,
   createSignedManualUrl,
   getCurrentSession,
+  isSupabaseConfigured,
   loadManualChunksSearch,
   loadManualDocuments,
   loadQuestionsFromSupabase,
@@ -13,7 +14,7 @@ import {
 } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v6.7'
+const APP_VERSION = 'v6.8'
 const FINAL_TEST_QUESTION_LIMIT = 100
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
@@ -500,9 +501,9 @@ function App() {
   const manualSearchManualTypes = getUniqueReferenceValues(manualDocuments, 'manual_type')
   const manualSearchAircraftOptions = getUniqueReferenceValues(manualDocuments, 'aircraft')
   const dashboardTopics = topics.slice(0, 8)
-  const studiedToday = answered ? Math.min(questionIndex + 1, completedCount || 1) : 0
-  const accuracyLabel = answered ? (correct ? '100%' : '0%') : 'Start practice'
-  const weakTopicsLabel = markedForReview.size > 0 ? `${markedForReview.size} review` : 'Mark during practice'
+  const studiedToday = '—'
+  const accuracyLabel = '—'
+  const weakTopicsLabel = '—'
   const progressPercent = completedCount > 0 ? Math.round(((questionIndex + (answered ? 1 : 0)) / completedCount) * 100) : 0
 
   const handleRefreshDatabase = async () => {
@@ -752,20 +753,20 @@ function App() {
       <header className="app-header">
         <div>
           <p className="eyebrow">B737 Study App</p>
-          <h1>Study questions. Master the 737.</h1>
+          <h1>Study Questions</h1>
           <p className="subtitle">
-            Focus your study, strengthen weak areas, and build exam-ready confidence.
+            Practice the question bank and prepare for the final test.
           </p>
         </div>
-        <span className="version-badge">{APP_VERSION}</span>
-      </header>
-
-      {loadError && (
-        <div className="warning-banner">
-          <strong>Database warning:</strong>
-          <span> {loadError} Using local fallback.</span>
+        <div className="header-status">
+          {loadError && (
+            <span className="status-chip status-chip-warning">
+              {isSupabaseConfigured ? 'Database fallback active' : 'Supabase not configured — local fallback active'}
+            </span>
+          )}
+          <span className="version-badge">{APP_VERSION}</span>
         </div>
-      )}
+      </header>
 
       {isLoading && (
         <div className="info-banner">
@@ -776,13 +777,13 @@ function App() {
       <div className="app-layout">
         <aside className="sidebar-nav" aria-label="Primary navigation">
           {[
-            ['dashboard', 'Dashboard', '⌂'],
-            ['quiz', 'Study', '▶'],
-            ['topics', 'Topics', '▦'],
-            ['stats', 'Statistics', '◷'],
-            ['final-test', 'Final Test', '✓'],
-            ['settings', 'Settings', '⚙'],
-          ].map(([targetView, label, icon]) => (
+            ['dashboard', 'Dashboard'],
+            ['quiz', 'Study'],
+            ['topics', 'Topics'],
+            ['stats', 'Stats'],
+            ['final-test', 'Final Test'],
+            ['settings', 'Settings'],
+          ].map(([targetView, label]) => (
             <button
               key={targetView}
               className={view === targetView || (targetView === 'quiz' && view === 'quiz') ? 'sidebar-link sidebar-link-active' : 'sidebar-link'}
@@ -794,7 +795,6 @@ function App() {
                 }
               }}
             >
-              <span>{icon}</span>
               {label}
             </button>
           ))}
@@ -803,27 +803,10 @@ function App() {
       <main className="app-main">
         {view === 'dashboard' && (
           <section className="dashboard-view">
-            <div className="dashboard-hero">
-              <div>
-                <p className="eyebrow">Exam preparation</p>
-                <h2>Study questions. Master the 737.</h2>
-                <p>Focus your study, strengthen weak areas, and build exam-ready confidence.</p>
-              </div>
-              <div className="goal-card">
-                <span>Goal</span>
-                <strong>Exam Ready</strong>
-                <div className="progress-track">
-                  <span style={{ width: `${progressPercent}%` }} />
-                </div>
-                <small>{progressPercent}% current session progress</small>
-              </div>
-            </div>
-
             <div className="primary-actions-grid">
               <article className="action-card action-card-primary">
-                <p className="eyebrow">Continue Study</p>
-                <h3>{currentTopic || 'Select a topic'}</h3>
-                <p>Resume the current topic practice session.</p>
+                <h3>Continue</h3>
+                <p>Resume practice.</p>
                 <div className="card-actions">
                   <button
                     className="button button-primary"
@@ -836,24 +819,22 @@ function App() {
               </article>
 
               <article className="action-card">
-                <p className="eyebrow">Start Topic Practice</p>
-                <h3>Practice by topic</h3>
-                <p>Choose one system area and work its question set deliberately.</p>
+                <h3>Practice by Topic</h3>
+                <p>Choose a topic.</p>
                 <div className="card-actions">
                   <button
                     className="button button-secondary"
                     onClick={() => setView('topics')}
                     disabled={isLoading}
                   >
-                    Explore all topics
+                    Topics
                   </button>
                 </div>
               </article>
 
               <article className="action-card">
-                <p className="eyebrow">Final Test Simulation</p>
-                <h3>Exam-style run</h3>
-                <p>{finalTestQuestions.length} questions • focused session</p>
+                <h3>Final Test</h3>
+                <p>{finalTestQuestions.length} questions.</p>
                 <div className="card-actions">
                   <button
                     className="button button-primary"
@@ -868,11 +849,11 @@ function App() {
 
             <div className="metrics-strip">
               <div>
-                <span>Total Questions</span>
+                <span>Questions</span>
                 <strong>{questions.length}</strong>
               </div>
               <div>
-                <span>Studied Today</span>
+                <span>Studied</span>
                 <strong>{studiedToday}</strong>
               </div>
               <div>
@@ -889,7 +870,7 @@ function App() {
               <div className="section-header section-header-compact">
                 <div>
                   <p className="eyebrow">Topics</p>
-                  <h2>Start where it matters</h2>
+                  <h2>Practice areas</h2>
                 </div>
                 <button className="button button-ghost" onClick={() => setView('topics')}>
                   View All Topics
@@ -902,9 +883,6 @@ function App() {
                     <article className="topic-card" key={topic}>
                       <h3>{topic}</h3>
                       <p>{count} questions</p>
-                      <div className="progress-track">
-                        <span style={{ width: topic === currentTopic ? `${progressPercent}%` : '0%' }} />
-                      </div>
                       <button className="button button-secondary" onClick={() => handleStartQuiz(topic)}>
                         Practice
                       </button>
@@ -916,9 +894,11 @@ function App() {
 
             <section className="dashboard-secondary-panel">
               <div>
-                <p className="eyebrow">Manual Reference (Secondary Support)</p>
-                <h3>Use manuals as a reference only</h3>
-                <p>Use manuals as a reference only. Focus on practice to build exam readiness.</p>
+                <div className="support-title-row">
+                  <h3>Manual Reference</h3>
+                  <span>Support</span>
+                </div>
+                <p>Use manuals only when you need a reference.</p>
               </div>
               <div className="secondary-actions">
                 <button className="button button-secondary" onClick={() => setView('manual-references')}>
@@ -944,7 +924,7 @@ function App() {
               <div>
                 <p className="eyebrow">Topics</p>
                 <h2>Topic Practice</h2>
-                <p className="subtitle">Pick one area and work through its questions deliberately.</p>
+                <p className="subtitle">Choose a topic.</p>
               </div>
               <button className="button button-ghost" onClick={handleBackToDashboard}>
                 Back to dashboard
@@ -957,9 +937,6 @@ function App() {
                   <article className="topic-card" key={topic}>
                     <h3>{topic}</h3>
                     <p>{count} questions</p>
-                    <div className="progress-track">
-                      <span style={{ width: topic === currentTopic ? `${progressPercent}%` : '0%' }} />
-                    </div>
                     <button className="button button-secondary" onClick={() => handleStartQuiz(topic)}>
                       Start practice
                     </button>

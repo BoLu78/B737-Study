@@ -51,6 +51,27 @@ SUPABASE_SERVICE_ROLE_KEY=...
 
 The validation script reports whether a service role key is present, but never prints secret values.
 
+## GitHub Pages Deployment
+
+The deployed app is built for:
+
+```text
+https://bolu78.github.io/B737-Study/
+```
+
+GitHub Pages builds need the browser-safe Supabase values as repository secrets:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+Add them in GitHub:
+
+```text
+GitHub repo -> Settings -> Secrets and variables -> Actions -> New repository secret
+```
+
+Do not commit Supabase keys to the repository. The deploy workflow passes these secrets only to `npm run build`.
+
 ## Supabase Requirements
 
 Apply the migrations in `supabase/migrations/` in order. The manual pipeline expects:
