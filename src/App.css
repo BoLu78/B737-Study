@@ -642,6 +642,26 @@ button.button:disabled {
   color: var(--text-muted);
 }
 
+.practice-aid-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(15, 24, 42, 0.68);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.practice-aid-stat span {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.practice-aid-stat strong {
+  color: #dbeafe;
+}
+
 .answer-grid {
   display: grid;
   gap: 12px;
@@ -781,10 +801,17 @@ button.button:disabled {
 }
 
 .feedback {
+  display: grid;
+  gap: 4px;
   border-radius: 16px;
   padding: 16px 18px;
   margin-top: 20px;
   font-weight: 600;
+}
+
+.feedback span {
+  font-weight: 500;
+  opacity: 0.92;
 }
 
 .feedback-correct {
@@ -795,6 +822,51 @@ button.button:disabled {
 .feedback-wrong {
   background: rgba(248, 113, 28, 0.16);
   color: #fed7aa;
+}
+
+.feedback-review {
+  background: rgba(96, 165, 250, 0.13);
+  color: #dbeafe;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
+.session-complete-card {
+  display: grid;
+  gap: 18px;
+}
+
+.session-complete-card h3 {
+  font-size: 1.7rem;
+}
+
+.result-summary-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.result-summary-grid div {
+  min-width: 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(15, 24, 42, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.result-summary-grid span {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.result-summary-grid strong {
+  display: block;
+  color: #f8fafc;
+  font-size: 1.45rem;
+  margin-top: 4px;
+}
+
+.perfect-score-message {
+  color: #d9f99d;
 }
 
 .explanation-box {
@@ -1357,6 +1429,7 @@ td:nth-child(10) {
   .quiz-reference,
   .reference-summary-grid,
   .manual-type-list,
+  .result-summary-grid,
   .metrics-strip {
     grid-template-columns: 1fr;
   }

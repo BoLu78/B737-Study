@@ -157,8 +157,12 @@ The dashboard is centered on question practice:
 - Continue Study resumes the current topic session.
 - Start Topic Practice opens the topic grid.
 - Final Test Simulation starts an exam-style run from the loaded question bank.
+- Topic practice shows a session result summary after completion.
+- Wrong answers can be reviewed after the session.
 
 Manuals are secondary support. Use Manual References and Raw Manual Chunk Search to find official manual/page references, then verify in the private manual PDF.
+
+The practice screen keeps the question flow focused: difficulty display and static explanation/manual-reference boxes are not shown during normal practice.
 
 ## Raw Manual Chunk Search
 

@@ -14,7 +14,7 @@ import {
 } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v6.9'
+const APP_VERSION = 'v7.0'
 const FINAL_TEST_QUESTION_LIMIT = 100
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
@@ -320,6 +320,9 @@ function App() {
   const [answered, setAnswered] = useState(false)
   const [correct, setCorrect] = useState(false)
   const [practiceMode, setPracticeMode] = useState('topic')
+  const [isReviewingWrongAnswers, setIsReviewingWrongAnswers] = useState(false)
+  const [isSessionComplete, setIsSessionComplete] = useState(false)
+  const [sessionResults, setSessionResults] = useState([])
   const [markedForReview, setMarkedForReview] = useState(() => new Set())
   const [adminForm, setAdminForm] = useState(null)
   const [adminMode, setAdminMode] = useState(null)
@@ -466,11 +469,26 @@ function App() {
   const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
   const topicQuestions = questions.filter((item) => item.topic === currentTopic)
   const finalTestQuestions = questions.slice(0, Math.min(FINAL_TEST_QUESTION_LIMIT, questions.length))
-  const activeQuizQuestions = practiceMode === 'final' ? finalTestQuestions : topicQuestions
-  const activeQuizTitle = practiceMode === 'final' ? 'Final Test Simulation' : currentTopic
+  const wrongResults = sessionResults.filter((result) => !result.isCorrect)
+  const activeQuizQuestions = isReviewingWrongAnswers
+    ? wrongResults.map((result) => result.question)
+    : practiceMode === 'final'
+      ? finalTestQuestions
+      : topicQuestions
+  const activeQuizTitle = isReviewingWrongAnswers
+    ? 'Wrong Answer Review'
+    : practiceMode === 'final'
+      ? 'Final Test Simulation'
+      : currentTopic
   const currentQuestion = activeQuizQuestions[questionIndex]
+  const currentReviewResult = isReviewingWrongAnswers ? wrongResults[questionIndex] : null
   const currentAnswerOptions = normalizeQuizOptions(currentQuestion)
   const completedCount = activeQuizQuestions.length
+  const normalSessionTotal = practiceMode === 'final' ? finalTestQuestions.length : topicQuestions.length
+  const totalAnswered = sessionResults.length
+  const correctCount = sessionResults.filter((result) => result.isCorrect).length
+  const wrongCount = wrongResults.length
+  const scorePercent = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0
   const activeQuestions = questions.filter((item) => item.status === 'active').length
   const sourceDocuments = getUniqueReferenceValues(questions, 'sourceDocument')
   const referenceTopics = getUniqueReferenceValues(questions, 'topic')
@@ -504,7 +522,11 @@ function App() {
   const studiedToday = '—'
   const accuracyLabel = '—'
   const weakTopicsLabel = '—'
-  const progressPercent = completedCount > 0 ? Math.round(((questionIndex + (answered ? 1 : 0)) / completedCount) * 100) : 0
+  const progressPercent = isSessionComplete
+    ? 100
+    : completedCount > 0
+      ? Math.round(((questionIndex + (answered || isReviewingWrongAnswers ? 1 : 0)) / completedCount) * 100)
+      : 0
 
   const handleRefreshDatabase = async () => {
     await loadQuestionDatabase()
@@ -512,20 +534,28 @@ function App() {
 
   const handleStartQuiz = (topic = currentTopic) => {
     setPracticeMode('topic')
+    setIsReviewingWrongAnswers(false)
+    setIsSessionComplete(false)
+    setSessionResults([])
     setSelectedTopic(topic)
     setQuestionIndex(0)
     setAnswered(false)
     setSelectedAnswer(null)
+    setCorrect(false)
     setView('quiz')
   }
 
   const handleContinueStudy = () => {
     setPracticeMode('topic')
+    setIsReviewingWrongAnswers(false)
     setView('quiz')
   }
 
   const handleStartFinalTest = () => {
     setPracticeMode('final')
+    setIsReviewingWrongAnswers(false)
+    setIsSessionComplete(false)
+    setSessionResults([])
     setQuestionIndex(0)
     setAnswered(false)
     setSelectedAnswer(null)
@@ -542,11 +572,47 @@ function App() {
     if (answered || !currentQuestion || selectedAnswer === null) return
     const correctAnswerKey = getCorrectAnswerKey(currentQuestion)
     const selectedOption = currentAnswerOptions.find((option) => option.originalIndex === selectedAnswer)
-    setCorrect(selectedOption?.key === correctAnswerKey)
+    const correctOption = currentAnswerOptions.find((option) => option.key === correctAnswerKey)
+    const isCorrect = selectedOption?.key === correctAnswerKey
+
+    if (!isReviewingWrongAnswers) {
+      setSessionResults((current) => {
+        const nextResult = {
+          question: currentQuestion,
+          selectedAnswerIndex: selectedOption?.originalIndex ?? null,
+          selectedAnswerKey: selectedOption?.key || '',
+          selectedAnswerText: selectedOption?.text || '',
+          correctAnswerKey,
+          correctAnswerText: correctOption?.text || '',
+          isCorrect,
+        }
+        const existingIndex = current.findIndex((result) => result.question.id === currentQuestion.id)
+
+        if (existingIndex === -1) {
+          return [...current, nextResult]
+        }
+
+        return current.map((result, index) => (index === existingIndex ? nextResult : result))
+      })
+    }
+
+    setCorrect(isCorrect)
     setAnswered(true)
   }
 
   const handleNextQuestion = () => {
+    if (questionIndex + 1 >= activeQuizQuestions.length) {
+      if (isReviewingWrongAnswers) {
+        setIsReviewingWrongAnswers(false)
+      }
+      setIsSessionComplete(true)
+      setQuestionIndex(0)
+      setSelectedAnswer(null)
+      setAnswered(false)
+      setCorrect(false)
+      return
+    }
+
     setSelectedAnswer(null)
     setAnswered(false)
     setCorrect(false)
@@ -560,6 +626,43 @@ function App() {
     setView('dashboard')
     setSelectedAnswer(null)
     setAnswered(false)
+    setCorrect(false)
+    setIsReviewingWrongAnswers(false)
+    setIsSessionComplete(false)
+    setSessionResults([])
+    setQuestionIndex(0)
+  }
+
+  const handleRetryTopic = () => {
+    setIsReviewingWrongAnswers(false)
+    setIsSessionComplete(false)
+    setSessionResults([])
+    setQuestionIndex(0)
+    setSelectedAnswer(null)
+    setAnswered(false)
+    setCorrect(false)
+    setView('quiz')
+  }
+
+  const handleReviewWrongAnswers = () => {
+    if (wrongResults.length === 0) return
+    setIsReviewingWrongAnswers(true)
+    setIsSessionComplete(false)
+    setQuestionIndex(0)
+    setSelectedAnswer(null)
+    setAnswered(false)
+    setCorrect(false)
+  }
+
+  const handleNextWrongAnswer = () => {
+    if (questionIndex + 1 >= wrongResults.length) {
+      setIsReviewingWrongAnswers(false)
+      setIsSessionComplete(true)
+      setQuestionIndex(0)
+      return
+    }
+
+    setQuestionIndex((current) => current + 1)
   }
 
   const handleToggleMarkForReview = () => {
@@ -1024,9 +1127,13 @@ function App() {
           <section className="quiz-view">
             <div className="practice-topbar">
               <div>
-                <p className="eyebrow">{practiceMode === 'final' ? 'Final test simulation' : 'Topic practice'}</p>
+                <p className="eyebrow">
+                  {isReviewingWrongAnswers ? 'Review' : practiceMode === 'final' ? 'Final test simulation' : 'Topic practice'}
+                </p>
                 <h2>{activeQuizTitle}</h2>
-                <p className="subtitle">Question {questionIndex + 1} of {completedCount}</p>
+                <p className="subtitle">
+                  {isSessionComplete ? 'Results' : `Question ${questionIndex + 1} of ${completedCount}`}
+                </p>
               </div>
               <div className="practice-progress">
                 <div className="progress-track">
@@ -1039,22 +1146,69 @@ function App() {
               </button>
             </div>
 
-            {currentQuestion ? (
+            {isSessionComplete ? (
+              <article className="question-card session-complete-card">
+                <p className="eyebrow">Session Complete</p>
+                <h3>Session Complete</h3>
+                <p>{practiceMode === 'final' ? 'Final Test Simulation' : currentTopic}</p>
+                <div className="result-summary-grid">
+                  <div>
+                    <span>Total answered</span>
+                    <strong>{totalAnswered}</strong>
+                  </div>
+                  <div>
+                    <span>Correct</span>
+                    <strong>{correctCount}</strong>
+                  </div>
+                  <div>
+                    <span>Wrong</span>
+                    <strong>{wrongCount}</strong>
+                  </div>
+                  <div>
+                    <span>Score</span>
+                    <strong>{scorePercent}%</strong>
+                  </div>
+                </div>
+                {wrongCount === 0 && totalAnswered > 0 && (
+                  <p className="perfect-score-message">Perfect score. No wrong answers to review.</p>
+                )}
+                <div className="quiz-actions">
+                  {wrongCount > 0 && (
+                    <button className="button button-primary" onClick={handleReviewWrongAnswers}>
+                      Review Wrong Answers
+                    </button>
+                  )}
+                  <button className="button button-secondary" onClick={handleRetryTopic}>
+                    Retry Topic
+                  </button>
+                  <button className="button button-ghost" onClick={() => setView('topics')}>
+                    Choose Another Topic
+                  </button>
+                  <button className="button button-ghost" onClick={handleBackToDashboard}>
+                    Back to Dashboard
+                  </button>
+                </div>
+              </article>
+            ) : currentQuestion ? (
               <div className="practice-layout">
                 <article className="question-card practice-question-card">
                   <p className="question-id">{currentQuestion.id}</p>
                   <h3>{currentQuestion.question}</h3>
-                  {currentQuestion.difficulty && (
-                    <p className="question-meta">Difficulty: {currentQuestion.difficulty}</p>
-                  )}
                   <div className={`answer-grid answer-grid-${currentAnswerOptions.length}`}>
                     {currentAnswerOptions.map((option) => {
                       const isSelected = selectedAnswer === option.originalIndex
+                      const isPreviousSelection = currentReviewResult?.selectedAnswerIndex === option.originalIndex
                       const isCorrectAnswer = getCorrectAnswerKey(currentQuestion) === option.key
                       const answerClass = answered
                         ? isCorrectAnswer
                           ? 'answer-button answer-correct'
                           : isSelected
+                          ? 'answer-button answer-wrong'
+                          : 'answer-button answer-disabled'
+                        : isReviewingWrongAnswers
+                        ? isCorrectAnswer
+                          ? 'answer-button answer-correct'
+                          : isPreviousSelection
                           ? 'answer-button answer-wrong'
                           : 'answer-button answer-disabled'
                         : isSelected
@@ -1066,7 +1220,7 @@ function App() {
                           key={`${option.key}-${option.originalIndex}`}
                           className={answerClass}
                           onClick={() => handleAnswerClick(option)}
-                          disabled={answered}
+                          disabled={answered || isReviewingWrongAnswers}
                         >
                           <span className="answer-key">{option.key}</span>
                           <span className="answer-text">{option.text}</span>
@@ -1077,29 +1231,35 @@ function App() {
 
                   {answered && (
                     <div className={correct ? 'feedback feedback-correct' : 'feedback feedback-wrong'}>
-                      {correct ? 'Correct answer' : 'Incorrect answer'}
+                      <strong>{correct ? 'Correct answer' : 'Wrong answer'}</strong>
+                      <span>
+                        Selected: {currentAnswerOptions.find((option) => option.originalIndex === selectedAnswer)?.key || '—'} · Correct: {getCorrectAnswerKey(currentQuestion)}
+                      </span>
                     </div>
                   )}
 
-                  {answered && (
-                    <div className="explanation-box">
-                      <p className="explanation-label">Explanation</p>
-                      <p>{currentQuestion.explanation}</p>
-                      {currentQuestion.manualReference && (
-                        <p className="explanation-reference">
-                          <strong>Manual Reference:</strong> {currentQuestion.manualReference}
-                        </p>
-                      )}
+                  {isReviewingWrongAnswers && currentReviewResult && (
+                    <div className="feedback feedback-review">
+                      <strong>Previous answer: {currentReviewResult.selectedAnswerKey} — {currentReviewResult.selectedAnswerText}</strong>
+                      <span>Correct answer: {currentReviewResult.correctAnswerKey} — {currentReviewResult.correctAnswerText}</span>
                     </div>
                   )}
 
                   <div className="quiz-actions">
-                    <button className="button button-primary" onClick={answered ? handleNextQuestion : handleCheckAnswer} disabled={!answered && selectedAnswer === null}>
-                      {answered ? (questionIndex + 1 < completedCount ? 'Next Question' : 'Restart Session') : 'Check Answer'}
-                    </button>
-                    <button className="button button-secondary" onClick={handleToggleMarkForReview}>
-                      {markedForReview.has(currentQuestion.id) ? 'Marked for Review' : 'Mark for Review'}
-                    </button>
+                    {isReviewingWrongAnswers ? (
+                      <button className="button button-primary" onClick={handleNextWrongAnswer}>
+                        {questionIndex + 1 < wrongResults.length ? 'Next Wrong Answer' : 'Back to Results'}
+                      </button>
+                    ) : (
+                      <>
+                        <button className="button button-primary" onClick={answered ? handleNextQuestion : handleCheckAnswer} disabled={!answered && selectedAnswer === null}>
+                          {answered ? (questionIndex + 1 < normalSessionTotal ? 'Next Question' : 'Finish Session') : 'Check Answer'}
+                        </button>
+                        <button className="button button-secondary" onClick={handleToggleMarkForReview}>
+                          {markedForReview.has(currentQuestion.id) ? 'Marked for Review' : 'Mark for Review'}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </article>
 
@@ -1109,24 +1269,10 @@ function App() {
                     <h3>Progress</h3>
                     <p>{questionIndex + 1} of {completedCount} questions</p>
                   </div>
-                  <dl className="quiz-reference">
-                    <div>
-                      <dt>Manual</dt>
-                      <dd>{displayReferenceValue(currentQuestion.manualReference)}</dd>
-                    </div>
-                    <div>
-                      <dt>Source</dt>
-                      <dd>{displayReferenceValue(currentQuestion.sourceDocument)}</dd>
-                    </div>
-                    <div>
-                      <dt>Page</dt>
-                      <dd>{displayReferenceValue(currentQuestion.sourcePage)}</dd>
-                    </div>
-                    <div>
-                      <dt>Review marks</dt>
-                      <dd>{markedForReview.size}</dd>
-                    </div>
-                  </dl>
+                  <div className="practice-aid-stat">
+                    <span>Review marks</span>
+                    <strong>{markedForReview.size}</strong>
+                  </div>
                   <button className="button button-secondary" onClick={() => setView('manual-references')}>
                     Open Manual Support
                   </button>
