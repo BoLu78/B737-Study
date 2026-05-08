@@ -1,7 +1,7 @@
 {
   "name": "b737-study",
   "private": true,
-  "version": "3.9.0",
+  "version": "5.9.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,6 +15,7 @@
     "manuals:index": "node scripts/index-manuals-local.js",
     "manuals:index:dry": "node scripts/index-manuals-local.js --dry-run",
     "audit:manuals": "node scripts/index-manuals-local.js --dry-run",
+    "manuals:manifest": "node scripts/prepare-manuals-local-manifest.js",
     "manuals:check": "node scripts/check-manual-pipeline.js"
   },
   "dependencies": {

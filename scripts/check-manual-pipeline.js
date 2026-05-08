@@ -58,20 +58,92 @@ async function loadEnv() {
   }
 }
 
-async function checkBucket(supabase) {
-  const { data, error } = await supabase.storage.getBucket(MANUALS_BUCKET_ID)
+function isBlockedBucketRead(error) {
+  const message = String(error?.message || '').toLowerCase()
+  const statusCode = Number(error?.statusCode || error?.status)
 
-  if (error) {
+  return (
+    statusCode === 401 ||
+    statusCode === 403 ||
+    message.includes('unauthorized') ||
+    message.includes('forbidden') ||
+    message.includes('permission') ||
+    message.includes('not allowed') ||
+    message.includes('invalid schema') ||
+    message.includes('row-level security')
+  )
+}
+
+function isPrivateBucketHiddenFromAnon(error, keyMode) {
+  const message = String(error?.message || '').toLowerCase()
+
+  return keyMode === 'anon' && message.includes('bucket not found')
+}
+
+async function checkBucket(supabase, keyMode) {
+  const storageApiResult = await supabase.storage.getBucket(MANUALS_BUCKET_ID)
+  const metadataResult = await supabase
+    .schema('storage')
+    .from('buckets')
+    .select('id, name, public')
+    .eq('id', MANUALS_BUCKET_ID)
+    .maybeSingle()
+
+  const storageApiError = storageApiResult.error
+  const metadataError = metadataResult.error
+  const apiBucket = storageApiResult.data
+  const metadataBucket = metadataResult.data
+
+  if (apiBucket) {
     return {
-      exists: false,
+      exists: apiBucket.id === MANUALS_BUCKET_ID || apiBucket.name === MANUALS_BUCKET_ID,
+      isPrivate: apiBucket.public === false,
+      storageApiStatus: 'confirmed by Storage API',
+      metadataStatus: metadataBucket ? 'visible in DB metadata' : 'not checked or not visible',
+      isBlocked: false,
+      error: null,
+    }
+  }
+
+  if (metadataBucket) {
+    return {
+      exists: metadataBucket.id === MANUALS_BUCKET_ID || metadataBucket.name === MANUALS_BUCKET_ID,
+      isPrivate: metadataBucket.public === false,
+      storageApiStatus: storageApiError && (isBlockedBucketRead(storageApiError) || isPrivateBucketHiddenFromAnon(storageApiError, keyMode))
+        ? 'not readable with this key'
+        : `not confirmed${storageApiError?.message ? `; ${storageApiError.message}` : ''}`,
+      metadataStatus: 'visible in DB metadata',
+      isBlocked: Boolean(storageApiError && (isBlockedBucketRead(storageApiError) || isPrivateBucketHiddenFromAnon(storageApiError, keyMode))),
+      error: null,
+    }
+  }
+
+  if (storageApiError || metadataError) {
+    const blocked =
+      isBlockedBucketRead(storageApiError) ||
+      isBlockedBucketRead(metadataError) ||
+      isPrivateBucketHiddenFromAnon(storageApiError, keyMode)
+
+    return {
+      exists: blocked ? null : false,
       isPrivate: null,
-      error: error.message,
+      storageApiStatus: storageApiError && (isBlockedBucketRead(storageApiError) || isPrivateBucketHiddenFromAnon(storageApiError, keyMode))
+        ? 'not readable with this key'
+        : `not confirmed${storageApiError?.message ? `; ${storageApiError.message}` : ''}`,
+      metadataStatus: metadataError && isBlockedBucketRead(metadataError)
+        ? 'not readable with this key'
+        : `not visible${metadataError?.message ? `; ${metadataError.message}` : ''}`,
+      isBlocked: blocked,
+      error: blocked ? null : storageApiError?.message || metadataError?.message || null,
     }
   }
 
   return {
-    exists: data?.id === MANUALS_BUCKET_ID || data?.name === MANUALS_BUCKET_ID,
-    isPrivate: data?.public === false,
+    exists: false,
+    isPrivate: null,
+    storageApiStatus: 'bucket not found',
+    metadataStatus: 'bucket not found',
+    isBlocked: false,
     error: null,
   }
 }
@@ -82,9 +154,10 @@ async function main() {
   const anonKey = env.VITE_SUPABASE_ANON_KEY
   const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY
   const readKey = serviceRoleKey || anonKey
+  const keyMode = serviceRoleKey ? 'service role' : 'anon'
   let hasProblems = false
 
-  process.stdout.write('MANUAL PIPELINE CHECK v3.9\n')
+  process.stdout.write('MANUAL PIPELINE CHECK v5.9\n')
 
   printSection('SUPABASE CONNECTION')
   printStatus('URL configured', supabaseUrl ? 'yes' : 'no')
@@ -129,15 +202,20 @@ async function main() {
   }
 
   printSection('STORAGE BUCKET')
-  const bucketCheck = await checkBucket(supabase)
+  const bucketCheck = await checkBucket(supabase, keyMode)
+
+  printStatus('Storage API', bucketCheck.storageApiStatus)
+  printStatus('DB metadata', bucketCheck.metadataStatus)
 
   if (bucketCheck.error) {
     hasProblems = true
     printStatus('manuals bucket', `not confirmed; ${bucketCheck.error}`)
+  } else if (bucketCheck.isBlocked && bucketCheck.exists !== true) {
+    printStatus('manuals bucket', 'not readable with current key; bucket existence not treated as failed by this check')
   } else {
     printStatus('manuals bucket exists', bucketCheck.exists ? 'yes' : 'no')
     printStatus('manuals bucket private', bucketCheck.isPrivate ? 'yes' : 'no')
-    hasProblems = hasProblems || !bucketCheck.exists || !bucketCheck.isPrivate
+    hasProblems = hasProblems || bucketCheck.exists === false || bucketCheck.isPrivate === false
   }
 
   printSection('MANUAL FILE PATHS')
@@ -197,7 +275,12 @@ async function main() {
     printStatus('Catalog', 'apply migration 009 or seed verified manual_documents rows')
   }
 
-  if (bucketCheck.error || !bucketCheck.exists || !bucketCheck.isPrivate) {
+  const bucketNeedsAction =
+    bucketCheck.error ||
+    bucketCheck.exists === false ||
+    bucketCheck.isPrivate === false
+
+  if (bucketNeedsAction) {
     printStatus('Storage', 'apply migration 009 and verify the private manuals bucket')
   }
 

@@ -14,6 +14,7 @@ Useful commands:
 ```bash
 npm run build
 npm run lint
+npm run manuals:manifest
 npm run manuals:check
 ```
 
@@ -55,8 +56,13 @@ Migration `009_manuals_bucket_and_catalog_v3_9.sql` creates or updates the priva
 ## Manual Indexing Flow
 
 1. Upload verified PDF manuals to Supabase Storage under the paths stored in `manual_documents.storage_path`.
-2. Copy `data/manuals-local/manuals-manifest.example.json` to `data/manuals-local/manuals-manifest.json`.
-3. Point each manifest entry at a local PDF and its matching `manual_document_code`.
+2. Place matching local PDFs under `data/manuals-local/`.
+3. Generate the local manifest:
+
+```bash
+npm run manuals:manifest
+```
+
 4. Validate extraction locally:
 
 ```bash
