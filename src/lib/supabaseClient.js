@@ -108,7 +108,7 @@ export async function signOut() {
   }
 }
 
-export async function createSignedManualUrl(storagePath) {
+export async function createSignedManualUrl(storagePath, storageBucket = 'manuals') {
   if (!supabase) {
     return {
       signedUrl: null,
@@ -124,6 +124,7 @@ export async function createSignedManualUrl(storagePath) {
   }
 
   const normalizedStoragePath = storagePath.trim()
+  const normalizedStorageBucket = String(storageBucket || '').trim() || 'manuals'
 
   try {
     const { data: session, error: sessionError } = await getCurrentSession()
@@ -136,7 +137,7 @@ export async function createSignedManualUrl(storagePath) {
     }
 
     const { data, error } = await supabase.storage
-      .from('manuals')
+      .from(normalizedStorageBucket)
       .createSignedUrl(normalizedStoragePath, 300)
 
     if (error) {

@@ -1,7 +1,7 @@
 {
   "name": "b737-study",
   "private": true,
-  "version": "0.0.0",
+  "version": "3.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,7 +13,8 @@
     "import:t73": "node scripts/import-t73-to-supabase.js",
     "prepare:t73": "npm run extract:t73 && npm run sql:t73",
     "manuals:index": "node scripts/index-manuals-local.js",
-    "manuals:index:dry": "node scripts/index-manuals-local.js --dry-run"
+    "manuals:index:dry": "node scripts/index-manuals-local.js --dry-run",
+    "audit:manuals": "node scripts/index-manuals-local.js --dry-run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",

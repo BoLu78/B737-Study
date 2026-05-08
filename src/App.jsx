@@ -12,7 +12,7 @@ import {
 } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v5.6'
+const APP_VERSION = 'v3.8'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
@@ -530,7 +530,7 @@ function App() {
     setFallbackManualLink(null)
     setOpeningManualId(manual.id)
 
-    const { signedUrl, error } = await createSignedManualUrl(manual.storage_path)
+    const { signedUrl, error } = await createSignedManualUrl(manual.storage_path, manual.storage_bucket)
 
     setOpeningManualId(null)
 

@@ -20,7 +20,7 @@ If you are developing a production application, we recommend using TypeScript wi
 - Manuals must not be committed to GitHub.
 - Manuals must not be placed in `public/`.
 - Future upload should use protected Supabase Storage.
-- Current v5.6 adds the manual chunk/index foundation for read-only manual search.
+- Current v3.8 adds the manual chunk/index foundation for read-only manual search.
 - No AI provider calls are active yet.
 
 ## Protected Manual Access
@@ -33,7 +33,7 @@ If you are developing a production application, we recommend using TypeScript wi
 
 ## Manual AI Search Roadmap
 
-- v5.6 adds the manual chunk/index foundation.
+- v3.8 adds the manual chunk/index foundation.
 - PDFs remain private and are not committed to GitHub.
 - Local indexing requires placing PDFs in `data/manuals-local/`, which is gitignored.
 - Generated SQL must be reviewed before running in Supabase.
