@@ -1,41 +1,86 @@
-# React + Vite
+# B737 Study App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Pilot-focused B737 study dashboard with Supabase-backed questions, protected manual catalog access, and read-only manual chunk search.
 
-Currently, two official plugins are available:
+## Local Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+Useful commands:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm run build
+npm run lint
+npm run manuals:check
+```
 
-## Expanding the ESLint configuration
+Create `.env.local` with the browser-safe Supabase values used by Vite:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```text
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+```
 
-## Manual Library Roadmap
+Optional for local read-only storage metadata validation:
 
-- Manuals must not be committed to GitHub.
-- Manuals must not be placed in `public/`.
-- Future upload should use protected Supabase Storage.
-- Current v3.8 adds the manual chunk/index foundation for read-only manual search.
-- No AI provider calls are active yet.
+```text
+SUPABASE_SERVICE_ROLE_KEY=...
+```
 
-## Protected Manual Access
+The validation script reports whether a service role key is present, but never prints secret values.
 
-- The `manuals` bucket remains private.
-- Manual PDF files are not committed to GitHub.
-- Opening a manual requires a Supabase Auth user and an authenticated read policy for the private storage bucket.
-- Signed URLs are generated only on demand and are short-lived.
-- No AI/manual search generation is active yet.
+## Supabase Requirements
 
-## Manual AI Search Roadmap
+Apply the migrations in `supabase/migrations/` in order. The manual pipeline expects:
 
-- v3.8 adds the manual chunk/index foundation.
-- PDFs remain private and are not committed to GitHub.
-- Local indexing requires placing PDFs in `data/manuals-local/`, which is gitignored.
-- Generated SQL must be reviewed before running in Supabase.
-- No AI provider calls are active yet.
-- A future backend or Edge Function will generate AI answers using indexed chunks.
+- `public.manual_documents`
+- `public.manual_chunks`
+- private Supabase Storage bucket `manuals`
+- authenticated-only read policy on `storage.objects` for the `manuals` bucket
+- active manual catalog rows with `code`, `title`, `storage_bucket`, `storage_path`, and `status`
+
+Migration `009_manuals_bucket_and_catalog_v3_9.sql` creates or updates the private `manuals` bucket and seeds the verified manual catalog rows idempotently.
+
+## Manual PDF Safety Rules
+
+- Do not commit PDF manuals to GitHub.
+- Do not place manuals in `public/`.
+- Keep source PDFs under ignored local paths such as `data/manuals-local/`.
+- Upload manuals only to the private Supabase Storage bucket.
+- Do not expose `.env.local` values in logs, screenshots, commits, or generated reports.
+
+## Manual Indexing Flow
+
+1. Upload verified PDF manuals to Supabase Storage under the paths stored in `manual_documents.storage_path`.
+2. Copy `data/manuals-local/manuals-manifest.example.json` to `data/manuals-local/manuals-manifest.json`.
+3. Point each manifest entry at a local PDF and its matching `manual_document_code`.
+4. Validate extraction locally:
+
+```bash
+npm run manuals:index:dry
+```
+
+5. Generate chunk preview and SQL:
+
+```bash
+npm run manuals:index -- --write
+```
+
+6. Review `data/generated/manual_chunks_preview.json` and `data/generated/manual_chunks_insert.sql`.
+7. Execute the reviewed chunk SQL in Supabase.
+8. Run the pipeline check:
+
+```bash
+npm run manuals:check
+```
+
+## Current Limitation
+
+Manual search is chunk-search only. No AI provider call, no Edge Function, no RPC answer generator, and no fake AI answer path is active yet. The "Ask manuals" control remains disabled until secure backend AI answer generation exists.
+
+## Next Planned Step
+
+Add a Supabase Edge Function for AI answers with citations. It should retrieve relevant manual chunks server-side, call the AI provider without exposing secrets to the browser, and return cited answers only from indexed manual material.

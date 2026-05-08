@@ -12,7 +12,7 @@ import {
 } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v3.8'
+const APP_VERSION = 'v3.9'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
