@@ -9,6 +9,24 @@ npm install
 npm run dev
 ```
 
+Local dev command:
+
+```bash
+npm run dev
+```
+
+Build command:
+
+```bash
+npm run build
+```
+
+GitHub Pages URL:
+
+```text
+https://bolu78.github.io/B737-Study/
+```
+
 Useful commands:
 
 ```bash
