@@ -1374,6 +1374,12 @@ td:nth-child(10) {
   color: #fff;
 }
 
+.stat-card small {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
 .app-footer {
   margin-top: 24px;
   padding: 18px 24px;

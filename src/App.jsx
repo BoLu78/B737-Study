@@ -15,8 +15,9 @@ import {
 import { cleanAnswerText, cleanQuestionText } from './utils/questionTextCleaner'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v7.3'
+const APP_VERSION = 'v7.4'
 const FINAL_TEST_QUESTION_LIMIT = 100
+const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v1'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v1'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
@@ -278,6 +279,12 @@ function loadStoredTopicStats() {
 function saveStoredTopicStats(stats) {
   if (typeof window === 'undefined') return
   window.localStorage.setItem(TOPIC_STATS_STORAGE_KEY, JSON.stringify(stats))
+}
+
+function clearStoredStudyProgress() {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(STUDY_PROGRESS_STORAGE_KEY)
+  window.localStorage.removeItem(TOPIC_STATS_STORAGE_KEY)
 }
 
 function getTopicStatus(totalAnswered, accuracy) {
@@ -749,12 +756,12 @@ function App() {
   }
 
   const handleResetStudyProgress = () => {
-    const shouldReset = window.confirm('Reset local topic performance? Questions, manuals, and Supabase data will not be changed.')
+    const shouldReset = window.confirm('Reset local study progress? Questions, manuals, and Supabase data will not be changed.')
 
     if (!shouldReset) return
 
     setTopicStats({})
-    saveStoredTopicStats({})
+    clearStoredStudyProgress()
   }
 
   const handleToggleMarkForReview = () => {
@@ -1210,6 +1217,17 @@ function App() {
                 <span>Manuals</span>
                 <button className="button button-secondary" onClick={() => setView('manual-references')}>
                   Open Manual References
+                </button>
+              </article>
+              <article className="stat-card">
+                <span>Progress Privacy</span>
+                <strong>Local browser only</strong>
+                <small>Study progress is stored locally in this browser. It is not shared with other users.</small>
+              </article>
+              <article className="stat-card">
+                <span>Local Progress</span>
+                <button className="button button-secondary" onClick={handleResetStudyProgress}>
+                  Reset local study progress
                 </button>
               </article>
             </div>

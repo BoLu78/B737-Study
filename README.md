@@ -164,6 +164,8 @@ Topic selection lives in the Topics page so the dashboard does not show a partia
 
 Topic performance is stored locally in the browser using completed practice sessions. Supabase remains the source for the question database; no Supabase progress tables are required.
 
+Supabase stores shared question and manual reference data. Personal progress, topic results, studied counts, accuracy, final test session state, and wrong-answer review state stay in the current browser/device only. Sharing the app link does not mix results across different devices or browser profiles. Results can mix only when people use the same browser profile on the same device.
+
 During topic practice:
 
 - Topic practice shows a session result summary after completion.
