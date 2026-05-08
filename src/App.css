@@ -241,10 +241,12 @@ code {
   color: #dbeafe;
 }
 
+.dashboard-view,
 .dashboard-hero,
 .primary-actions-grid,
 .metrics-strip,
-.topic-grid {
+.topic-grid,
+.topic-performance-section {
   display: grid;
   gap: 16px;
 }
@@ -361,6 +363,103 @@ code {
   color: #f8fafc;
   font-size: 1.16rem;
   overflow-wrap: anywhere;
+}
+
+.topic-performance-section {
+  padding: 18px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.topic-performance-empty {
+  color: var(--text-muted);
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(15, 24, 42, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.topic-performance-list {
+  display: grid;
+  gap: 8px;
+}
+
+.topic-performance-row {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.5fr) minmax(120px, 1fr) minmax(90px, 0.6fr) minmax(100px, auto) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(15, 24, 42, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.topic-performance-main,
+.topic-performance-score {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.topic-performance-main strong {
+  color: #dbeafe;
+  overflow-wrap: anywhere;
+}
+
+.topic-performance-main span,
+.topic-performance-score span {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+
+.topic-performance-score strong {
+  color: #f8fafc;
+}
+
+.topic-performance-meter {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.topic-performance-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f97316, #38bdf8, #2dd4bf);
+}
+
+.topic-status {
+  justify-self: start;
+  white-space: nowrap;
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: #cbd5e1;
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.topic-status-strong {
+  color: #99f6e4;
+  background: rgba(45, 212, 191, 0.12);
+  border-color: rgba(45, 212, 191, 0.24);
+}
+
+.topic-status-good {
+  color: #bfdbfe;
+  background: rgba(96, 165, 250, 0.12);
+  border-color: rgba(96, 165, 250, 0.24);
+}
+
+.topic-status-needs-focus {
+  color: #fed7aa;
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.24);
 }
 
 .topics-view,
@@ -493,6 +592,13 @@ button.button {
   border-radius: 14px;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.button-small {
+  min-height: 36px !important;
+  padding: 0 12px !important;
+  border-radius: 11px !important;
+  font-size: 0.86rem;
 }
 
 button.button:hover {
@@ -1285,7 +1391,8 @@ td:nth-child(10) {
   .app-layout,
   .dashboard-hero,
   .primary-actions-grid,
-  .practice-layout {
+  .practice-layout,
+  .topic-performance-row {
     grid-template-columns: 1fr;
   }
 
@@ -1371,6 +1478,11 @@ td:nth-child(10) {
 
   button.button {
     width: 100%;
+  }
+
+  .topic-status {
+    justify-self: stretch;
+    text-align: center;
   }
 
   .admin-question-card,

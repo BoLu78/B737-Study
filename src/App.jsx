@@ -14,8 +14,9 @@ import {
 } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v7.1'
+const APP_VERSION = 'v7.2'
 const FINAL_TEST_QUESTION_LIMIT = 100
+const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v1'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
@@ -262,6 +263,29 @@ function getManualSearchHighlightTerms(query) {
     .sort((first, second) => second.length - first.length)
 }
 
+function loadStoredTopicStats() {
+  if (typeof window === 'undefined') return {}
+
+  try {
+    const parsedStats = JSON.parse(window.localStorage.getItem(TOPIC_STATS_STORAGE_KEY) || '{}')
+    return parsedStats && typeof parsedStats === 'object' && !Array.isArray(parsedStats) ? parsedStats : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveStoredTopicStats(stats) {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(TOPIC_STATS_STORAGE_KEY, JSON.stringify(stats))
+}
+
+function getTopicStatus(totalAnswered, accuracy) {
+  if (!totalAnswered) return 'Not Studied'
+  if (accuracy >= 85) return 'Strong'
+  if (accuracy >= 70) return 'Good'
+  return 'Needs Focus'
+}
+
 function createManualChunkExcerpt(text, query) {
   const normalizedText = String(text || '').replace(/\s+/g, ' ').trim()
   const highlightTerms = getManualSearchHighlightTerms(query)
@@ -323,6 +347,7 @@ function App() {
   const [isReviewingWrongAnswers, setIsReviewingWrongAnswers] = useState(false)
   const [isSessionComplete, setIsSessionComplete] = useState(false)
   const [sessionResults, setSessionResults] = useState([])
+  const [topicStats, setTopicStats] = useState(loadStoredTopicStats)
   const [markedForReview, setMarkedForReview] = useState(() => new Set())
   const [adminForm, setAdminForm] = useState(null)
   const [adminMode, setAdminMode] = useState(null)
@@ -510,9 +535,48 @@ function App() {
   const isManualSignedIn = Boolean(manualSession)
   const manualSearchManualTypes = getUniqueReferenceValues(manualDocuments, 'manual_type')
   const manualSearchAircraftOptions = getUniqueReferenceValues(manualDocuments, 'aircraft')
-  const studiedToday = '—'
-  const accuracyLabel = '—'
-  const weakTopicsLabel = '—'
+  const topicPerformanceRows = topics.map((topic) => {
+    const stats = topicStats[topic] || {}
+    const answeredTotal = Number(stats.totalAnswered) || 0
+    const correctTotal = Number(stats.correctCount) || 0
+    const wrongTotal = Number(stats.wrongCount) || 0
+    const accuracy = answeredTotal > 0 ? Math.round((correctTotal / answeredTotal) * 100) : null
+    const status = getTopicStatus(answeredTotal, accuracy || 0)
+
+    return {
+      topic,
+      totalAnswered: answeredTotal,
+      correctCount: correctTotal,
+      wrongCount: wrongTotal,
+      attemptsCount: Number(stats.attemptsCount) || 0,
+      bestScore: Number(stats.bestScore) || 0,
+      lastScore: Number(stats.lastScore) || 0,
+      lastPracticedAt: stats.lastPracticedAt || '',
+      accuracy,
+      status,
+    }
+  })
+  const statusOrder = {
+    'Needs Focus': 0,
+    'Not Studied': 1,
+    Good: 2,
+    Strong: 3,
+  }
+  const sortedTopicPerformanceRows = [...topicPerformanceRows].sort((first, second) => {
+    const statusDifference = statusOrder[first.status] - statusOrder[second.status]
+
+    if (statusDifference !== 0) return statusDifference
+    if (first.status === 'Needs Focus') return (first.accuracy || 0) - (second.accuracy || 0)
+    if (first.status === 'Strong' || first.status === 'Good') return (second.accuracy || 0) - (first.accuracy || 0)
+    return first.topic.localeCompare(second.topic)
+  })
+  const totalTopicAnswered = topicPerformanceRows.reduce((sum, row) => sum + row.totalAnswered, 0)
+  const totalTopicCorrect = topicPerformanceRows.reduce((sum, row) => sum + row.correctCount, 0)
+  const practicedTopicCount = topicPerformanceRows.filter((row) => row.totalAnswered > 0).length
+  const studiedToday = totalTopicAnswered > 0 ? totalTopicAnswered : '—'
+  const accuracyLabel = totalTopicAnswered > 0 ? `${Math.round((totalTopicCorrect / totalTopicAnswered) * 100)}%` : '—'
+  const weakTopicCount = topicPerformanceRows.filter((row) => row.status === 'Needs Focus').length
+  const weakTopicsLabel = totalTopicAnswered > 0 ? weakTopicCount : '—'
   const progressPercent = isSessionComplete
     ? 100
     : completedCount > 0
@@ -587,10 +651,41 @@ function App() {
     setAnswered(true)
   }
 
+  const recordTopicSessionStats = () => {
+    if (practiceMode !== 'topic' || isReviewingWrongAnswers || !currentTopic || totalAnswered === 0) return
+
+    setTopicStats((current) => {
+      const previousStats = current[currentTopic] || {}
+      const previousTotalAnswered = Number(previousStats.totalAnswered) || 0
+      const previousCorrectCount = Number(previousStats.correctCount) || 0
+      const previousWrongCount = Number(previousStats.wrongCount) || 0
+      const previousAttemptsCount = Number(previousStats.attemptsCount) || 0
+      const previousBestScore = Number(previousStats.bestScore) || 0
+      const nextStats = {
+        ...current,
+        [currentTopic]: {
+          topic: currentTopic,
+          totalAnswered: previousTotalAnswered + totalAnswered,
+          correctCount: previousCorrectCount + correctCount,
+          wrongCount: previousWrongCount + wrongCount,
+          attemptsCount: previousAttemptsCount + 1,
+          bestScore: Math.max(previousBestScore, scorePercent),
+          lastScore: scorePercent,
+          lastPracticedAt: new Date().toISOString(),
+        },
+      }
+
+      saveStoredTopicStats(nextStats)
+      return nextStats
+    })
+  }
+
   const handleNextQuestion = () => {
     if (questionIndex + 1 >= activeQuizQuestions.length) {
       if (isReviewingWrongAnswers) {
         setIsReviewingWrongAnswers(false)
+      } else {
+        recordTopicSessionStats()
       }
       setIsSessionComplete(true)
       setQuestionIndex(0)
@@ -650,6 +745,15 @@ function App() {
     }
 
     setQuestionIndex((current) => current + 1)
+  }
+
+  const handleResetStudyProgress = () => {
+    const shouldReset = window.confirm('Reset local topic performance? Questions, manuals, and Supabase data will not be changed.')
+
+    if (!shouldReset) return
+
+    setTopicStats({})
+    saveStoredTopicStats({})
   }
 
   const handleToggleMarkForReview = () => {
@@ -956,6 +1060,50 @@ function App() {
               </div>
             </div>
 
+            <section className="topic-performance-section">
+              <div className="section-header section-header-compact">
+                <div>
+                  <p className="eyebrow">Topic Performance</p>
+                  <h2>Topic Performance</h2>
+                  <p className="subtitle">See where to focus next.</p>
+                </div>
+                {practicedTopicCount > 0 && (
+                  <button className="button button-ghost button-small" onClick={handleResetStudyProgress}>
+                    Reset study progress
+                  </button>
+                )}
+              </div>
+
+              {practicedTopicCount === 0 ? (
+                <div className="topic-performance-empty">
+                  No topic results yet. Complete a topic practice session to see strengths and weak areas.
+                </div>
+              ) : (
+                <div className="topic-performance-list">
+                  {sortedTopicPerformanceRows.map((row) => (
+                    <div className="topic-performance-row" key={row.topic}>
+                      <div className="topic-performance-main">
+                        <strong>{row.topic}</strong>
+                        <span>{row.totalAnswered > 0 ? `${row.correctCount}/${row.totalAnswered} correct` : 'Not practiced'}</span>
+                      </div>
+                      <div className="topic-performance-meter" aria-label={`${row.topic} accuracy`}>
+                        <span style={{ width: `${row.accuracy || 0}%` }} />
+                      </div>
+                      <div className="topic-performance-score">
+                        <strong>{row.accuracy === null ? '—' : `${row.accuracy}%`}</strong>
+                        <span>{row.wrongCount} wrong</span>
+                      </div>
+                      <span className={`topic-status topic-status-${row.status.toLowerCase().replace(/\s+/g, '-')}`}>
+                        {row.status}
+                      </span>
+                      <button className="button button-secondary button-small" onClick={() => handleStartQuiz(row.topic)}>
+                        Practice
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </section>
         )}
 
@@ -1829,7 +1977,7 @@ function App() {
       </div>
 
       <footer className="app-footer">
-        Online-first study cockpit with Supabase question sync.
+        B737 Study App {APP_VERSION}
       </footer>
     </div>
   )

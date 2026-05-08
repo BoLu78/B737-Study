@@ -157,9 +157,12 @@ The dashboard is focused on the core study actions only:
 - Continue resumes the current topic session.
 - Practice by Topic opens the full Topics page.
 - Final Test starts an exam-style run from the loaded question bank.
-- Compact metrics show loaded questions and available study status.
+- Compact metrics show loaded questions, answered questions, accuracy, and weak-topic count.
+- Topic Performance shows strengths, weak areas, and topics not studied yet.
 
 Topic selection lives in the Topics page so the dashboard does not show a partial or confusing topic list.
+
+Topic performance is stored locally in the browser using completed practice sessions. Supabase remains the source for the question database; no Supabase progress tables are required.
 
 During topic practice:
 
