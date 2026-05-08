@@ -274,7 +274,40 @@ export async function loadManualDocuments() {
   }
 }
 
-export async function loadManualChunksSearch({ query = '', manualType = '', aircraft = '', limit = 10 } = {}) {
+export async function countManualChunks() {
+  if (!supabase) {
+    return {
+      count: null,
+      error: 'Supabase is not configured. Check environment variables.',
+    }
+  }
+
+  try {
+    const { count, error } = await supabase
+      .from('manual_chunks')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active')
+
+    if (error) {
+      return {
+        count: null,
+        error: error.message,
+      }
+    }
+
+    return {
+      count: Number.isInteger(count) ? count : 0,
+      error: null,
+    }
+  } catch (err) {
+    return {
+      count: null,
+      error: err.message || 'Unable to count manual chunks.',
+    }
+  }
+}
+
+export async function loadManualChunksSearch({ query = '', manualType = '', aircraft = '', limit = 20 } = {}) {
   if (!supabase) {
     return {
       data: null,
@@ -285,7 +318,7 @@ export async function loadManualChunksSearch({ query = '', manualType = '', airc
   const normalizedQuery = String(query || '').trim()
   const normalizedManualType = String(manualType || '').trim()
   const normalizedAircraft = String(aircraft || '').trim()
-  const safeLimit = Number.isInteger(Number(limit)) ? Math.min(Math.max(Number(limit), 1), 10) : 10
+  const safeLimit = Number.isInteger(Number(limit)) ? Math.min(Math.max(Number(limit), 1), 20) : 20
 
   const buildBaseQuery = () => {
     let request = supabase
@@ -315,13 +348,17 @@ export async function loadManualChunksSearch({ query = '', manualType = '', airc
       })
     }
 
-    let { data, error } = await request.order('manual_code', { ascending: true }).order('page_number', { ascending: true })
+    let { data, error } = await request
+      .order('manual_code', { ascending: true })
+      .order('page_number', { ascending: true })
+      .order('chunk_index', { ascending: true })
 
     if (error && normalizedQuery) {
       const fallbackRequest = buildBaseQuery()
         .ilike('chunk_text', `%${normalizedQuery}%`)
         .order('manual_code', { ascending: true })
         .order('page_number', { ascending: true })
+        .order('chunk_index', { ascending: true })
 
       const fallbackResult = await fallbackRequest
       data = fallbackResult.data

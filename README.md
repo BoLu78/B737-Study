@@ -95,7 +95,7 @@ Import the generated files in `data/generated/manual_chunks_sql_parts/` one by o
 
 ## Current Limitation
 
-Manual search is chunk-search only. No AI provider call, no Edge Function, no RPC answer generator, and no fake AI answer path is active yet. The "Ask manuals" control remains disabled until secure backend AI answer generation exists.
+Manual chunk search is available in the app through Supabase `manual_chunks`. No AI provider call, no Edge Function, no RPC answer generator, and no fake AI answer path is active yet. The "AI answers not enabled yet" control remains disabled until secure backend AI answer generation exists.
 
 ## Next Planned Step
 

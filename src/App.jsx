@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import {
+  countManualChunks,
   createSignedManualUrl,
   getCurrentSession,
   loadManualChunksSearch,
@@ -12,7 +13,7 @@ import {
 } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v6.0'
+const APP_VERSION = 'v6.1'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
@@ -299,6 +300,7 @@ function App() {
   const [manualSearchError, setManualSearchError] = useState('')
   const [isManualSearchLoading, setIsManualSearchLoading] = useState(false)
   const [hasManualChunks, setHasManualChunks] = useState(false)
+  const [manualChunksCount, setManualChunksCount] = useState(null)
   const [hasManualSearchRun, setHasManualSearchRun] = useState(false)
 
   const applyDatabaseResult = useCallback((data, error) => {
@@ -391,10 +393,20 @@ function App() {
     let isMounted = true
 
     const checkManualChunks = async () => {
-      const { data, error } = await loadManualChunksSearch({ limit: 1 })
+      const [sampleResult, countResult] = await Promise.all([
+        loadManualChunksSearch({ limit: 1 }),
+        countManualChunks(),
+      ])
 
       if (isMounted) {
-        setHasManualChunks(Boolean(!error && data?.length))
+        const hasSampleChunk = Boolean(!sampleResult.error && sampleResult.data?.length)
+        const hasCountedChunks = Number.isInteger(countResult.count) && countResult.count > 0
+
+        setHasManualChunks(hasSampleChunk || hasCountedChunks)
+
+        if (!countResult.error && Number.isInteger(countResult.count)) {
+          setManualChunksCount(countResult.count)
+        }
       }
     }
 
@@ -568,7 +580,7 @@ function App() {
       query: manualSearchQuery,
       manualType: manualSearchManualType,
       aircraft: manualSearchAircraft,
-      limit: 10,
+      limit: 20,
     })
 
     setIsManualSearchLoading(false)
@@ -724,7 +736,7 @@ function App() {
               <article className="card">
                 <h2>Manual References</h2>
                 <p>
-                  Browse question references by manual, topic and source page. Manual upload and AI search will be enabled later.
+                  Browse question references by manual, topic and source page. Manual files are private and chunk search is available.
                 </p>
                 <div className="card-actions">
                   <button
@@ -805,11 +817,11 @@ function App() {
                 </dl>
                 <div className="ask-manuals-row">
                   <button className="button button-secondary" disabled>
-                    Ask manuals
+                    AI answers not enabled yet
                   </button>
                   <span>
                     {hasManualChunks
-                      ? 'AI explanations will be enabled after backend processing is configured.'
+                      ? 'Manual chunk search is available in Manual References.'
                       : 'Manual index not ready yet.'}
                   </span>
                 </div>
@@ -937,7 +949,7 @@ function App() {
                 <p className="eyebrow">Manual References</p>
                 <h2>Manual References</h2>
                 <p className="subtitle">
-                  Browse the source metadata linked to the current question bank. Manual upload and AI explanations are not enabled yet.
+                  Browse the source metadata linked to the current question bank. Manual files are stored privately. Manual chunk search is available. AI explanations are not enabled yet.
                 </p>
               </div>
               <button className="button button-ghost" onClick={handleBackToDashboard}>
@@ -1121,20 +1133,25 @@ function App() {
 
             <section className="manual-search-panel">
               <div>
-                <p className="eyebrow">Manual Search</p>
-                <h3>Manual Search</h3>
+                <p className="eyebrow">Manual Chunk Search</p>
+                <h3>Manual Chunk Search</h3>
                 <p>
-                  Search indexed manual text. AI explanations will be enabled after backend processing is configured.
+                  Search inside indexed manual chunks. AI explanations are not enabled yet.
                 </p>
+                {manualChunksCount !== null && (
+                  <p className="reference-result-count">
+                    Manual chunks available: {manualChunksCount.toLocaleString()}
+                  </p>
+                )}
               </div>
               <form className="manual-search-form" onSubmit={handleManualSearch}>
                 <label className="field-label">
-                  Search indexed text
+                  Search inside manuals
                   <input
                     type="search"
                     value={manualSearchQuery}
                     onChange={(event) => setManualSearchQuery(event.target.value)}
-                    placeholder="Hydraulic pressure, anti-ice, QRH memory items"
+                    placeholder="Search inside manuals, e.g. hydraulic, speed trim, rejected takeoff"
                   />
                 </label>
                 <label className="field-label">
@@ -1166,7 +1183,7 @@ function App() {
                   </select>
                 </label>
                 <button className="button button-secondary" type="submit" disabled={isManualSearchLoading}>
-                  {isManualSearchLoading ? 'Searching…' : 'Search'}
+                  {isManualSearchLoading ? 'Searching…' : 'Search manuals'}
                 </button>
               </form>
               {manualSearchError && <p className="form-error">{manualSearchError}</p>}
@@ -1198,6 +1215,10 @@ function App() {
                         <div>
                           <dt>Manual type</dt>
                           <dd>{displayReferenceValue(result.manual_type)}</dd>
+                        </div>
+                        <div>
+                          <dt>Chunk</dt>
+                          <dd>{displayReferenceValue(result.chunk_index)}</dd>
                         </div>
                       </dl>
                       <p>{createManualChunkExcerpt(result.chunk_text, manualSearchQuery)}</p>
