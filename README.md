@@ -152,17 +152,22 @@ ChatGPT Plus can be used externally by copying a manual excerpt and page referen
 
 ## Study Workflow
 
-The dashboard is centered on question practice:
+The dashboard is focused on the core study actions only:
 
-- Continue Study resumes the current topic session.
-- Start Topic Practice opens the topic grid.
-- Final Test Simulation starts an exam-style run from the loaded question bank.
+- Continue resumes the current topic session.
+- Practice by Topic opens the full Topics page.
+- Final Test starts an exam-style run from the loaded question bank.
+- Compact metrics show loaded questions and available study status.
+
+Topic selection lives in the Topics page so the dashboard does not show a partial or confusing topic list.
+
+During topic practice:
+
 - Topic practice shows a session result summary after completion.
 - Wrong answers can be reviewed after the session.
+- The question flow does not show manual support cards, difficulty badges, or static explanation/manual-reference boxes.
 
-Manuals are secondary support. Use Manual References and Raw Manual Chunk Search to find official manual/page references, then verify in the private manual PDF.
-
-The practice screen keeps the question flow focused: difficulty display and static explanation/manual-reference boxes are not shown during normal practice.
+Manuals are secondary support. Use Manual References and Raw Manual Chunk Search outside the question flow to find official manual/page references, then verify in the private manual PDF.
 
 ## Raw Manual Chunk Search
 

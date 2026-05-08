@@ -14,7 +14,7 @@ import {
 } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v7.0'
+const APP_VERSION = 'v7.1'
 const FINAL_TEST_QUESTION_LIMIT = 100
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
@@ -365,14 +365,6 @@ function App() {
     setIsLoading(false)
   }, [])
 
-  const loadQuestionDatabase = useCallback(async () => {
-    setIsLoading(true)
-    setLoadError(null)
-
-    const { data, error } = await loadQuestionsFromSupabase()
-    applyDatabaseResult(data, error)
-  }, [applyDatabaseResult])
-
   useEffect(() => {
     let isMounted = true
 
@@ -518,7 +510,6 @@ function App() {
   const isManualSignedIn = Boolean(manualSession)
   const manualSearchManualTypes = getUniqueReferenceValues(manualDocuments, 'manual_type')
   const manualSearchAircraftOptions = getUniqueReferenceValues(manualDocuments, 'aircraft')
-  const dashboardTopics = topics.slice(0, 8)
   const studiedToday = '—'
   const accuracyLabel = '—'
   const weakTopicsLabel = '—'
@@ -527,10 +518,6 @@ function App() {
     : completedCount > 0
       ? Math.round(((questionIndex + (answered || isReviewingWrongAnswers ? 1 : 0)) / completedCount) * 100)
       : 0
-
-  const handleRefreshDatabase = async () => {
-    await loadQuestionDatabase()
-  }
 
   const handleStartQuiz = (topic = currentTopic) => {
     setPracticeMode('topic')
@@ -969,55 +956,6 @@ function App() {
               </div>
             </div>
 
-            <section className="dashboard-topics-section">
-              <div className="section-header section-header-compact">
-                <div>
-                  <p className="eyebrow">Topics</p>
-                  <h2>Practice areas</h2>
-                </div>
-                <button className="button button-ghost" onClick={() => setView('topics')}>
-                  View All Topics
-                </button>
-              </div>
-              <div className="topic-grid">
-                {dashboardTopics.map((topic) => {
-                  const count = questions.filter((item) => item.topic === topic).length
-                  return (
-                    <article className="topic-card" key={topic}>
-                      <h3>{topic}</h3>
-                      <p>{count} questions</p>
-                      <button className="button button-secondary" onClick={() => handleStartQuiz(topic)}>
-                        Practice
-                      </button>
-                    </article>
-                  )
-                })}
-              </div>
-            </section>
-
-            <section className="dashboard-secondary-panel">
-              <div>
-                <div className="support-title-row">
-                  <h3>Manual Reference</h3>
-                  <span>Support</span>
-                </div>
-                <p>Use manuals only when you need a reference.</p>
-              </div>
-              <div className="secondary-actions">
-                <button className="button button-secondary" onClick={() => setView('manual-references')}>
-                  Open Manuals
-                </button>
-                <button className="button button-ghost" onClick={() => setView('database')}>
-                  Browse Question Database
-                </button>
-                <button className="button button-ghost" onClick={() => setView('stats')}>
-                  View Statistics
-                </button>
-                <button className="button button-ghost" onClick={handleRefreshDatabase}>
-                  Refresh Database
-                </button>
-              </div>
-            </section>
           </section>
         )}
 
@@ -1117,6 +1055,12 @@ function App() {
                 <span>Admin</span>
                 <button className="button button-secondary" onClick={handleOpenAdmin}>
                   Open Admin
+                </button>
+              </article>
+              <article className="stat-card">
+                <span>Manuals</span>
+                <button className="button button-secondary" onClick={() => setView('manual-references')}>
+                  Open Manual References
                 </button>
               </article>
             </div>
@@ -1263,25 +1207,6 @@ function App() {
                   </div>
                 </article>
 
-                <aside className="practice-aids">
-                  <div>
-                    <p className="eyebrow">Study aids</p>
-                    <h3>Progress</h3>
-                    <p>{questionIndex + 1} of {completedCount} questions</p>
-                  </div>
-                  <div className="practice-aid-stat">
-                    <span>Review marks</span>
-                    <strong>{markedForReview.size}</strong>
-                  </div>
-                  <button className="button button-secondary" onClick={() => setView('manual-references')}>
-                    Open Manual Support
-                  </button>
-                  <p className="question-meta">
-                    {hasManualChunks
-                      ? 'Raw manual chunk search is available as secondary support.'
-                      : 'Manual index not ready yet.'}
-                  </p>
-                </aside>
               </div>
             ) : (
               <article className="question-card">
