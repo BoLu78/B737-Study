@@ -83,6 +83,16 @@ npm run manuals:index -- --write
 npm run manuals:check
 ```
 
+## Manual Chunk SQL Too Large For Supabase SQL Editor
+
+If Supabase SQL Editor rejects `data/generated/manual_chunks_insert.sql` because the query is too large, split it locally:
+
+```bash
+npm run manuals:chunks:split
+```
+
+Import the generated files in `data/generated/manual_chunks_sql_parts/` one by one through Supabase SQL Editor. Do not commit generated manual content.
+
 ## Current Limitation
 
 Manual search is chunk-search only. No AI provider call, no Edge Function, no RPC answer generator, and no fake AI answer path is active yet. The "Ask manuals" control remains disabled until secure backend AI answer generation exists.
