@@ -267,7 +267,7 @@ async function main() {
   printSection('NEXT REQUIRED ACTION')
   if (!hasProblems) {
     printStatus('Pipeline status', 'catalog, private bucket, paths, and chunks are present')
-    printStatus('AI status', 'not enabled; add a secure backend function before enabling Ask manuals')
+    printStatus('AI status', 'not enabled in this app; use raw chunk search for references')
     return
   }
 

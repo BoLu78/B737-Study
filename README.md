@@ -1,6 +1,6 @@
 # B737 Study App
 
-Pilot-focused B737 study dashboard with Supabase-backed questions, protected manual catalog access, raw manual chunk search, and server-side Manual AI Answer support.
+Pilot-focused B737 study dashboard with Supabase-backed questions, protected manual catalog access, and raw manual chunk search.
 
 ## Local Setup
 
@@ -16,7 +16,6 @@ npm run build
 npm run lint
 npm run manuals:manifest
 npm run manuals:check
-npm run manuals:ai:test
 ```
 
 Create `.env.local` with the browser-safe Supabase values used by Vite:
@@ -94,38 +93,12 @@ npm run manuals:chunks:split
 
 Import the generated files in `data/generated/manual_chunks_sql_parts/` one by one through Supabase SQL Editor. Do not commit generated manual content.
 
-## Manual AI Answer Setup
+## AI Status
 
-Manual AI Answer uses the Supabase Edge Function `manual-answer`. The frontend sends the signed-in user's Supabase Auth token to the function; it never sees the OpenAI key and never calls OpenAI directly.
+Internal AI answers are disabled. No OpenAI API key is required, and no Supabase Edge Function deployment is required. The app does not call an AI provider from React or from Supabase.
 
-The function uses the OpenAI Responses API server-side. It retrieves relevant rows from `public.manual_chunks`, prefers the ranked `public.search_manual_chunks` RPC when deployed, and returns a concise answer with manual/page citations. Answers are generated from imported manual chunks and must be checked against official manuals.
-
-Required Supabase secret:
-
-```bash
-supabase secrets set OPENAI_API_KEY=your_key_here
-```
-
-Optional Supabase secret:
-
-```bash
-supabase secrets set OPENAI_MODEL=gpt-5.4-mini
-```
-
-Deploy the function:
-
-```bash
-supabase functions deploy manual-answer
-```
-
-Local deployed-function check:
-
-```bash
-npm run manuals:ai:test
-```
-
-The test helper uses `.env.local` Supabase values and an authenticated test user, but it never prints secret values.
+ChatGPT Plus can be used externally by copying a manual excerpt and page reference from Raw Manual Chunk Search. The app remains focused on private manual access, manual catalog review, raw manual chunk search, and manual/page references.
 
 ## Raw Manual Chunk Search
 
-Raw Manual Chunk Search remains available as a technical fallback. It is keyword/ranked chunk search through Supabase `manual_chunks`, not AI. Use exact Boeing/manual terminology where possible, such as `speed trim` instead of `trim speed`.
+Raw Manual Chunk Search remains available as a technical fallback. It is keyword/ranked chunk search through Supabase `manual_chunks`, not AI. Use exact Boeing/manual terminology where possible, such as `speed trim` instead of `trim speed`. Use search results to find the relevant manual, page number, and excerpt, then verify in the official manual.

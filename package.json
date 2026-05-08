@@ -1,7 +1,7 @@
 {
   "name": "b737-study",
   "private": true,
-  "version": "6.4.0",
+  "version": "6.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -18,8 +18,7 @@
     "manuals:manifest": "node scripts/prepare-manuals-local-manifest.js",
     "manuals:chunks:split": "node scripts/split-manual-chunks-sql.js",
     "manuals:check": "node scripts/check-manual-pipeline.js",
-    "manuals:search:check": "node scripts/check-manual-search.js",
-    "manuals:ai:test": "node scripts/test-manual-answer-function.js"
+    "manuals:search:check": "node scripts/check-manual-search.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",

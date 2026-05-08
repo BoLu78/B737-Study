@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import {
-  askManuals,
   countManualChunks,
   createSignedManualUrl,
   getCurrentSession,
@@ -14,7 +13,7 @@ import {
 } from './lib/supabaseClient'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v6.4'
+const APP_VERSION = 'v6.5'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
@@ -344,12 +343,6 @@ function App() {
   const [hasManualChunks, setHasManualChunks] = useState(false)
   const [manualChunksCount, setManualChunksCount] = useState(null)
   const [hasManualSearchRun, setHasManualSearchRun] = useState(false)
-  const [manualAskQuestion, setManualAskQuestion] = useState('')
-  const [manualAskManualType, setManualAskManualType] = useState('')
-  const [manualAskAircraft, setManualAskAircraft] = useState('')
-  const [manualAnswer, setManualAnswer] = useState(null)
-  const [manualAnswerError, setManualAnswerError] = useState('')
-  const [isManualAnswerLoading, setIsManualAnswerLoading] = useState(false)
 
   const applyDatabaseResult = useCallback((data, error) => {
     if (error || !data) {
@@ -660,54 +653,6 @@ function App() {
     setManualSearchResults([])
     setManualSearchError('')
     setHasManualSearchRun(false)
-  }
-
-  const handleAskManuals = async (event) => {
-    event.preventDefault()
-    const trimmedQuestion = manualAskQuestion.trim()
-
-    if (!trimmedQuestion) {
-      setManualAnswer(null)
-      setManualAnswerError('Ask a manual question first.')
-      return
-    }
-
-    if (!isManualSignedIn) {
-      setManualAnswer(null)
-      setManualAnswerError('Sign in before asking manuals.')
-      return
-    }
-
-    setIsManualAnswerLoading(true)
-    setManualAnswerError('')
-    setManualAnswer(null)
-
-    const { data, error } = await askManuals(trimmedQuestion, {
-      manualType: manualAskManualType,
-      aircraft: manualAskAircraft,
-    })
-
-    setIsManualAnswerLoading(false)
-
-    if (error) {
-      setManualAnswerError(error)
-      return
-    }
-
-    if (!data?.answer) {
-      setManualAnswerError('Manual AI returned an empty answer.')
-      return
-    }
-
-    setManualAnswer(data)
-  }
-
-  const handleClearManualAnswer = () => {
-    setManualAskQuestion('')
-    setManualAskManualType('')
-    setManualAskAircraft('')
-    setManualAnswer(null)
-    setManualAnswerError('')
   }
 
   const handleOpenAdmin = () => {
@@ -1063,7 +1008,7 @@ function App() {
                 <p className="eyebrow">Manual References</p>
                 <h2>Manual References</h2>
                 <p className="subtitle">
-                  Browse the source metadata linked to the current question bank. Manual files are stored privately. Manual chunk search is available. AI explanations are not enabled yet.
+                  Browse the source metadata linked to the current question bank. Manual files are stored privately. Raw manual chunk search is available. AI explanations are not enabled in this app.
                 </p>
               </div>
               <button className="button button-ghost" onClick={handleBackToDashboard}>
@@ -1185,108 +1130,15 @@ function App() {
                 {manualAuthError && <p className="form-error">{manualAuthError}</p>}
                 {manualOpenError && <p className="form-error">{manualOpenError}</p>}
               </div>
-              <section className="manual-answer-panel">
-                <div>
-                  <p className="eyebrow">Manual AI Answer</p>
-                  <h3>Manual AI Answer</h3>
-                  <p>
-                    Ask a question and get a simple explanation based only on imported manual chunks. References show where to find the information.
-                  </p>
-                  <p className="manual-answer-warning">Always verify with the official manual.</p>
-                </div>
-                <form className="manual-answer-form" onSubmit={handleAskManuals}>
-                  <label className="field-label">
-                    Question
-                    <textarea
-                      value={manualAskQuestion}
-                      onChange={(event) => setManualAskQuestion(event.target.value)}
-                      placeholder="Ask, e.g. Explain the Speed Trim System"
-                      rows={3}
-                    />
-                  </label>
-                  <label className="field-label">
-                    Manual type
-                    <select
-                      value={manualAskManualType}
-                      onChange={(event) => setManualAskManualType(event.target.value)}
-                    >
-                      <option value="">All manual types</option>
-                      {manualSearchManualTypes.map((manualType) => (
-                        <option key={manualType} value={manualType}>
-                          {manualType}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="field-label">
-                    Aircraft
-                    <select
-                      value={manualAskAircraft}
-                      onChange={(event) => setManualAskAircraft(event.target.value)}
-                    >
-                      <option value="">All aircraft</option>
-                      {manualSearchAircraftOptions.map((aircraft) => (
-                        <option key={aircraft} value={aircraft}>
-                          {aircraft}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <button className="button button-primary" type="submit" disabled={isManualAnswerLoading || !isManualSignedIn}>
-                    {isManualAnswerLoading ? 'Asking manuals…' : 'Ask manuals'}
-                  </button>
-                  <button className="button button-ghost" type="button" onClick={handleClearManualAnswer}>
-                    Clear
-                  </button>
-                </form>
-                {!isManualSignedIn && (
-                  <p className="manual-search-empty">
-                    Sign in with Supabase Auth before asking manuals.
-                  </p>
-                )}
-                {manualAnswerError && <p className="form-error">{manualAnswerError}</p>}
-                {isManualAnswerLoading && (
-                  <p className="manual-search-empty">Retrieving manual chunks and generating a cited answer…</p>
-                )}
-                {manualAnswer && (
-                  <article className="manual-answer-card">
-                    <div className="manual-catalog-header">
-                      <strong>Manual answer</strong>
-                      <span>{manualAnswer.used_chunks} chunks used</span>
-                    </div>
-                    <p className="manual-answer-text">{manualAnswer.answer}</p>
-                    {manualAnswer.citations.length > 0 ? (
-                      <div className="manual-answer-citations">
-                        <strong>Citations</strong>
-                        <ul>
-                          {manualAnswer.citations.map((citation, index) => (
-                            <li key={`${citation.manual_code}-${citation.page_number}-${citation.chunk_index}-${index}`}>
-                              <span>
-                                {displayReferenceValue(citation.title || citation.manual_code)}, page {displayReferenceValue(citation.page_number)}
-                              </span>
-                              <small>
-                                Chunk {displayReferenceValue(citation.chunk_index)}
-                                {citation.storage_path ? ` · ${citation.storage_path}` : ''}
-                              </small>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : (
-                      <p className="manual-search-empty">No citations were returned for this answer.</p>
-                    )}
-                    {manualAnswer.model && (
-                      <p className="manual-answer-model">Model: {manualAnswer.model}</p>
-                    )}
-                  </article>
-                )}
-              </section>
               <section className="manual-search-panel">
                 <div>
                   <p className="eyebrow">Raw chunk search</p>
                   <h3>Raw Manual Chunk Search</h3>
                   <p>
                     Search inside the imported manual chunks. This is not AI; it returns matching manual excerpts.
+                  </p>
+                  <p>
+                    Use this to find manual references and page numbers. For explanations, open the referenced manual page or use ChatGPT Plus externally with the copied excerpt.
                   </p>
                   <p>
                     Tip: use Boeing terms exactly as written in the manual, e.g. 'speed trim' instead of 'trim speed'.
