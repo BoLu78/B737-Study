@@ -179,6 +179,8 @@ During topic practice:
 - The question flow does not show manual support cards, difficulty badges, or static explanation/manual-reference boxes.
 - Imported question text is cleaned at display time for obvious PDF extraction artifacts, including common split-word errors.
 
+Final Test uses randomized selection instead of the first questions in the database. Scopes include All Questions, Aircraft Systems, and Selected Topics. The default length is 100 questions, with 25 and 50 question options available. If a scope has fewer questions than requested, the app uses all available questions for that scope.
+
 Manuals are secondary support. Use Manual References and Raw Manual Chunk Search outside the question flow to find official manual/page references, then verify in the private manual PDF.
 
 Original Supabase question records are not automatically modified by display cleanup. To inspect imported text quality, run:
@@ -186,6 +188,12 @@ Original Supabase question records are not automatically modified by display cle
 ```bash
 npm run questions:test-cleaner
 npm run questions:audit-text
+```
+
+To validate randomized Final Test selection locally, run:
+
+```bash
+npm run finaltest:test-selection
 ```
 
 ## Raw Manual Chunk Search

@@ -462,6 +462,97 @@ code {
   border-color: rgba(249, 115, 22, 0.24);
 }
 
+.topic-status-not-studied {
+  color: #b9d6ff;
+}
+
+.final-test-setup-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(180px, 0.6fr);
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.setup-group,
+.topic-select-panel {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(15, 24, 42, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.setup-group > span,
+.topic-select-panel > span {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.segmented-control {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.segmented-control-compact {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.segmented-option {
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 12px;
+  color: var(--text-muted);
+  background: rgba(7, 16, 34, 0.68);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  cursor: pointer;
+}
+
+.segmented-option-active,
+.segmented-option:hover {
+  color: #dbeafe;
+  background: rgba(96, 165, 250, 0.16);
+  border-color: rgba(96, 165, 250, 0.28);
+}
+
+.topic-select-panel {
+  margin-top: 14px;
+}
+
+.topic-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  max-height: 260px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.topic-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 36px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  color: var(--text);
+  background: rgba(7, 16, 34, 0.52);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.topic-checkbox input {
+  accent-color: var(--accent);
+}
+
+.setup-note,
+.quiz-scope-label {
+  color: #bae6fd;
+  font-size: 0.9rem;
+}
+
 .topics-view,
 .final-test-view,
 .settings-view {
@@ -1397,6 +1488,7 @@ td:nth-child(10) {
   .app-layout,
   .dashboard-hero,
   .primary-actions-grid,
+  .final-test-setup-grid,
   .practice-layout,
   .topic-performance-row {
     grid-template-columns: 1fr;

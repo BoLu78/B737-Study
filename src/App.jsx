@@ -13,10 +13,16 @@ import {
   signOut,
 } from './lib/supabaseClient'
 import { cleanAnswerText, cleanQuestionText } from './utils/questionTextCleaner'
+import {
+  FINAL_TEST_COUNT_OPTIONS,
+  FINAL_TEST_SCOPES,
+  FINAL_TEST_SCOPE_LABELS,
+  getEligibleFinalTestQuestions,
+  selectFinalTestQuestions,
+} from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v7.5'
-const FINAL_TEST_QUESTION_LIMIT = 100
+const APP_VERSION = 'v7.6'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v1'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v1'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
@@ -359,6 +365,15 @@ function App() {
   const [isReviewingWrongAnswers, setIsReviewingWrongAnswers] = useState(false)
   const [isSessionComplete, setIsSessionComplete] = useState(false)
   const [sessionResults, setSessionResults] = useState([])
+  const [finalTestScope, setFinalTestScope] = useState(FINAL_TEST_SCOPES.ALL)
+  const [finalTestCount, setFinalTestCount] = useState(100)
+  const [finalTestSelectedTopics, setFinalTestSelectedTopics] = useState([])
+  const [finalTestSessionQuestions, setFinalTestSessionQuestions] = useState([])
+  const [finalTestSessionConfig, setFinalTestSessionConfig] = useState({
+    scope: FINAL_TEST_SCOPES.ALL,
+    count: 100,
+    selectedTopics: [],
+  })
   const [topicStats, setTopicStats] = useState(loadStoredTopicStats)
   const [markedForReview, setMarkedForReview] = useState(() => new Set())
   const [adminForm, setAdminForm] = useState(null)
@@ -497,12 +512,17 @@ function App() {
   const topics = Array.from(new Set(questions.map((item) => item.topic)))
   const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
   const topicQuestions = questions.filter((item) => item.topic === currentTopic)
-  const finalTestQuestions = questions.slice(0, Math.min(FINAL_TEST_QUESTION_LIMIT, questions.length))
+  const finalTestEligibleQuestions = getEligibleFinalTestQuestions(questions, finalTestScope, finalTestSelectedTopics)
+  const finalTestAvailableCount = finalTestEligibleQuestions.length
+  const finalTestPlannedCount = Math.min(finalTestCount, finalTestAvailableCount)
+  const finalTestScopeLabel = FINAL_TEST_SCOPE_LABELS[finalTestScope] || FINAL_TEST_SCOPE_LABELS[FINAL_TEST_SCOPES.ALL]
+  const activeFinalTestScopeLabel =
+    FINAL_TEST_SCOPE_LABELS[finalTestSessionConfig.scope] || FINAL_TEST_SCOPE_LABELS[FINAL_TEST_SCOPES.ALL]
   const wrongResults = sessionResults.filter((result) => !result.isCorrect)
   const activeQuizQuestions = isReviewingWrongAnswers
     ? wrongResults.map((result) => result.question)
     : practiceMode === 'final'
-      ? finalTestQuestions
+      ? finalTestSessionQuestions
       : topicQuestions
   const activeQuizTitle = isReviewingWrongAnswers
     ? 'Wrong Answer Review'
@@ -513,7 +533,7 @@ function App() {
   const currentReviewResult = isReviewingWrongAnswers ? wrongResults[questionIndex] : null
   const currentAnswerOptions = normalizeQuizOptions(currentQuestion)
   const completedCount = activeQuizQuestions.length
-  const normalSessionTotal = practiceMode === 'final' ? finalTestQuestions.length : topicQuestions.length
+  const normalSessionTotal = practiceMode === 'final' ? finalTestSessionQuestions.length : topicQuestions.length
   const totalAnswered = sessionResults.length
   const correctCount = sessionResults.filter((result) => result.isCorrect).length
   const wrongCount = wrongResults.length
@@ -600,6 +620,7 @@ function App() {
     setIsReviewingWrongAnswers(false)
     setIsSessionComplete(false)
     setSessionResults([])
+    setFinalTestSessionQuestions([])
     setSelectedTopic(topic)
     setQuestionIndex(0)
     setAnswered(false)
@@ -615,13 +636,48 @@ function App() {
   }
 
   const handleStartFinalTest = () => {
+    const selectedQuestions = selectFinalTestQuestions({
+      questions,
+      scope: finalTestScope,
+      selectedTopics: finalTestSelectedTopics,
+      requestedCount: finalTestCount,
+    })
+
     setPracticeMode('final')
     setIsReviewingWrongAnswers(false)
     setIsSessionComplete(false)
     setSessionResults([])
+    setFinalTestSessionQuestions(selectedQuestions)
+    setFinalTestSessionConfig({
+      scope: finalTestScope,
+      count: finalTestCount,
+      selectedTopics: [...finalTestSelectedTopics],
+    })
     setQuestionIndex(0)
     setAnswered(false)
     setSelectedAnswer(null)
+    setCorrect(false)
+    setView('quiz')
+  }
+
+  const handleRetrySession = () => {
+    if (practiceMode === 'final') {
+      const selectedQuestions = selectFinalTestQuestions({
+        questions,
+        scope: finalTestSessionConfig.scope,
+        selectedTopics: finalTestSessionConfig.selectedTopics,
+        requestedCount: finalTestSessionConfig.count,
+      })
+
+      setFinalTestSessionQuestions(selectedQuestions)
+    }
+
+    setIsReviewingWrongAnswers(false)
+    setIsSessionComplete(false)
+    setSessionResults([])
+    setQuestionIndex(0)
+    setSelectedAnswer(null)
+    setAnswered(false)
     setCorrect(false)
     setView('quiz')
   }
@@ -727,17 +783,6 @@ function App() {
     setQuestionIndex(0)
   }
 
-  const handleRetryTopic = () => {
-    setIsReviewingWrongAnswers(false)
-    setIsSessionComplete(false)
-    setSessionResults([])
-    setQuestionIndex(0)
-    setSelectedAnswer(null)
-    setAnswered(false)
-    setCorrect(false)
-    setView('quiz')
-  }
-
   const handleReviewWrongAnswers = () => {
     if (wrongResults.length === 0) return
     setIsReviewingWrongAnswers(true)
@@ -757,6 +802,18 @@ function App() {
     }
 
     setQuestionIndex((current) => current + 1)
+  }
+
+  const handleFinalTestScopeChange = (scope) => {
+    setFinalTestScope(scope)
+  }
+
+  const handleFinalTestTopicToggle = (topic) => {
+    setFinalTestSelectedTopics((current) => (
+      current.includes(topic)
+        ? current.filter((item) => item !== topic)
+        : [...current, topic]
+    ))
   }
 
   const handleResetStudyProgress = () => {
@@ -1040,12 +1097,12 @@ function App() {
 
               <article className="action-card">
                 <h3>Final Test</h3>
-                <p>{finalTestQuestions.length} questions.</p>
+                <p>Random exam-style run.</p>
                 <div className="card-actions">
                   <button
                     className="button button-primary"
-                    onClick={handleStartFinalTest}
-                    disabled={isLoading || finalTestQuestions.length === 0}
+                    onClick={() => setView('final-test')}
+                    disabled={isLoading || questions.length === 0}
                   >
                     Start Final Test
                   </button>
@@ -1152,26 +1209,89 @@ function App() {
           <section className="final-test-view">
             <article className="final-test-panel">
               <p className="eyebrow">Final Test</p>
-              <h2>Final Test Simulation</h2>
-              <p>
-                Run an exam-style practice session using the loaded question bank. Keep manuals as support after the session, not during the first pass.
-              </p>
+              <h2>Final Test</h2>
+              <p>Randomized exam-style practice.</p>
+
+              <div className="final-test-setup-grid">
+                <div className="setup-group">
+                  <span>Test scope</span>
+                  <div className="segmented-control">
+                    {Object.entries(FINAL_TEST_SCOPE_LABELS).map(([scope, label]) => (
+                      <button
+                        key={scope}
+                        className={finalTestScope === scope ? 'segmented-option segmented-option-active' : 'segmented-option'}
+                        onClick={() => handleFinalTestScopeChange(scope)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="setup-group">
+                  <span>Questions</span>
+                  <div className="segmented-control segmented-control-compact">
+                    {FINAL_TEST_COUNT_OPTIONS.map((count) => (
+                      <button
+                        key={count}
+                        className={finalTestCount === count ? 'segmented-option segmented-option-active' : 'segmented-option'}
+                        onClick={() => setFinalTestCount(count)}
+                      >
+                        {count}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {finalTestScope === FINAL_TEST_SCOPES.SELECTED_TOPICS && (
+                <div className="topic-select-panel">
+                  <span>Selected topics</span>
+                  <div className="topic-checkbox-grid">
+                    {topics.map((topic) => (
+                      <label className="topic-checkbox" key={topic}>
+                        <input
+                          type="checkbox"
+                          checked={finalTestSelectedTopics.includes(topic)}
+                          onChange={() => handleFinalTestTopicToggle(topic)}
+                        />
+                        <span>{topic}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <dl className="reference-meta">
                 <div>
-                  <dt>Questions</dt>
-                  <dd>{finalTestQuestions.length}</dd>
+                  <dt>Scope</dt>
+                  <dd>{finalTestScopeLabel}</dd>
+                </div>
+                <div>
+                  <dt>Available</dt>
+                  <dd>{finalTestAvailableCount}</dd>
+                </div>
+                <div>
+                  <dt>Test size</dt>
+                  <dd>{finalTestPlannedCount}</dd>
                 </div>
                 <div>
                   <dt>Source</dt>
                   <dd>{dataSource}</dd>
                 </div>
-                <div>
-                  <dt>Mode</dt>
-                  <dd>Focused session</dd>
-                </div>
               </dl>
+              {finalTestAvailableCount > 0 && finalTestAvailableCount < finalTestCount && (
+                <p className="setup-note">Only {finalTestAvailableCount} questions available for this scope.</p>
+              )}
+              {finalTestScope === FINAL_TEST_SCOPES.SELECTED_TOPICS && finalTestSelectedTopics.length === 0 && (
+                <p className="setup-note">Select at least one topic to build this test.</p>
+              )}
               <div className="card-actions">
-                <button className="button button-primary" onClick={handleStartFinalTest}>
+                <button
+                  className="button button-primary"
+                  onClick={handleStartFinalTest}
+                  disabled={finalTestAvailableCount === 0}
+                >
                   Start Final Test
                 </button>
                 <button className="button button-ghost" onClick={handleBackToDashboard}>
@@ -1249,6 +1369,9 @@ function App() {
                 <p className="subtitle">
                   {isSessionComplete ? 'Results' : `Question ${questionIndex + 1} of ${completedCount}`}
                 </p>
+                {practiceMode === 'final' && !isReviewingWrongAnswers && (
+                  <p className="quiz-scope-label">{activeFinalTestScopeLabel}</p>
+                )}
               </div>
               <div className="practice-progress">
                 <div className="progress-track">
@@ -1265,7 +1388,7 @@ function App() {
               <article className="question-card session-complete-card">
                 <p className="eyebrow">Session Complete</p>
                 <h3>Session Complete</h3>
-                <p>{practiceMode === 'final' ? 'Final Test Simulation' : currentTopic}</p>
+                <p>{practiceMode === 'final' ? `Final Test Simulation · ${activeFinalTestScopeLabel}` : currentTopic}</p>
                 <div className="result-summary-grid">
                   <div>
                     <span>Total answered</span>
@@ -1293,12 +1416,14 @@ function App() {
                       Review Wrong Answers
                     </button>
                   )}
-                  <button className="button button-secondary" onClick={handleRetryTopic}>
-                    Retry Topic
+                  <button className="button button-secondary" onClick={handleRetrySession}>
+                    {practiceMode === 'final' ? 'Retry Final Test' : 'Retry Topic'}
                   </button>
-                  <button className="button button-ghost" onClick={() => setView('topics')}>
-                    Choose Another Topic
-                  </button>
+                  {practiceMode !== 'final' && (
+                    <button className="button button-ghost" onClick={() => setView('topics')}>
+                      Choose Another Topic
+                    </button>
+                  )}
                   <button className="button button-ghost" onClick={handleBackToDashboard}>
                     Back to Dashboard
                   </button>

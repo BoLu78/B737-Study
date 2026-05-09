@@ -1,7 +1,7 @@
 {
   "name": "b737-study",
   "private": true,
-  "version": "7.5.0",
+  "version": "7.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,6 +21,7 @@
     "questions:audit-text": "node scripts/audit-question-text.js",
     "questions:test-cleaner": "node scripts/test-question-text-cleaner.js",
     "questions:audit-source-ids": "node scripts/audit-question-source-ids.js",
+    "finaltest:test-selection": "node scripts/test-final-test-selection.js",
     "manuals:search:check": "node scripts/check-manual-search.js"
   },
   "dependencies": {
