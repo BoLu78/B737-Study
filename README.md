@@ -176,8 +176,13 @@ During topic practice:
 
 - Topic practice shows a session result summary after completion.
 - Wrong answers can be reviewed after the session.
+- Topic practice uses a randomized order for each new session.
+- Unfinished topic sessions are stored locally and can be resumed or restarted.
+- Marked questions are stored locally in browser storage and can be reviewed per topic from the Topics page.
 - The question flow does not show manual support cards, difficulty badges, or static explanation/manual-reference boxes.
 - Imported question text is cleaned at display time for obvious PDF extraction artifacts, including common split-word errors.
+
+The Settings page has been removed from the visible app flow. Progress remains local to the browser and no internal AI is enabled.
 
 Final Test uses randomized selection instead of the first questions in the database. Scopes include All Questions, Aircraft Systems, and Selected Topics. The default length is 100 questions, with 25 and 50 question options available. If a scope has fewer questions than requested, the app uses all available questions for that scope.
 

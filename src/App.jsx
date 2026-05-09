@@ -19,12 +19,15 @@ import {
   FINAL_TEST_SCOPE_LABELS,
   getEligibleFinalTestQuestions,
   selectFinalTestQuestions,
+  shuffleArray,
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v7.6'
+const APP_VERSION = 'v7.7'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v1'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v1'
+const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v1'
+const MARKED_QUESTIONS_STORAGE_KEY = 'b737StudyMarkedQuestions_v1'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_SUPABASE = 'Supabase'
 const DATA_SOURCE_FALLBACK = 'Local fallback'
@@ -235,6 +238,33 @@ function displayQuestionSourceId(question) {
   return displayReferenceValue(question?.sourceId)
 }
 
+function getQuestionStorageKey(question) {
+  const sourceDocument = displayReferenceValue(question?.sourceDocument)
+  const sourceId = displayReferenceValue(question?.sourceId)
+
+  if (sourceDocument !== '—' && sourceId !== '—') {
+    return `${sourceDocument}::${sourceId}`
+  }
+
+  return `internal::${displayReferenceValue(question?.id)}`
+}
+
+function createQuestionLookup(questions) {
+  return new Map(questions.map((question) => [getQuestionStorageKey(question), question]))
+}
+
+function buildStoredSessionResults(results) {
+  return results.map((result) => ({
+    questionKey: getQuestionStorageKey(result.question),
+    selectedAnswerIndex: result.selectedAnswerIndex,
+    selectedAnswerKey: result.selectedAnswerKey,
+    selectedAnswerText: result.selectedAnswerText,
+    correctAnswerKey: result.correctAnswerKey,
+    correctAnswerText: result.correctAnswerText,
+    isCorrect: result.isCorrect,
+  }))
+}
+
 function hasReferenceMetadata(question) {
   return Boolean(
     displayReferenceValue(question?.manualReference) !== '—' ||
@@ -291,10 +321,41 @@ function saveStoredTopicStats(stats) {
   window.localStorage.setItem(TOPIC_STATS_STORAGE_KEY, JSON.stringify(stats))
 }
 
+function loadStoredInProgressTopicSessions() {
+  if (typeof window === 'undefined') return {}
+
+  try {
+    return JSON.parse(window.localStorage.getItem(IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY) || '{}')
+  } catch {
+    return {}
+  }
+}
+
+function saveStoredInProgressTopicSessions(sessions) {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY, JSON.stringify(sessions))
+}
+
+function loadStoredMarkedQuestions() {
+  if (typeof window === 'undefined') return {}
+
+  try {
+    return JSON.parse(window.localStorage.getItem(MARKED_QUESTIONS_STORAGE_KEY) || '{}')
+  } catch {
+    return {}
+  }
+}
+
+function saveStoredMarkedQuestions(markedQuestions) {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(MARKED_QUESTIONS_STORAGE_KEY, JSON.stringify(markedQuestions))
+}
+
 function clearStoredStudyProgress() {
   if (typeof window === 'undefined') return
   window.localStorage.removeItem(STUDY_PROGRESS_STORAGE_KEY)
   window.localStorage.removeItem(TOPIC_STATS_STORAGE_KEY)
+  window.localStorage.removeItem(IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY)
 }
 
 function getTopicStatus(totalAnswered, accuracy) {
@@ -374,8 +435,11 @@ function App() {
     count: 100,
     selectedTopics: [],
   })
+  const [topicSessionQuestions, setTopicSessionQuestions] = useState([])
+  const [pendingResumeTopic, setPendingResumeTopic] = useState('')
+  const [markedQuestions, setMarkedQuestions] = useState(loadStoredMarkedQuestions)
+  const [markedReviewQuestions, setMarkedReviewQuestions] = useState([])
   const [topicStats, setTopicStats] = useState(loadStoredTopicStats)
-  const [markedForReview, setMarkedForReview] = useState(() => new Set())
   const [adminForm, setAdminForm] = useState(null)
   const [adminMode, setAdminMode] = useState(null)
   const [adminFormError, setAdminFormError] = useState('')
@@ -510,8 +574,8 @@ function App() {
   }, [])
 
   const topics = Array.from(new Set(questions.map((item) => item.topic)))
+  const questionLookup = createQuestionLookup(questions)
   const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
-  const topicQuestions = questions.filter((item) => item.topic === currentTopic)
   const finalTestEligibleQuestions = getEligibleFinalTestQuestions(questions, finalTestScope, finalTestSelectedTopics)
   const finalTestAvailableCount = finalTestEligibleQuestions.length
   const finalTestPlannedCount = Math.min(finalTestCount, finalTestAvailableCount)
@@ -523,17 +587,26 @@ function App() {
     ? wrongResults.map((result) => result.question)
     : practiceMode === 'final'
       ? finalTestSessionQuestions
-      : topicQuestions
+      : practiceMode === 'marked'
+        ? markedReviewQuestions
+        : topicSessionQuestions
   const activeQuizTitle = isReviewingWrongAnswers
     ? 'Wrong Answer Review'
     : practiceMode === 'final'
       ? 'Final Test Simulation'
+      : practiceMode === 'marked'
+        ? 'Marked Question Review'
       : currentTopic
   const currentQuestion = activeQuizQuestions[questionIndex]
   const currentReviewResult = isReviewingWrongAnswers ? wrongResults[questionIndex] : null
   const currentAnswerOptions = normalizeQuizOptions(currentQuestion)
   const completedCount = activeQuizQuestions.length
-  const normalSessionTotal = practiceMode === 'final' ? finalTestSessionQuestions.length : topicQuestions.length
+  const normalSessionTotal =
+    practiceMode === 'final'
+      ? finalTestSessionQuestions.length
+      : practiceMode === 'marked'
+        ? markedReviewQuestions.length
+        : topicSessionQuestions.length
   const totalAnswered = sessionResults.length
   const correctCount = sessionResults.filter((result) => result.isCorrect).length
   const wrongCount = wrongResults.length
@@ -614,25 +687,111 @@ function App() {
     : completedCount > 0
       ? Math.round(((questionIndex + (answered || isReviewingWrongAnswers ? 1 : 0)) / completedCount) * 100)
       : 0
+  const currentQuestionKey = currentQuestion ? getQuestionStorageKey(currentQuestion) : ''
+  const currentQuestionMarked = Boolean(currentQuestion && markedQuestions[currentQuestion.topic]?.[currentQuestionKey])
 
-  const handleStartQuiz = (topic = currentTopic) => {
+  const hydrateSessionResults = (storedResults = []) => storedResults
+    .map((result) => {
+      const question = questionLookup.get(result.questionKey)
+
+      if (!question) return null
+
+      return {
+        question,
+        selectedAnswerIndex: result.selectedAnswerIndex ?? null,
+        selectedAnswerKey: result.selectedAnswerKey || '',
+        selectedAnswerText: result.selectedAnswerText || '',
+        correctAnswerKey: result.correctAnswerKey || getCorrectAnswerKey(question),
+        correctAnswerText: result.correctAnswerText || '',
+        isCorrect: Boolean(result.isCorrect),
+      }
+    })
+    .filter(Boolean)
+
+  const getValidStoredTopicSession = (topic) => {
+    const storedSession = loadStoredInProgressTopicSessions()[topic]
+
+    if (!storedSession || storedSession.completed) return null
+    if (!Array.isArray(storedSession.questionKeys) || storedSession.questionKeys.length === 0) return null
+
+    const sessionQuestions = storedSession.questionKeys
+      .map((questionKey) => questionLookup.get(questionKey))
+      .filter(Boolean)
+
+    if (sessionQuestions.length !== storedSession.questionKeys.length) return null
+    if (sessionQuestions.some((question) => question.topic !== topic)) return null
+
+    return {
+      ...storedSession,
+      questions: sessionQuestions,
+      sessionResults: hydrateSessionResults(storedSession.sessionResults),
+    }
+  }
+
+  const clearInProgressSession = (topic) => {
+    if (!topic) return
+
+    const next = { ...loadStoredInProgressTopicSessions() }
+    delete next[topic]
+    saveStoredInProgressTopicSessions(next)
+  }
+
+  const startNewTopicSession = (topic = currentTopic) => {
+    const randomizedQuestions = shuffleArray(questions.filter((item) => item.topic === topic))
+
     setPracticeMode('topic')
     setIsReviewingWrongAnswers(false)
     setIsSessionComplete(false)
     setSessionResults([])
     setFinalTestSessionQuestions([])
+    setMarkedReviewQuestions([])
+    setTopicSessionQuestions(randomizedQuestions)
     setSelectedTopic(topic)
     setQuestionIndex(0)
     setAnswered(false)
     setSelectedAnswer(null)
     setCorrect(false)
+    clearInProgressSession(topic)
     setView('quiz')
   }
 
-  const handleContinueStudy = () => {
+  const restoreTopicSession = (topic, storedSession) => {
+    const safeIndex = Math.min(Number(storedSession.questionIndex) || 0, storedSession.questions.length - 1)
+
     setPracticeMode('topic')
     setIsReviewingWrongAnswers(false)
+    setIsSessionComplete(false)
+    setSessionResults(storedSession.sessionResults)
+    setFinalTestSessionQuestions([])
+    setMarkedReviewQuestions([])
+    setTopicSessionQuestions(storedSession.questions)
+    setSelectedTopic(topic)
+    setQuestionIndex(safeIndex)
+    setSelectedAnswer(storedSession.selectedAnswer ?? null)
+    setAnswered(Boolean(storedSession.answered))
+    setCorrect(Boolean(storedSession.correct))
     setView('quiz')
+  }
+
+  const handleStartQuiz = (topic = currentTopic) => {
+    const storedSession = getValidStoredTopicSession(topic)
+
+    if (storedSession) {
+      setPendingResumeTopic(topic)
+      return
+    }
+
+    startNewTopicSession(topic)
+  }
+
+  const handleContinueStudy = () => {
+    if (practiceMode === 'topic' && topicSessionQuestions.length > 0 && !isSessionComplete) {
+      setIsReviewingWrongAnswers(false)
+      setView('quiz')
+      return
+    }
+
+    handleStartQuiz(currentTopic)
   }
 
   const handleStartFinalTest = () => {
@@ -648,6 +807,8 @@ function App() {
     setIsSessionComplete(false)
     setSessionResults([])
     setFinalTestSessionQuestions(selectedQuestions)
+    setTopicSessionQuestions([])
+    setMarkedReviewQuestions([])
     setFinalTestSessionConfig({
       scope: finalTestScope,
       count: finalTestCount,
@@ -670,6 +831,9 @@ function App() {
       })
 
       setFinalTestSessionQuestions(selectedQuestions)
+    } else if (practiceMode === 'topic') {
+      startNewTopicSession(currentTopic)
+      return
     }
 
     setIsReviewingWrongAnswers(false)
@@ -752,8 +916,9 @@ function App() {
     if (questionIndex + 1 >= activeQuizQuestions.length) {
       if (isReviewingWrongAnswers) {
         setIsReviewingWrongAnswers(false)
-      } else {
+      } else if (practiceMode === 'topic') {
         recordTopicSessionStats()
+        clearInProgressSession(currentTopic)
       }
       setIsSessionComplete(true)
       setQuestionIndex(0)
@@ -781,6 +946,14 @@ function App() {
     setIsSessionComplete(false)
     setSessionResults([])
     setQuestionIndex(0)
+  }
+
+  const handleExitPractice = () => {
+    setView('dashboard')
+    setSelectedAnswer(null)
+    setAnswered(false)
+    setCorrect(false)
+    setIsReviewingWrongAnswers(false)
   }
 
   const handleReviewWrongAnswers = () => {
@@ -827,18 +1000,71 @@ function App() {
 
   const handleToggleMarkForReview = () => {
     if (!currentQuestion) return
+    const questionKey = getQuestionStorageKey(currentQuestion)
+    const topic = currentQuestion.topic
 
-    setMarkedForReview((current) => {
-      const next = new Set(current)
+    setMarkedQuestions((current) => {
+      const topicMarks = { ...(current[topic] || {}) }
 
-      if (next.has(currentQuestion.id)) {
-        next.delete(currentQuestion.id)
+      if (topicMarks[questionKey]) {
+        delete topicMarks[questionKey]
       } else {
-        next.add(currentQuestion.id)
+        topicMarks[questionKey] = new Date().toISOString()
       }
 
+      const next = { ...current }
+
+      if (Object.keys(topicMarks).length > 0) {
+        next[topic] = topicMarks
+      } else {
+        delete next[topic]
+      }
+
+      saveStoredMarkedQuestions(next)
       return next
     })
+  }
+
+  const getMarkedQuestionsForTopic = (topic) => Object.keys(markedQuestions[topic] || {})
+    .map((questionKey) => questionLookup.get(questionKey))
+    .filter((question) => question?.topic === topic)
+
+  const handleStartMarkedReview = (topic) => {
+    const reviewQuestions = getMarkedQuestionsForTopic(topic)
+
+    if (reviewQuestions.length === 0) return
+
+    setPracticeMode('marked')
+    setIsReviewingWrongAnswers(false)
+    setIsSessionComplete(false)
+    setSessionResults([])
+    setFinalTestSessionQuestions([])
+    setTopicSessionQuestions([])
+    setMarkedReviewQuestions(reviewQuestions)
+    setSelectedTopic(topic)
+    setQuestionIndex(0)
+    setAnswered(false)
+    setSelectedAnswer(null)
+    setCorrect(false)
+    setView('quiz')
+  }
+
+  const handleResumeTopicSession = () => {
+    const storedSession = getValidStoredTopicSession(pendingResumeTopic)
+
+    if (storedSession) {
+      restoreTopicSession(pendingResumeTopic, storedSession)
+    }
+
+    setPendingResumeTopic('')
+  }
+
+  const handleRestartTopicSession = () => {
+    const topic = pendingResumeTopic
+
+    setPendingResumeTopic('')
+    clearInProgressSession(topic)
+    startNewTopicSession(topic)
   }
 
   const handleResetReferenceFilters = () => {
@@ -959,14 +1185,6 @@ function App() {
     setHasManualSearchRun(false)
   }
 
-  const handleOpenAdmin = () => {
-    setView('admin')
-    setAdminForm(null)
-    setAdminMode(null)
-    setAdminFormError('')
-    setAdminPreview(null)
-  }
-
   const handleNewQuestion = () => {
     setAdminMode('new')
     setAdminForm(EMPTY_ADMIN_FORM)
@@ -1011,6 +1229,50 @@ function App() {
     setAdminPreview(null)
   }
 
+  useEffect(() => {
+    if (
+      view !== 'quiz' ||
+      practiceMode !== 'topic' ||
+      isReviewingWrongAnswers ||
+      isSessionComplete ||
+      !currentTopic ||
+      topicSessionQuestions.length === 0
+    ) {
+      return
+    }
+
+    const storedSession = {
+      topic: currentTopic,
+      questionKeys: topicSessionQuestions.map(getQuestionStorageKey),
+      questionIndex,
+      selectedAnswer,
+      answered,
+      correct,
+      sessionResults: buildStoredSessionResults(sessionResults),
+      completed: false,
+    }
+
+    saveStoredInProgressTopicSessions({
+      ...loadStoredInProgressTopicSessions(),
+      [currentTopic]: {
+        ...storedSession,
+        updatedAt: new Date().toISOString(),
+      },
+    })
+  }, [
+    answered,
+    correct,
+    currentTopic,
+    isReviewingWrongAnswers,
+    isSessionComplete,
+    practiceMode,
+    questionIndex,
+    selectedAnswer,
+    sessionResults,
+    topicSessionQuestions,
+    view,
+  ])
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -1037,6 +1299,24 @@ function App() {
         </div>
       )}
 
+      {pendingResumeTopic && (
+        <div className="modal-backdrop" role="presentation">
+          <div className="modal-panel" role="dialog" aria-modal="true" aria-labelledby="resume-topic-title">
+            <p className="eyebrow">Topic Practice</p>
+            <h2 id="resume-topic-title">Resume topic practice?</h2>
+            <p>You have an unfinished session for this topic.</p>
+            <div className="quiz-actions">
+              <button className="button button-primary" onClick={handleResumeTopicSession}>
+                Resume
+              </button>
+              <button className="button button-secondary" onClick={handleRestartTopicSession}>
+                Restart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="app-layout">
         <aside className="sidebar-nav" aria-label="Primary navigation">
           {[
@@ -1045,7 +1325,6 @@ function App() {
             ['topics', 'Topics'],
             ['stats', 'Stats'],
             ['final-test', 'Final Test'],
-            ['settings', 'Settings'],
           ].map(([targetView, label]) => (
             <button
               key={targetView}
@@ -1074,7 +1353,7 @@ function App() {
                   <button
                     className="button button-primary"
                     onClick={handleContinueStudy}
-                    disabled={isLoading || completedCount === 0}
+                    disabled={isLoading || questions.length === 0}
                   >
                     Continue
                   </button>
@@ -1191,12 +1470,20 @@ function App() {
             <div className="topic-grid topic-grid-full">
               {topics.map((topic) => {
                 const count = questions.filter((item) => item.topic === topic).length
+                const markedCount = getMarkedQuestionsForTopic(topic).length
                 return (
                   <article className="topic-card" key={topic}>
                     <h3>{topic}</h3>
                     <p>{count} questions</p>
                     <button className="button button-secondary" onClick={() => handleStartQuiz(topic)}>
                       Start practice
+                    </button>
+                    <button
+                      className="button button-ghost button-small"
+                      onClick={() => handleStartMarkedReview(topic)}
+                      disabled={markedCount === 0}
+                    >
+                      {markedCount > 0 ? `Marked (${markedCount})` : 'No marked questions'}
                     </button>
                   </article>
                 )
@@ -1302,68 +1589,18 @@ function App() {
           </section>
         )}
 
-        {view === 'settings' && (
-          <section className="settings-view">
-            <div className="section-header">
-              <div>
-                <p className="eyebrow">Settings</p>
-                <h2>Study App Settings</h2>
-                <p className="subtitle">Operational status for the local study workflow.</p>
-              </div>
-              <button className="button button-ghost" onClick={handleBackToDashboard}>
-                Back to dashboard
-              </button>
-            </div>
-            <div className="settings-grid">
-              <article className="stat-card">
-                <span>Data source</span>
-                <strong>{dataSource}</strong>
-              </article>
-              <article className="stat-card">
-                <span>Manual AI</span>
-                <strong>Disabled</strong>
-              </article>
-              <article className="stat-card">
-                <span>Manual chunks</span>
-                <strong>{manualChunksCount !== null ? manualChunksCount.toLocaleString() : 'Checking'}</strong>
-              </article>
-              <article className="stat-card">
-                <span>Version</span>
-                <strong>{APP_VERSION}</strong>
-              </article>
-              <article className="stat-card">
-                <span>Admin</span>
-                <button className="button button-secondary" onClick={handleOpenAdmin}>
-                  Open Admin
-                </button>
-              </article>
-              <article className="stat-card">
-                <span>Manuals</span>
-                <button className="button button-secondary" onClick={() => setView('manual-references')}>
-                  Open Manual References
-                </button>
-              </article>
-              <article className="stat-card">
-                <span>Progress Privacy</span>
-                <strong>Local browser only</strong>
-                <small>Study progress is stored locally in this browser. It is not shared with other users.</small>
-              </article>
-              <article className="stat-card">
-                <span>Local Progress</span>
-                <button className="button button-secondary" onClick={handleResetStudyProgress}>
-                  Reset local study progress
-                </button>
-              </article>
-            </div>
-          </section>
-        )}
-
         {view === 'quiz' && (
           <section className="quiz-view">
             <div className="practice-topbar">
               <div>
                 <p className="eyebrow">
-                  {isReviewingWrongAnswers ? 'Review' : practiceMode === 'final' ? 'Final test simulation' : 'Topic practice'}
+                  {isReviewingWrongAnswers
+                    ? 'Review'
+                    : practiceMode === 'final'
+                      ? 'Final test simulation'
+                      : practiceMode === 'marked'
+                        ? 'Marked review'
+                        : 'Topic practice'}
                 </p>
                 <h2>{activeQuizTitle}</h2>
                 <p className="subtitle">
@@ -1379,7 +1616,7 @@ function App() {
                 </div>
                 <span>{progressPercent}%</span>
               </div>
-              <button className="button button-ghost" onClick={handleBackToDashboard}>
+              <button className="button button-ghost" onClick={handleExitPractice}>
                 Exit practice
               </button>
             </div>
@@ -1387,8 +1624,14 @@ function App() {
             {isSessionComplete ? (
               <article className="question-card session-complete-card">
                 <p className="eyebrow">Session Complete</p>
-                <h3>Session Complete</h3>
-                <p>{practiceMode === 'final' ? `Final Test Simulation · ${activeFinalTestScopeLabel}` : currentTopic}</p>
+                <h3>{practiceMode === 'marked' ? 'Marked Review Complete' : 'Session Complete'}</h3>
+                <p>
+                  {practiceMode === 'final'
+                    ? `Final Test Simulation · ${activeFinalTestScopeLabel}`
+                    : practiceMode === 'marked'
+                      ? `${currentTopic} · Marked Review Complete`
+                      : currentTopic}
+                </p>
                 <div className="result-summary-grid">
                   <div>
                     <span>Total answered</span>
@@ -1417,11 +1660,16 @@ function App() {
                     </button>
                   )}
                   <button className="button button-secondary" onClick={handleRetrySession}>
-                    {practiceMode === 'final' ? 'Retry Final Test' : 'Retry Topic'}
+                    {practiceMode === 'final' ? 'Retry Final Test' : practiceMode === 'marked' ? 'Review Again' : 'Retry Topic'}
                   </button>
-                  {practiceMode !== 'final' && (
+                  {practiceMode !== 'final' && practiceMode !== 'marked' && (
                     <button className="button button-ghost" onClick={() => setView('topics')}>
                       Choose Another Topic
+                    </button>
+                  )}
+                  {practiceMode === 'marked' && (
+                    <button className="button button-ghost" onClick={() => setView('topics')}>
+                      Back to Topics
                     </button>
                   )}
                   <button className="button button-ghost" onClick={handleBackToDashboard}>
@@ -1496,7 +1744,7 @@ function App() {
                           {answered ? (questionIndex + 1 < normalSessionTotal ? 'Next Question' : 'Finish Session') : 'Check Answer'}
                         </button>
                         <button className="button button-secondary" onClick={handleToggleMarkForReview}>
-                          {markedForReview.has(currentQuestion.id) ? 'Marked for Review' : 'Mark for Review'}
+                          {currentQuestionMarked ? 'Unmark' : 'Mark for Review'}
                         </button>
                       </>
                     )}
