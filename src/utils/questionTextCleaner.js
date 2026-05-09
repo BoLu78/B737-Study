@@ -1,51 +1,87 @@
-import { QUESTION_TEXT_CORRECTIONS } from './questionTextCorrections.js'
+import {
+  QUESTION_TEXT_PHRASE_CORRECTIONS,
+  QUESTION_TEXT_SPLIT_WORD_DICTIONARY,
+} from './questionTextCorrections.js'
 
-const WORD_SPACING_CORRECTIONS = [
-  [/\bDispla y\b/g, 'Display'],
-  [/\bdispla y\b/g, 'display'],
-  [/\bcondition s\b/g, 'conditions'],
-  [/\bCondition s\b/g, 'Conditions'],
-  [/\banswer s\b/g, 'answers'],
-  [/\bAnswer s\b/g, 'Answers'],
-  [/\bsystem s\b/g, 'systems'],
-  [/\bSystem s\b/g, 'Systems'],
-  [/\bswitch es\b/g, 'switches'],
-  [/\bSwitch es\b/g, 'Switches'],
-  [/\bvalve s\b/g, 'valves'],
-  [/\bValve s\b/g, 'Valves'],
-  [/\bdisplay s\b/g, 'displays'],
-  [/\bDisplay s\b/g, 'Displays'],
-]
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
 
-function applyLiteralCorrections(text) {
-  return QUESTION_TEXT_CORRECTIONS.reduce(
-    (cleanedText, [original, replacement]) => cleanedText.replaceAll(original, replacement),
-    text,
-  )
+function applyCapitalization(originalText, replacement) {
+  if (originalText === originalText.toUpperCase() && /[A-Z]/.test(originalText)) {
+    return replacement.toUpperCase()
+  }
+
+  if (/^[A-Z]/.test(originalText)) {
+    return `${replacement.charAt(0).toUpperCase()}${replacement.slice(1)}`
+  }
+
+  return replacement
+}
+
+function generateSplitVariants(word) {
+  if (!/^[a-z]+$/.test(word)) return []
+
+  const variants = new Set()
+
+  for (let splitIndex = 1; splitIndex < word.length; splitIndex += 1) {
+    variants.add(`${word.slice(0, splitIndex)} ${word.slice(splitIndex)}`)
+  }
+
+  for (let letterIndex = 1; letterIndex < word.length - 1; letterIndex += 1) {
+    variants.add(`${word.slice(0, letterIndex)} ${word.charAt(letterIndex)} ${word.slice(letterIndex + 1)}`)
+  }
+
+  return Array.from(variants)
+}
+
+const SPLIT_VARIANT_CORRECTIONS = QUESTION_TEXT_SPLIT_WORD_DICTIONARY
+  .flatMap((word) => {
+    const normalizedWord = String(word).trim()
+    const lowerWord = normalizedWord.toLowerCase()
+
+    if (!/^[a-z]+$/.test(lowerWord)) return []
+
+    return generateSplitVariants(lowerWord).map((variant) => ({
+      variant,
+      replacement: lowerWord,
+    }))
+  })
+  .sort((first, second) => second.variant.length - first.variant.length)
+
+function applyPhraseCorrections(text) {
+  return QUESTION_TEXT_PHRASE_CORRECTIONS.reduce((cleanedText, [original, replacement]) => {
+    const pattern = new RegExp(escapeRegExp(original), 'gi')
+    return cleanedText.replace(pattern, (match) => applyCapitalization(match, replacement))
+  }, text)
+}
+
+function applySplitWordCorrections(text) {
+  return SPLIT_VARIANT_CORRECTIONS.reduce((cleanedText, { variant, replacement }) => {
+    const pattern = new RegExp(`\\b${escapeRegExp(variant)}\\b`, 'gi')
+    return cleanedText.replace(pattern, (match) => applyCapitalization(match, replacement))
+  }, text)
+}
+
+function normalizeSpacing(text) {
+  return text
+    .replace(/\s+([,;:?!])/g, '$1')
+    .replace(/\s+\.(?!\d)/g, '.')
+    .replace(/([,;:?!])(?=\S)/g, '$1 ')
+    .replace(/\.([A-Za-z])/g, '. $1')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\s*\n\s*/g, '\n')
+    .trim()
 }
 
 export function cleanQuizText(text) {
   if (text === null || text === undefined) return ''
 
-  let cleanedText = String(text)
+  const normalizedText = String(text)
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"')
 
-  cleanedText = applyLiteralCorrections(cleanedText)
-
-  WORD_SPACING_CORRECTIONS.forEach(([pattern, replacement]) => {
-    cleanedText = cleanedText.replace(pattern, replacement)
-  })
-
-  cleanedText = cleanedText
-    .replace(/\b(side)\s+if\s+each\s+display\b/gi, '$1 of each display')
-    .replace(/\s+([,;:?!])/g, '$1')
-    .replace(/\s+\.(?!\d)/g, '.')
-    .replace(/[ \t]{2,}/g, ' ')
-    .replace(/\s*\n\s*/g, '\n')
-    .trim()
-
-  return cleanedText
+  return normalizeSpacing(applySplitWordCorrections(applyPhraseCorrections(normalizedText)))
 }
 
 export function cleanQuestionText(text) {

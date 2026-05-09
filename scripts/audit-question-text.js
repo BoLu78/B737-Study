@@ -9,17 +9,33 @@ import { cleanQuizText } from '../src/utils/questionTextCleaner.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..')
-const reportPath = path.join(repoRoot, 'data/generated/question_text_audit_v7.3.md')
+const reportPath = path.join(repoRoot, 'data/generated/question_text_audit_v7.4.md')
 const fallbackJsonPath = path.join(repoRoot, 'data/generated/t73_r01_questions.json')
 
 const PATTERNS = [
   {
-    name: 'Known split words',
-    regex: /\b(?:Displa y|displa y|condition s|Condition s|answer s|Answer s|system s|System s|switch es|Switch es|valve s|Valve s|display s|Display s)\b/g,
+    name: 'Known split-word artifacts',
+    regex: /\b(?:th e|ri g ht|d isplayed|shutof f|Displa y|displa y|condition s|answer s|system s|switch es|valve s|display s)\b/gi,
   },
   {
     name: 'Suspicious phrase: sid if',
     regex: /\bsid if\b/gi,
+  },
+  {
+    name: 'Isolated plural s',
+    regex: /\b[A-Za-z]{3,}\s+s\b/g,
+  },
+  {
+    name: 'Split single letter inside likely word',
+    regex: /\b[A-Za-z]{1,}\s+[b-hj-z]\s+[A-Za-z]{1,}\b/g,
+  },
+  {
+    name: 'Leading single-letter split',
+    regex: /\b[b-hj-z]\s+[A-Za-z]{4,}\b/g,
+  },
+  {
+    name: 'Trailing single-letter split',
+    regex: /\b[A-Za-z]{3,}\s+[b-hj-z]\b/g,
   },
   {
     name: 'Repeated spaces',
@@ -28,10 +44,6 @@ const PATTERNS = [
   {
     name: 'Spaces before punctuation',
     regex: /\s+[,.?:;]/g,
-  },
-  {
-    name: 'Isolated letter inside words',
-    regex: /\b[A-Za-z]{2,}\s+[a-z]\s+[A-Za-z]{2,}\b/g,
   },
 ]
 
@@ -105,8 +117,13 @@ function getQuestionTexts(question) {
   ].filter(([, value]) => value !== null && value !== undefined && String(value).trim())
 }
 
+function incrementCount(map, key) {
+  map.set(key, (map.get(key) || 0) + 1)
+}
+
 function auditQuestions(questions) {
   const examplesByPattern = new Map(PATTERNS.map((pattern) => [pattern.name, []]))
+  const recurringPatterns = new Map()
   const suspiciousIds = new Set()
 
   questions.forEach((question) => {
@@ -116,10 +133,13 @@ function auditQuestions(questions) {
 
       PATTERNS.forEach((pattern) => {
         pattern.regex.lastIndex = 0
+        const matches = Array.from(originalText.matchAll(pattern.regex))
 
-        if (!pattern.regex.test(originalText)) return
+        if (matches.length === 0) return
 
         suspiciousIds.add(String(getQuestionId(question)))
+        matches.forEach((match) => incrementCount(recurringPatterns, match[0]))
+
         const examples = examplesByPattern.get(pattern.name)
 
         if (examples.length < 15) {
@@ -137,12 +157,16 @@ function auditQuestions(questions) {
   return {
     suspiciousCount: suspiciousIds.size,
     examplesByPattern,
+    recurringPatterns,
   }
 }
 
 function renderReport({ questions, source, audit }) {
+  const topRecurringPatterns = Array.from(audit.recurringPatterns.entries())
+    .sort((first, second) => second[1] - first[1] || first[0].localeCompare(second[0]))
+    .slice(0, 25)
   const lines = [
-    '# Question Text Audit v7.3',
+    '# Question Text Audit v7.4',
     '',
     '## Summary',
     '',
@@ -150,9 +174,20 @@ function renderReport({ questions, source, audit }) {
     `- Total questions scanned: ${questions.length}`,
     `- Suspicious question count: ${audit.suspiciousCount}`,
     '',
-    '## Examples By Pattern',
+    '## Top Recurring Suspicious Patterns',
     '',
   ]
+
+  if (topRecurringPatterns.length === 0) {
+    lines.push('No recurring suspicious patterns found.', '')
+  } else {
+    topRecurringPatterns.forEach(([pattern, count]) => {
+      lines.push(`- \`${pattern}\`: ${count}`)
+    })
+    lines.push('')
+  }
+
+  lines.push('## Examples By Pattern', '')
 
   audit.examplesByPattern.forEach((examples, patternName) => {
     lines.push(`### ${patternName}`, '')
@@ -174,7 +209,7 @@ function renderReport({ questions, source, audit }) {
 
   lines.push('## Recommendation')
   lines.push('')
-  lines.push('Review suspicious examples, add precise corrections to `src/utils/questionTextCorrections.js` when needed, and keep corrections display-only unless the source data is intentionally migrated later.')
+  lines.push('Review recurring patterns, add precise dictionary words or phrase corrections only when the joined result is unambiguous, and keep corrections display-only unless source data is intentionally migrated later.')
   lines.push('')
 
   return `${lines.join('\n')}\n`

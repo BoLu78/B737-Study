@@ -1,0 +1,431 @@
+# Question Text Audit v7.4
+
+## Summary
+
+- Source: Supabase questions table
+- Total questions scanned: 645
+- Suspicious question count: 254
+
+## Top Recurring Suspicious Patterns
+
+- `th e`: 15
+- ` .`: 11
+- ` ?`: 6
+- `Th e`: 5
+- `draulic s`: 4
+- `emer g`: 4
+- `emer g enc`: 4
+- `en g ine`: 4
+- `enc y`: 4
+- `g stall`: 4
+- `onl y`: 4
+- `Thi s`: 4
+- ` ,`: 3
+- `answer s`: 3
+- `condition s`: 3
+- `durin g`: 3
+- `fli g`: 3
+- `s pitch`: 3
+- `y draulic`: 3
+- `y response`: 3
+- `y seals`: 3
+- `y stem`: 3
+- `aeroplane s`: 2
+- `Al l the`: 2
+- `Altitude s`: 2
+
+## Examples By Pattern
+
+### Known split-word artifacts
+
+- Question ID: 1304
+  - Field: answer_a
+  - Original: Lock th e mask in their stowage boxes
+  - Cleaned preview: Lock the mask in their stowage boxes
+- Question ID: 1305
+  - Field: answer_a
+  - Original: From an exterior panel located on the aft bottom ri g ht side of the aft fuselage
+  - Cleaned preview: From an exterior panel located on the aft bottom right side of the aft fuselage
+- Question ID: 1306
+  - Field: question
+  - Original: On the flight deck, where is the flight crew oxygen pressure d isplayed?
+  - Cleaned preview: On the flight deck, where is the flight crew oxygen pressure displayed?
+- Question ID: 1306
+  - Field: answer_b
+  - Original: At the flight crew oxygen shutof f valve
+  - Cleaned preview: At the flight crew oxygen shutoff valve
+- Question ID: 1339
+  - Field: answer_b
+  - Original: Th e air mix valve drive to full hot
+  - Cleaned preview: The air mix valve drive to full hot
+- Question ID: 1346
+  - Field: question
+  - Original: On the Upper Displa y Unit, what does a TAI indication shown at the top left sid if each display indicate?
+  - Cleaned preview: On the Upper Display Unit, what does a TAI indication shown at the top left side of each display indicate?
+- Question ID: 1346
+  - Field: answer_d
+  - Original: All the answer s are correct
+  - Cleaned preview: All the answers are correct
+- Question ID: 1348
+  - Field: question
+  - Original: When are the ENG ANTI-ICE switches turned ON if icing condition s exist on the ground?
+  - Cleaned preview: When are the ENG ANTI-ICE switches turned ON if icing conditions exist on the ground?
+- Question ID: 1389
+  - Field: answer_b
+  - Original: Th e cross bus tie relay opens
+  - Cleaned preview: The cross bus tie relay opens
+- Question ID: 1394
+  - Field: answer_c
+  - Original: Th e IDG is not supplying power to the related transfer bus The APU
+  - Cleaned preview: The IDG is not supplying power to the related transfer bus The APU
+- Question ID: 1410
+  - Field: question
+  - Original: What is the position of the engine bleed air switches during th e shutdown procedure?
+  - Cleaned preview: What is the position of the engine bleed air switches during the shutdown procedure?
+- Question ID: 1427
+  - Field: answer_a
+  - Original: On th e ground only
+  - Cleaned preview: On the ground only
+- Question ID: 1446
+  - Field: answer_d
+  - Original: None of th e answers are correct
+  - Cleaned preview: None of the answers are correct
+- Question ID: 1474
+  - Field: answer_b
+  - Original: From th e down position only
+  - Cleaned preview: From the down position only
+- Question ID: 1489
+  - Field: answer_d
+  - Original: Th e stick shaker pushes the control column forward
+  - Cleaned preview: The stick shaker pushes the control column forward
+
+### Suspicious phrase: sid if
+
+- Question ID: 1346
+  - Field: question
+  - Original: On the Upper Displa y Unit, what does a TAI indication shown at the top left sid if each display indicate?
+  - Cleaned preview: On the Upper Display Unit, what does a TAI indication shown at the top left side of each display indicate?
+
+### Isolated plural s
+
+- Question ID: 1346
+  - Field: answer_d
+  - Original: All the answer s are correct
+  - Cleaned preview: All the answers are correct
+- Question ID: 1348
+  - Field: question
+  - Original: When are the ENG ANTI-ICE switches turned ON if icing condition s exist on the ground?
+  - Cleaned preview: When are the ENG ANTI-ICE switches turned ON if icing conditions exist on the ground?
+- Question ID: 1364
+  - Field: question
+  - Original: During a dual autopilot ILS approach, at which Radio Altitude s hould the FLARE mode engage?
+  - Cleaned preview: During a dual autopilot ILS approach, at which Radio Altitude s hould the FLARE mode engage?
+- Question ID: 1381
+  - Field: answer_c
+  - Original: Not heard ( audio warnin g) on an audio s y stem operatin the degraded mode
+  - Cleaned preview: Not heard ( audio warnin g) on an audio system operatin the degraded mode
+- Question ID: 1408
+  - Field: question
+  - Original: With the STANDBY POWER switch in the AUTO position, automatic s witching from normal to alternate power occurs if:
+  - Cleaned preview: With the STANDBY POWER switch in the AUTO position, automatic s witching from normal to alternate power occurs if:
+- Question ID: 1444
+  - Field: answer_c
+  - Original: All three loop s are needed for detection
+  - Cleaned preview: All three loop s are needed for detection
+- Question ID: 1469
+  - Field: question
+  - Original: Elevator Feel System is provided by elevator feel computer. Thi s computer receives inputs of:
+  - Cleaned preview: Elevator Feel System is provided by elevator feel computer. Thi s computer receives inputs of:
+- Question ID: 1476
+  - Field: answer_b
+  - Original: Dampen s gust
+  - Cleaned preview: Dampen s gust
+- Question ID: 1491
+  - Field: question
+  - Original: The position trend vector se g ments extendin g from the aeroplane s y mbol on th navigation displays represent:
+  - Cleaned preview: The position trend vector se g ments extendin g from the aeroplane s y mbol on th navigation displays represent:
+- Question ID: 1551
+  - Field: question
+  - Original: Waypoints on the RTE LEGS page can be entered and moved. Thi s includes:
+  - Cleaned preview: Waypoints on the RTE LEGS page can be entered and moved. Thi s includes:
+- Question ID: 1589
+  - Field: answer_c
+  - Original: y draulic s y stem ( the standb y s y stem ma y be used as a 2 h substitute for the A and B system)
+  - Cleaned preview: y draulic system ( the standb y system ma y be used as a 2 h substitute for the A and B system)
+- Question ID: 1616
+  - Field: question
+  - Original: The Stall Management Yaw Damper (SYMD) computers provide output s for all stall warning to include:
+  - Cleaned preview: The Stall Management Yaw Damper (SYMD) computers provide output s for all stall warning to include:
+- Question ID: 1628
+  - Field: question
+  - Original: What is the source of electrical power for the engine fuel s hutoff valves?
+  - Cleaned preview: What is the source of electrical power for the engine fuel shutoff valves?
+- Question ID: 1663
+  - Field: question
+  - Original: The refill indication ( RF) is displa y ed ad j acent to it’s respective h y draulic s quantity:
+  - Cleaned preview: The refill indication ( RF) is displayed ad j acent to it's respective hydraulics quantity:
+- Question ID: 1678
+  - Field: question
+  - Original: An engine driven hydraulic pump supplies approximately ___ time s the volume of an electric hydraulic pump:
+  - Cleaned preview: An engine driven hydraulic pump supplies approximately ___ time s the volume of an electric hydraulic pump:
+
+### Split single letter inside likely word
+
+- Question ID: 1303
+  - Field: question
+  - Original: Which statement is correct regarding EMER EXIT LIGHTS switch p osition?
+  - Cleaned preview: Which statement is correct regarding EMER EXIT LIGHTS switch p osition?
+- Question ID: 1303
+  - Field: answer_d
+  - Original: The ON position illuminates onl y the fli g ht deck emer g enc lights
+  - Cleaned preview: The ON position illuminates onl y the flight deck emer g enc lights
+- Question ID: 1304
+  - Field: answer_a
+  - Original: Lock th e mask in their stowage boxes
+  - Cleaned preview: Lock the mask in their stowage boxes
+- Question ID: 1305
+  - Field: answer_a
+  - Original: From an exterior panel located on the aft bottom ri g ht side of the aft fuselage
+  - Cleaned preview: From an exterior panel located on the aft bottom right side of the aft fuselage
+- Question ID: 1306
+  - Field: question
+  - Original: On the flight deck, where is the flight crew oxygen pressure d isplayed?
+  - Cleaned preview: On the flight deck, where is the flight crew oxygen pressure displayed?
+- Question ID: 1306
+  - Field: answer_b
+  - Original: At the flight crew oxygen shutof f valve
+  - Cleaned preview: At the flight crew oxygen shutoff valve
+- Question ID: 1309
+  - Field: answer_a
+  - Original: In the lower inboar d corner of the stowage bins
+  - Cleaned preview: In the lower inboar d corner of the stowage bins
+- Question ID: 1314
+  - Field: answer_b
+  - Original: Be illuminated when the flaps or g ear are extended
+  - Cleaned preview: Be illuminated when the flaps or g ear are extended
+- Question ID: 1327
+  - Field: answer_a
+  - Original: Cannot indicate externa l air pressure
+  - Cleaned preview: Cannot indicate external air pressure
+- Question ID: 1331
+  - Field: answer_c
+  - Original: Overpressure of the left and right b leed air systems
+  - Cleaned preview: Overpressure of the left and right b leed air systems
+- Question ID: 1334
+  - Field: answer_b
+  - Original: They are DC activate d and pressure operated
+  - Cleaned preview: They are DC activate d and pressure operated
+- Question ID: 1335
+  - Field: answer_b
+  - Original: Temperature upstream of the pack h as exceeded limits Failure of both primary and standby pack cont
+  - Cleaned preview: Temperature upstream of the pack h as exceeded limits Failure of both primary and standby pack cont
+- Question ID: 1337
+  - Field: answer_d
+  - Original: Reduce the air flow through t he mix valve
+  - Cleaned preview: Reduce the air flow through the mix valve
+- Question ID: 1339
+  - Field: answer_b
+  - Original: Th e air mix valve drive to full hot
+  - Cleaned preview: The air mix valve drive to full hot
+- Question ID: 1339
+  - Field: answer_c
+  - Original: An automatically shutdown of t he pack
+  - Cleaned preview: An automatically shutdown of the pack
+
+### Leading single-letter split
+
+- Question ID: 1303
+  - Field: question
+  - Original: Which statement is correct regarding EMER EXIT LIGHTS switch p osition?
+  - Cleaned preview: Which statement is correct regarding EMER EXIT LIGHTS switch p osition?
+- Question ID: 1304
+  - Field: answer_a
+  - Original: Lock th e mask in their stowage boxes
+  - Cleaned preview: Lock the mask in their stowage boxes
+- Question ID: 1306
+  - Field: question
+  - Original: On the flight deck, where is the flight crew oxygen pressure d isplayed?
+  - Cleaned preview: On the flight deck, where is the flight crew oxygen pressure displayed?
+- Question ID: 1306
+  - Field: answer_b
+  - Original: At the flight crew oxygen shutof f valve
+  - Cleaned preview: At the flight crew oxygen shutoff valve
+- Question ID: 1309
+  - Field: answer_a
+  - Original: In the lower inboar d corner of the stowage bins
+  - Cleaned preview: In the lower inboar d corner of the stowage bins
+- Question ID: 1320
+  - Field: answer_b
+  - Original: n Test the positive pressure supply to the regulator
+  - Cleaned preview: n Test the positive pressure supply to the regulator
+- Question ID: 1331
+  - Field: answer_c
+  - Original: Overpressure of the left and right b leed air systems
+  - Cleaned preview: Overpressure of the left and right b leed air systems
+- Question ID: 1341
+  - Field: question
+  - Original: The BLEED TRIP OFF light indicates excessive engine bleed air p ressure or temperature.
+  - Cleaned preview: The BLEED TRIP OFF light indicates excessive engine bleed air pressure or temperature.
+- Question ID: 1344
+  - Field: question
+  - Original: Illumination of the amber BLEED TRIP OFF light indicates what v alve has automatically closed ?
+  - Cleaned preview: Illumination of the amber BLEED TRIP OFF light indicates what valve has automatically closed?
+- Question ID: 1345
+  - Field: answer_b
+  - Original: A bottled solutions located behind the Captain’s seat
+  - Cleaned preview: A bottled solutions located behind the Captain's seat
+- Question ID: 1346
+  - Field: question
+  - Original: On the Upper Displa y Unit, what does a TAI indication shown at the top left sid if each display indicate?
+  - Cleaned preview: On the Upper Display Unit, what does a TAI indication shown at the top left side of each display indicate?
+- Question ID: 1346
+  - Field: answer_b
+  - Original: If it’s green; the cowl anti ice is closed and the related engine anti-ice switch is OFF
+  - Cleaned preview: If it's green; the cowl anti ice is closed and the related engine anti-ice switch is OFF
+- Question ID: 1346
+  - Field: answer_c
+  - Original: If it’s green; the cowl anti ice valve(s) is open
+  - Cleaned preview: If it's green; the cowl anti ice valve(s) is open
+- Question ID: 1348
+  - Field: question
+  - Original: When are the ENG ANTI-ICE switches turned ON if icing condition s exist on the ground?
+  - Cleaned preview: When are the ENG ANTI-ICE switches turned ON if icing conditions exist on the ground?
+- Question ID: 1364
+  - Field: question
+  - Original: During a dual autopilot ILS approach, at which Radio Altitude s hould the FLARE mode engage?
+  - Cleaned preview: During a dual autopilot ILS approach, at which Radio Altitude s hould the FLARE mode engage?
+
+### Trailing single-letter split
+
+- Question ID: 1303
+  - Field: question
+  - Original: Which statement is correct regarding EMER EXIT LIGHTS switch p osition?
+  - Cleaned preview: Which statement is correct regarding EMER EXIT LIGHTS switch p osition?
+- Question ID: 1303
+  - Field: answer_b
+  - Original: The ARMED position illuminates all emergency lights if AC bus n°1 fails
+  - Cleaned preview: The ARMED position illuminates all emergency lights if AC bus n°1 fails
+- Question ID: 1303
+  - Field: answer_d
+  - Original: The ON position illuminates onl y the fli g ht deck emer g enc lights
+  - Cleaned preview: The ON position illuminates onl y the flight deck emer g enc lights
+- Question ID: 1306
+  - Field: question
+  - Original: On the flight deck, where is the flight crew oxygen pressure d isplayed?
+  - Cleaned preview: On the flight deck, where is the flight crew oxygen pressure displayed?
+- Question ID: 1306
+  - Field: answer_b
+  - Original: At the flight crew oxygen shutof f valve
+  - Cleaned preview: At the flight crew oxygen shutoff valve
+- Question ID: 1309
+  - Field: answer_a
+  - Original: In the lower inboar d corner of the stowage bins
+  - Cleaned preview: In the lower inboar d corner of the stowage bins
+- Question ID: 1326
+  - Field: question
+  - Original: The Cabin Pressurization Panel MANUAL green light is illuminate d, what does this indicate ?
+  - Cleaned preview: The Cabin Pressurization Panel MANUAL green light is illuminate d, what does this indicate?
+- Question ID: 1327
+  - Field: answer_a
+  - Original: Cannot indicate externa l air pressure
+  - Cleaned preview: Cannot indicate external air pressure
+- Question ID: 1330
+  - Field: question
+  - Original: What is the main source of conditioned air for the flight dec k?
+  - Cleaned preview: What is the main source of conditioned air for the flight deck?
+- Question ID: 1331
+  - Field: answer_c
+  - Original: Overpressure of the left and right b leed air systems
+  - Cleaned preview: Overpressure of the left and right b leed air systems
+- Question ID: 1333
+  - Field: question
+  - Original: What happen when the Wing-Body Overheat TEST switch is presse d?
+  - Cleaned preview: What happen when the Wing-Body Overheat TEST switch is presse d?
+- Question ID: 1334
+  - Field: answer_b
+  - Original: They are DC activate d and pressure operated
+  - Cleaned preview: They are DC activate d and pressure operated
+- Question ID: 1335
+  - Field: answer_b
+  - Original: Temperature upstream of the pack h as exceeded limits Failure of both primary and standby pack cont
+  - Cleaned preview: Temperature upstream of the pack h as exceeded limits Failure of both primary and standby pack cont
+- Question ID: 1337
+  - Field: answer_d
+  - Original: Reduce the air flow through t he mix valve
+  - Cleaned preview: Reduce the air flow through the mix valve
+- Question ID: 1341
+  - Field: question
+  - Original: The BLEED TRIP OFF light indicates excessive engine bleed air p ressure or temperature.
+  - Cleaned preview: The BLEED TRIP OFF light indicates excessive engine bleed air pressure or temperature.
+
+### Repeated spaces
+
+No examples found.
+
+### Spaces before punctuation
+
+- Question ID: 1307
+  - Field: question
+  - Original: At what cabin altitude is the passenger oxygen system automati cally activated ?
+  - Cleaned preview: At what cabin altitude is the passenger oxygen system automati cally activated?
+- Question ID: 1319
+  - Field: question
+  - Original: A Cabin Attendant reports that there is a paper fire in the cab in. Which type of fire extinguisher be used on the fire ?
+  - Cleaned preview: A Cabin Attendant reports that there is a paper fire in the cab in. Which type of fire extinguisher be used on the fire?
+- Question ID: 1326
+  - Field: question
+  - Original: The Cabin Pressurization Panel MANUAL green light is illuminate d, what does this indicate ?
+  - Cleaned preview: The Cabin Pressurization Panel MANUAL green light is illuminate d, what does this indicate?
+- Question ID: 1344
+  - Field: question
+  - Original: Illumination of the amber BLEED TRIP OFF light indicates what v alve has automatically closed ?
+  - Cleaned preview: Illumination of the amber BLEED TRIP OFF light indicates what valve has automatically closed?
+- Question ID: 1454
+  - Field: answer_c
+  - Original: With flaps extended .20 to 16.9 units
+  - Cleaned preview: With flaps extended .20 to 16.9 units
+- Question ID: 1454
+  - Field: answer_d
+  - Original: With flaps extended .5 0 to 14.5 units
+  - Cleaned preview: With flaps extended .5 0 to 14.5 units
+- Question ID: 1481
+  - Field: answer_a
+  - Original: Provides stability at mach numbers above .6 15
+  - Cleaned preview: Provides stability at mach numbers above .6 15
+- Question ID: 1577
+  - Field: question
+  - Original: An entry of .720 for descend into the TGT SPD line on the ACT E CON SPD DES page will:
+  - Cleaned preview: An entry of .720 for descend into the TGT SPD line on the ACT E CON SPD DES page will:
+- Question ID: 1746
+  - Field: question
+  - Original: in a position to c The circlin g is desi g nated to provide a terrain clearance of at least _____ abov the highest spot elevation within ____ from the runway threshol d :
+  - Cleaned preview: in a position to c The circlin g is desi g nated to provide a terrain clearance of at least _____ abov the highest spot elevation within ____ from the runway threshol d:
+- Question ID: 1837
+  - Field: question
+  - Original: What is a POC ?
+  - Cleaned preview: What is a POC?
+- Question ID: 1838
+  - Field: question
+  - Original: Which kind of permission is required for the Carriage of weapon s , munitions of war?
+  - Cleaned preview: Which kind of permission is required for the Carriage of weapon s, munitions of war?
+- Question ID: 1839
+  - Field: answer_a
+  - Original: On ly if he/she is a Police member .
+  - Cleaned preview: On ly if he/she is a Police member.
+- Question ID: 1853
+  - Field: answer_b
+  - Original: Take a flashlight, open door 1R (if not yet opened) leave the aeroplane throu g h door 1R, move the passen g er awa from the aeroplane ,give assistance
+  - Cleaned preview: Take a flashlight, open door 1R (if not yet opened) leave the aeroplane throu g h door 1R, move the passen g er awa from the aeroplane, give assistance
+- Question ID: 1904
+  - Field: question
+  - Original: Flying in the OCA, if an immediate temporary change in the Mach Number is essential, ex: due to turbulence, ....
+  - Cleaned preview: Flying in the OCA, if an immediate temporary change in the Mach Number is essential, ex: due to turbulence, ....
+- Question ID: 1905
+  - Field: question
+  - Original: If you do NOT receive the oceanic clearance from the ATC unit a pproaching the OCA boundary ...
+  - Cleaned preview: If you do NOT receive the oceanic clearance from the ATC unit a pproaching the OCA boundary...
+
+## Recommendation
+
+Review recurring patterns, add precise dictionary words or phrase corrections only when the joined result is unambiguous, and keep corrections display-only unless source data is intentionally migrated later.
+
