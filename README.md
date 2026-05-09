@@ -166,6 +166,12 @@ Topic performance is stored locally in the browser using completed practice sess
 
 Supabase stores shared question and manual reference data. Personal progress, topic results, studied counts, accuracy, final test session state, and wrong-answer review state stay in the current browser/device only. Sharing the app link does not mix results across different devices or browser profiles. Results can mix only when people use the same browser profile on the same device.
 
+Visible question IDs use the original NEOS PDF/table source ID (`source_id`) rather than the internal Supabase row ID. The database row ID stays internal for storage and UI keys only. To verify imported source ID coverage, run:
+
+```bash
+npm run questions:audit-source-ids
+```
+
 During topic practice:
 
 - Topic practice shows a session result summary after completion.

@@ -15,7 +15,7 @@ import {
 import { cleanAnswerText, cleanQuestionText } from './utils/questionTextCleaner'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v7.4'
+const APP_VERSION = 'v7.5'
 const FINAL_TEST_QUESTION_LIMIT = 100
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v1'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v1'
@@ -183,7 +183,7 @@ function validateAdminForm(form) {
   }
 
   if (form.source_id && !Number.isInteger(Number(form.source_id))) {
-    return 'Source ID must be a whole number.'
+    return 'Source question ID must be a whole number.'
   }
 
   return null
@@ -223,6 +223,10 @@ function normalizeQuizOptions(question) {
 function displayReferenceValue(value) {
   const text = value === null || value === undefined ? '' : String(value).trim()
   return text || '—'
+}
+
+function displayQuestionSourceId(question) {
+  return displayReferenceValue(question?.sourceId)
 }
 
 function hasReferenceMetadata(question) {
@@ -1303,7 +1307,7 @@ function App() {
             ) : currentQuestion ? (
               <div className="practice-layout">
                 <article className="question-card practice-question-card">
-                  <p className="question-id">{currentQuestion.id}</p>
+                  <p className="question-id">Question ID: {displayQuestionSourceId(currentQuestion)}</p>
                   <h3>{cleanQuestionText(currentQuestion.question)}</h3>
                   <div className={`answer-grid answer-grid-${currentAnswerOptions.length}`}>
                     {currentAnswerOptions.map((option) => {
@@ -1403,8 +1407,7 @@ function App() {
               <table>
                 <thead>
                   <tr>
-                    <th>ID</th>
-                    <th>Source ID</th>
+                    <th>Question ID</th>
                     <th>Topic</th>
                     <th>Question</th>
                     <th>Correct</th>
@@ -1418,8 +1421,7 @@ function App() {
                 <tbody>
                   {questions.map((item) => (
                     <tr key={item.id}>
-                      <td>{item.id}</td>
-                      <td>{displayReferenceValue(item.sourceId)}</td>
+                      <td>{displayQuestionSourceId(item)}</td>
                       <td>{item.topic}</td>
                       <td>{cleanQuestionText(item.question)}</td>
                       <td>{item.correctAnswerLetter || String.fromCharCode(65 + item.correctAnswer)}</td>
@@ -1736,7 +1738,7 @@ function App() {
               {filteredReferences.map((item) => (
                 <article className="reference-card" key={item.id}>
                   <div className="reference-card-header">
-                    <span className="question-id">Source ID {displayReferenceValue(item.sourceId)}</span>
+                    <span className="question-id">Question ID: {displayQuestionSourceId(item)}</span>
                     <span>{displayReferenceValue(item.topic)}</span>
                   </div>
                   <h3>{cleanQuestionText(item.question)}</h3>
@@ -1808,7 +1810,7 @@ function App() {
                     <input name="topic" value={adminForm.topic} onChange={handleAdminFieldChange} />
                   </label>
                   <label className="field-label">
-                    Source ID
+                    Source question ID
                     <input name="source_id" value={adminForm.source_id} onChange={handleAdminFieldChange} />
                   </label>
                   <label className="field-label">
@@ -1909,12 +1911,12 @@ function App() {
               {questions.map((item) => (
                 <article className="admin-question-card" key={item.id}>
                   <div className="admin-question-body">
-                    <span className="question-id">{item.id}</span>
+                    <span className="question-id">Question ID: {displayQuestionSourceId(item)}</span>
                     <h3>{cleanQuestionText(item.question)}</h3>
                     <dl className="admin-question-meta">
                       <div>
-                        <dt>Source ID</dt>
-                        <dd>{item.sourceId || '—'}</dd>
+                        <dt>Question ID</dt>
+                        <dd>{displayQuestionSourceId(item)}</dd>
                       </div>
                       <div>
                         <dt>Topic</dt>
