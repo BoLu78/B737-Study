@@ -1,66 +1,21 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createClient } from '@supabase/supabase-js'
 
 /* global process */
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..')
-const fallbackJsonPath = path.join(repoRoot, 'data/generated/t73_r01_questions.json')
-const reportPath = path.join(repoRoot, 'data/generated/question_source_id_audit_v7.5.md')
+const questionJsonPath = path.join(repoRoot, 'data/generated/questions.json')
+const reportPath = path.join(repoRoot, 'data/generated/question_source_id_audit_v8.2.md')
 
-async function readDotEnvLocal() {
-  const envPath = path.join(repoRoot, '.env.local')
-
+async function loadQuestions() {
   try {
-    const envText = await fs.readFile(envPath, 'utf8')
-    return Object.fromEntries(
-      envText
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter((line) => line && !line.startsWith('#') && line.includes('='))
-        .map((line) => {
-          const separatorIndex = line.indexOf('=')
-          const key = line.slice(0, separatorIndex).trim()
-          const value = line.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, '')
-          return [key, value]
-        }),
-    )
-  } catch {
-    return {}
-  }
-}
-
-async function loadQuestionsFromSupabase(envValues) {
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || envValues.VITE_SUPABASE_URL
-  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || envValues.VITE_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return { questions: null, source: null }
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseAnonKey)
-  const { data, error } = await supabase
-    .from('questions')
-    .select('id, source_id, source_document, source_revision, question')
-    .eq('status', 'active')
-    .order('id', { ascending: true })
-
-  if (error) {
-    return { questions: null, source: `Supabase unavailable: ${error.message}` }
-  }
-
-  return { questions: data || [], source: 'Supabase questions table' }
-}
-
-async function loadFallbackQuestions() {
-  try {
-    const fileText = await fs.readFile(fallbackJsonPath, 'utf8')
+    const fileText = await fs.readFile(questionJsonPath, 'utf8')
     return {
       questions: JSON.parse(fileText),
-      source: path.relative(repoRoot, fallbackJsonPath),
+      source: path.relative(repoRoot, questionJsonPath),
     }
   } catch {
     return { questions: [], source: 'No question source available' }
@@ -68,15 +23,15 @@ async function loadFallbackQuestions() {
 }
 
 function getSourceId(question) {
-  return question.source_id ?? question.sourceQuestionId ?? question.sourceId ?? null
+  return question.source_id ?? question.sourceQuestionId ?? question.sourceId ?? question.id ?? null
 }
 
 function getSourceDocument(question) {
-  return question.source_document ?? question.sourceDocument ?? 'unknown document'
+  return question.source_document ?? question.sourceDocument ?? 'questions.csv'
 }
 
 function getSourceRevision(question) {
-  return question.source_revision ?? question.sourceRevision ?? 'unknown revision'
+  return question.source_revision ?? question.sourceRevision ?? 'v8.2'
 }
 
 function getInternalId(question) {
@@ -109,7 +64,7 @@ function auditSourceIds(questions) {
 
 function renderReport({ source, audit }) {
   const lines = [
-    '# Question Source ID Audit v7.5',
+    '# Question Source ID Audit v8.2',
     '',
     '## Summary',
     '',
@@ -150,16 +105,14 @@ function renderReport({ source, audit }) {
 
   lines.push('## Recommendation')
   lines.push('')
-  lines.push('Use `source_id` as the user-facing NEOS/PDF question number. Keep Supabase row `id` internal for database/state keys only.')
+  lines.push('Use generated question `id` as the user-facing CSV/source question number. Keep any storage/runtime keys internal only.')
   lines.push('')
 
   return `${lines.join('\n')}\n`
 }
 
 async function main() {
-  const envValues = await readDotEnvLocal()
-  const supabaseResult = await loadQuestionsFromSupabase(envValues)
-  const questionSource = supabaseResult.questions ? supabaseResult : await loadFallbackQuestions()
+  const questionSource = await loadQuestions()
   const audit = auditSourceIds(questionSource.questions)
   const report = renderReport({ source: questionSource.source, audit })
 

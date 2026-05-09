@@ -1,13 +1,14 @@
 {
   "name": "b737-study",
   "private": true,
-  "version": "7.7.0",
+  "version": "8.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "build:questions": "node scripts/build-questions.mjs",
     "extract:t73": "node scripts/extract-t73-pdf.js",
     "sql:t73": "node scripts/generate-t73-sql.js",
     "import:t73": "node scripts/import-t73-to-supabase.js",

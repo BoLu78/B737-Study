@@ -1,7 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createClient } from '@supabase/supabase-js'
 import { cleanQuizText } from '../src/utils/questionTextCleaner.js'
 
 /* global process */
@@ -9,8 +8,8 @@ import { cleanQuizText } from '../src/utils/questionTextCleaner.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..')
-const reportPath = path.join(repoRoot, 'data/generated/question_text_audit_v7.4.md')
-const fallbackJsonPath = path.join(repoRoot, 'data/generated/t73_r01_questions.json')
+const reportPath = path.join(repoRoot, 'data/generated/question_text_audit_v8.2.md')
+const questionJsonPath = path.join(repoRoot, 'data/generated/questions.json')
 
 const PATTERNS = [
   {
@@ -47,56 +46,12 @@ const PATTERNS = [
   },
 ]
 
-async function readDotEnvLocal() {
-  const envPath = path.join(repoRoot, '.env.local')
-
+async function loadQuestions() {
   try {
-    const envText = await fs.readFile(envPath, 'utf8')
-    return Object.fromEntries(
-      envText
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter((line) => line && !line.startsWith('#') && line.includes('='))
-        .map((line) => {
-          const separatorIndex = line.indexOf('=')
-          const key = line.slice(0, separatorIndex).trim()
-          const value = line.slice(separatorIndex + 1).trim().replace(/^['"]|['"]$/g, '')
-          return [key, value]
-        }),
-    )
-  } catch {
-    return {}
-  }
-}
-
-async function loadQuestionsFromSupabase(envValues) {
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || envValues.VITE_SUPABASE_URL
-  const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || envValues.VITE_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return { questions: null, source: null }
-  }
-
-  const supabase = createClient(supabaseUrl, supabaseAnonKey)
-  const { data, error } = await supabase
-    .from('questions')
-    .select('id, source_id, question, answer_a, answer_b, answer_c, answer_d')
-    .eq('status', 'active')
-    .order('id', { ascending: true })
-
-  if (error) {
-    return { questions: null, source: `Supabase unavailable: ${error.message}` }
-  }
-
-  return { questions: data || [], source: 'Supabase questions table' }
-}
-
-async function loadFallbackQuestions() {
-  try {
-    const fileText = await fs.readFile(fallbackJsonPath, 'utf8')
+    const fileText = await fs.readFile(questionJsonPath, 'utf8')
     return {
       questions: JSON.parse(fileText),
-      source: path.relative(repoRoot, fallbackJsonPath),
+      source: path.relative(repoRoot, questionJsonPath),
     }
   } catch {
     return { questions: [], source: 'No question source available' }
@@ -114,6 +69,10 @@ function getQuestionTexts(question) {
     ['answer_b', question.answer_b ?? question.answers?.[1]],
     ['answer_c', question.answer_c ?? question.answers?.[2]],
     ['answer_d', question.answer_d ?? question.answers?.[3]],
+    ['option_a', question.options?.find((option) => option.key === 'A')?.text],
+    ['option_b', question.options?.find((option) => option.key === 'B')?.text],
+    ['option_c', question.options?.find((option) => option.key === 'C')?.text],
+    ['option_d', question.options?.find((option) => option.key === 'D')?.text],
   ].filter(([, value]) => value !== null && value !== undefined && String(value).trim())
 }
 
@@ -166,7 +125,7 @@ function renderReport({ questions, source, audit }) {
     .sort((first, second) => second[1] - first[1] || first[0].localeCompare(second[0]))
     .slice(0, 25)
   const lines = [
-    '# Question Text Audit v7.4',
+    '# Question Text Audit v8.2',
     '',
     '## Summary',
     '',
@@ -216,9 +175,7 @@ function renderReport({ questions, source, audit }) {
 }
 
 async function main() {
-  const envValues = await readDotEnvLocal()
-  const supabaseResult = await loadQuestionsFromSupabase(envValues)
-  const questionSource = supabaseResult.questions ? supabaseResult : await loadFallbackQuestions()
+  const questionSource = await loadQuestions()
   const audit = auditQuestions(questionSource.questions)
   const report = renderReport({
     questions: questionSource.questions,

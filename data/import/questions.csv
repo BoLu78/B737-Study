@@ -1,0 +1,1320 @@
+﻿ID;Question;AnswerOne;AnswerTwo;AnswerThree;AnswerFour;Correct;Argument
+1;Which statement is correct regarding EMER EXIT LIGHTS switch position?;"The OFF position prevents emergency light system
+operation if the aeroplane electrical power fails or is turned off";The ARMED position illuminates all emergency lights if AC bus n°1 fails;The ON position illuminates only the emergency lights in the galleys;The ON position illuminates only the flight deck emergenc lights;1;Aeroplane General
+2;The Oxygen Mask Release Lever when squeezed and pulled:;Lock the mask in their stowage boxes;"Activate the oxygen and microphone when the stowage
+box door opens";Inflate the mask harness when the left lever is squeezed;"Activate oxygen flow momentary only the flight deck
+emergency lights";2;Aeroplane General
+3;Serving of the water system is?;"From an exterior panel located on the aft bottom right side
+of the aft fuselage";Requires DC power;Gravity fed from an external sources;"From an exterior panel located on the aft side of the
+aeroplane";1;Aeroplane General
+4;On the flight deck, where is the flight crew oxygen pressure displayed?;At the oxygen cylinder;At the flight crew oxygen shutoff valve;"On the flight crew oxygen pressure indicator on the aft
+overhead panel";Behind the Captain seat on the P18 panel;3;Aeroplane General
+5;At what cabin altitude is the passenger oxygen system automatically activated ?;10000ft;12500ft;14000ft;17000ft;3;Aeroplane General
+6;The PASS OXY ON light illuminates. What does this indicate?;The passenger oxygen system pressure is low;The passenger oxygen quality is low;"The passenger oxygen system is activated and masks
+have dropped";"The OVERHEAD annunciator lights is extinguished on the
+Master Caution system";3;Aeroplane General
+7;Interior emergency exit lights are located:;In the lower inboard corner of the stowage bins;"Over the entry/service doors and overwing emergency
+hatches";In the ceiling;All the answers are correct;4;Aeroplane General
+8;What happens with the NO SMOKING switch in AUTO?;"The NO SMOKING signs illuminates when the landing
+gear is extended";"The NO SMOKING signs illuminates when the flaps are
+extended";"The NO SMOKING signs extinguish when the flaps are
+retracted";"The NO SMOKING signs illuminated when the landing
+gear are retracted";1;Aeroplane General
+9;The EMERGENCY EXIT lights switch in the ARMED position:;Activates the emergency lights system with APU generator power only;Illuminates all the emergency lights all the time;"Illuminates all interior and exterior emergency lights if
+there is a loss of electrical power on DC bus N°.1, or if AC power has been turned off";Can be reset by going from ON to ARMED;3;Aeroplane General
+10;Lower cargo compartments are:;Designed and constructed to satisfy JAA category Class A compartment requirements;Designed to completely confine a fire without endangering the safety of the aeroplane or its occupants;On the lower aeroplane side of the fuselage;All the answers are correct;2;Aeroplane General
+11;"During pilot seat adjustment, a sight reference indicating proper adjustment
+includes:";"The ""T"" below the outboard display unit is visible";"Sight along the upper surface of the glareshield with a
+small amount of the aeroplane nose structure visible";An unobstructed view of the CDS display;All the answers are correct;4;Aeroplane General
+12;"With the FASTEN BELTS switch in the AUTO position, the FASTEN BELTS and
+RETURN TO SEAT signs will:";Only be illuminated in flight;Be illuminated when the flaps or gear are extended;Be extinguished when the flaps or gear are retracted;"Be illuminated when the flaps or gear are extended or
+retracted";2;Aeroplane General
+13;The retractable landing lights are located?;On each wingtip;In the each leading edge;In the each wing root;In the lower fuselage;4;Aeroplane General
+14;An illuminated overwing exit annunciation on the overhead panel indicates:;An overwing escape exit is not armed;An related flight exit is not closed and locked;A related flight lock failed to engage when commanded locked;"A related overwing exit is not closed an locked and a related flight lock failed to engage when commanded
+locked";4;Aeroplane General
+15;The overwing emergency exits lock when:;The aeroplane air/ground logic indicates that the aeroplane is in the air or both thrust levers are advanced;Either engine is running;Three of the four entry/service doors are closed;All the above conditions exist;4;Aeroplane General
+16;"The cargo compartments on the 737-800 are fire containment compartments
+designed as:";Class A;Class B;Class C;Class D;3;Aeroplane General
+17;"A Cabin Attendant reports that there is a paper fire in the cabin. Which type of
+fire extinguisher be used on the fire ?";Water ( H2O );Nitrous Oxide ( NO2 );Carbon dioxide ( CO2 );BCF (Halon 1211);1;Aeroplane General
+18;"The flight crew oxygen mask EMERGENCY /Test selector when rotated to the
+EMERGENCY position:";"Supplies 100% oxygen under positive pressure at all cabin
+altitudes";Test the positive pressure supply to the regulator;Provides a mixture of ambient air with oxygen on demand;Supplies 100% oxygen only at high altitudes;1;Aeroplane General
+19;"Emergency access to the flight deck from outside the aeroplane is
+accomplished:";Through the Captain number two window only;Through the First Officer number two window only;Through the Captain or First Officer number two window;Through a special emergency hatch;2;Aeroplane General
+20;The Overboard Exhaust Valve (OEV):;Allows for increased ventilation in the smoke removal configuration;"In-flight the overboard exhaust valve is normally open and
+exhaust air is diffused to the lining of the forward cargo compartments";The overboard exhaust valve remains closed if both pack switches are in high;All the answers are correct;1;Air system
+21;"What is the position of the isolation valve when the ISOLATION VALVE switch
+is in AUTO?";That depends on the position of the APU bleed switch;The isolation valve is always closed;"The isolation valve automatically modulates between open
+and closed, depending on pneumatic load";"Open if either engine BLEED air or air conditioning PACK
+switch positioned OFF";4;Air system
+22;"When making a no engine bleed take off and an engine failure occurs, when will
+the BLEED air switch be positioned ON?";Prior to 400ft above the ground;After reaching through 2000ft above the ground;"When reaching 1500ft or until obstacle clearance height
+has been attained";"At not less than 400ft and prior 200ft above the field
+elevation";3;Air system
+23;The maximum cabin differential pressure (relief valve) is:;7.8 psi;7.1 psi;8.3 psi;9.1 psi;4;Air system
+24;"The Cabin Pressurization Panel MANUAL green light is illuminated, what does
+this indicate ?";The manual outflow valve is full open;The aeroplane is an off-scheduled descent;"The pressurization system is operating in the manual
+mode";The manual outflow valve is full closed;3;Air system
+25;The Bleed Air DUCT PRESSURE Indicator:;Cannot indicate external air pressure;"Indicates both temperature and pressure in the bleed air
+duct";Is AC operated;Is DC operated;3;Air system
+26;The blue RAM DOOR FULL OPEN light illuminates:;"When the aeroplane is in flight with the landing gear
+extended";When the aeroplane is in flight with the packs in HIGH;When the aeroplane is not with the packs in AUTO;When the ram door is in full open position;4;Air system
+27;The amber OFF SCHED DESCENT light illuminates. What does this indicate?;"The pressurization controller is unable to maintain cabin
+pressure";"The aeroplane has descended before reaching the
+planned cruise altitude set in the FLT ALT indicator";"The pressurization controller has failed and will
+automatically shift to the ALTN mode";All the answers are correct;2;Air system
+28;What is the main source of conditioned air for the flight deck?;The right air conditioning pack;The left air conditioning pack;Both air conditioning packs;"Excess air from the left pack that is upstream of the mix
+manifold";4;Air system
+29;The amber DUAL BLEED light indicates:;"A possible back pressure condition and thrust must be
+limited to IDLE";The isolation valve is open;Overpressure of the left and right bleed air systems;"The APU bleed air switch is ON and Both bleed air
+switches are ON";1;Air system
+30;What system rely on bleed air system for operation?;Air conditioning/pressurization, Wing Anti-Ice, Fuel tanks;Wing Anti-Ice, APU, engine starting;APU, engine starting, Air conditioning/pressurization;"Engine starting, Air conditioning/pressurization, Wing and Engine Anti-Ice, hydraulic reservoirs and water tank
+pressurization";4;Air system
+31;What happen when the Wing-Body Overheat TEST switch is pressed?;"Both of the amber WING-BODY OVERHEAT lights
+illuminate";Both of the amber PACK TRIP OFF lights illuminate;Both of the amber BLEED TRIP OFF lights illuminate;All the answers are correct;1;Air system
+32;"With the engine bleed air switch ON, how are the engine bleed air valves
+powered?";They are AC activated and pressure operated;They are DC activated and pressure operated;They are pressure activated and AC operated;They are pressure activated and DC operated;2;Air system
+33;What causes the PACK light to illuminate?;Failure of either primary or standby pack control;Temperature upstream of the pack has exceeded limits;Failure of both primary and standby pack controls;Excessive air pressure in the pack;3;Air system
+34;Which fault indications can be reset with the TRIP RESET switch?;BLEED TRIP OFF;PACK;ZONE TEMP;All the answers are correct;4;Air system
+35;"In the PACK non-normal procedure, the Flight Crew selects a warmer
+temperature in order to:";Reduce cabin outflow;Reduce the workload on the other pack;Reduce the workload on the affected pack;Reduce the air flow through the mix valve;3;Air system
+36;The recirculation fan system:;Are driven by DC motor;Increase airflow at greater cabin differential pressure;"Reduces the air conditioning system pack load and the
+engine bleed air demand";Provides overheat detection downstream of the pack;3;Air system
+37;A PACK light illuminated will cause:;The pack valve to close;The air mix valve drive to full hot;An automatically shutdown of the pack;A BLEED TRIP OFF condition;1;Air system
+38;"Illumination of the amber AUTO FAIL light indicates any of the following has
+occurred:";Loss of both AC and DC power;The backup control has failed;Pressurization mode selector is in the manual mode;Loss of DC power;4;Air system
+39;"The BLEED TRIP OFF light indicates excessive engine bleed air pressure or
+temperature.";True;False;;;1;Air system
+40;The amber DUAL BLEED light indicates a possible APU back pressure.;True;False;;;1;Air system
+41;A ZONE TEMP amber light indicates on the Master Caution Recall:;Automatic shutdown of the pack;"Failure of both the primary and secondary standby
+temperature control";Trim air modulating calve has failed;"Failure of the flight deck primary or standby temperature
+control";4;Air system
+42;"Illumination of the amber BLEED TRIP OFF light indicates what valve has
+automatically closed ?";Modulating shutoff valve;Related engine bleed air valve;Isolation valve;All the answers are correct;2;Air system
+43;The rain removal system consist of:;"A permanent rain repellent coating on the windshields and
+wipers";A bottled solutions located behind the Captain’s seat;"Rain repellent switches located on the forward overhead
+panel";All the answers are correct;1;ANTI-ICE / RAIN
+44;"On the Upper Display Unit, what does a TAI indication shown at the top left side
+if each display indicate?";"If is amber; an over temperature condition exists in the
+duct downstream of the engine cowl anti ice valve";"If it’s green; the cowl anti ice is closed and the related
+engine anti-ice switch is OFF";"If it’s green; the cowl anti ice valve(s) is open";All the answers are correct;3;ANTI-ICE / RAIN
+45;The window heat PWR TEST:;Must be tested before each flight;Test the L1 and R1 windows only;Verify operation of the window heat system;Can be used if all green window heat lights are on;3;ANTI-ICE / RAIN
+46;"When are the ENG ANTI-ICE switches turned ON if icing conditions exist on the
+ground?";When cleared into the runway;During the taxi;After takeoff;During the after engine start procedure;4;ANTI-ICE / RAIN
+47;Which window(s) are heated with the LEFT FWD WINDOW HEAT switch ON?;L2, L3, L4, L5;L1, L2, L3;L1, L2, L3, L4, L5;L1 only;4;ANTI-ICE / RAIN
+48;When do you use WING  ANTI-ICE?;"On the ground when icing conditions exist or are
+anticipated";As a de-icer or anti-ice in flight;In flight, after ice accumulation;All the answers are correct;4;ANTI-ICE / RAIN
+49;What is the maximum airspeed limit with a window OVERHEAT situation?;250 KIAS;280 KIAS;250 KIAS below 10000ft;280 KIAS below 10000ft;3;ANTI-ICE / RAIN
+50;The R ELEV PITOT light is illuminated. What does this indicate?;The right elevator pitot probe is blocked;A malfunction in the pitot probe system;The right elevator pitot probe is not heated;The related probe is heated;3;ANTI-ICE / RAIN
+51;"The windshield wipers maintain a clear area on the flight deck forward
+windows. Which of following statements is correct?";Each wiper is operated by a separate control;"Windshields wipers are hydraulically operated and
+electrically controlled";Windshields wipers may operated on a dry windshields;None of the answers are correct;1;ANTI-ICE / RAIN
+52;How are alpha vanes heated?;"By actuating the LEFT or RIGHT FWD window heat
+switches";Whenever wing anti ice is being used;Whenever the alternate static ports are heated;By actuating the A and B PROBE HEAT switches;4;ANTI-ICE / RAIN
+53;Which pilot probes and sensors are not heated?;The ELEV PITOT probes;The static ports;The CAPT PITOT probe;The F/O PITOT probe;2;ANTI-ICE / RAIN
+54;Each cowl anti-ice valve is:;"Automatically actuated by Ice Detection System when ice
+is detected";Electrically controlled and pressure actuated;"Automatically closed when the thrust levers are in the
+takeoff position";AC motor operated;2;ANTI-ICE / RAIN
+55;The wing anti-ice system provides bleed air to:;All leading edge slats;Three inboard leading edge slats;All leading edge slats flaps;Three outboard leading edge slats;2;ANTI-ICE / RAIN
+56;Illumination of amber COWL ANTI-ICE light indicates:;An overpressure condition;An over temperature  or overpressure condition;The related cowl anti-ice valve is open;"The cowl anti-ice valve position disagrees with the
+respective engine anti ice switch position";1;ANTI-ICE / RAIN
+57;After lift off, the A/T remains in THR HLD until:;400ft RA;800ft RA;400ft RA and 18sec after lift off;800ft RA and 18sec after lift off;2;Automatic flight
+58;"When control wheel pressure is released during CWS roll operation, the A/P
+rolls the wings level when the bank angle is:";5° or less;6° or less;10° or less;15° or less;2;Automatic flight
+59;The Automatic Flight System (AFS) consists of:;None of the answers are correct;"The Control Display Unit (CDU) and Flight Management
+Computer (FMC)";Two individual Flight Control Computer (FCC);"The Autopilot Flight Director System (AFDS) and the Auto
+Throttle (A/T)";4;Automatic flight
+60;In normal operation, what provides the A/T  system with N1 limit values?;The A/T computer;The AFDS;The FMC;The ADIRUs;3;Automatic flight
+61;Which statement is true of the Auto Throttle (A/T)?;"The A/T moves the thrust levers with a separate servo
+motor on each thrust lever";The A/T can be manually overridden;The A/T will reduce thrust toward idle at 27ft RA;All the answers are correct;4;Automatic flight
+62;"During a dual autopilot ILS approach, at which Radio Altitude should the FLARE
+mode engage?";300 ft;200 ft;150 ft;50 ft;4;Automatic flight
+63;Which A/T mode permit manual thrust changes without  A/T interference?;GA and ARM;N1 and ARM;THR HLD and ARM;Only THR HLD;3;Automatic flight
+64;Which mode must be armed before the second autopilot can be selected?;VNAV;VOR/LOC;APP;LNAV;3;Automatic flight
+65;"Which of the following occurs when a TO/GA switch is pressed below 200ft
+Radio Altitude during a single autopilot ILS approach?";The autopilot disengages;The A/T (if armed) engages in GA mode;"The A/T (if armed) advances the trust lever to a reduces
+go-around N1";All the answers are correct;4;Automatic flight
+66;"What pitch mode is annunciated after takeoff when the autopilot is first engages
+in CMD?";CWS P;MCP SPD;VNAV;V/S;2;Automatic flight
+67;"Which is the minimum Radio Altitude for engaging the second autopilot in CMD
+during a dual channel A/P approach?";2000ft RA;1500ft RA;800ft RA;500ft RA;3;Automatic flight
+68;VNAV is terminated by:;Selecting a different pitch mode;Capturing G/S;Reaching end of LNAV route;All the answers are correct;4;Automatic flight
+69;"Level change climbs and descends while using the Automatic Flight System
+(AFS) are made at airspeed displayed on:";The CDU;The MCP;The A/T computer;None of the answers are correct;2;Automatic flight
+70;With VNAV engaged, the AFDS pitch and A/T modes are commanded by:;MCP;FMC;FCC;GPWS;2;Automatic flight
+71;"If the pilot overrides the autopilot with control column force pitch input, which of
+the following occurs immediately?";The autopilot engages in LNAV;LNAV engages;The autopilots changes to CWS P;LEVEL CHANGE annunciates on the FMA;3;Automatic flight
+72;Minimum speed reversion in not available when:;The A/T is OFF and the AFDS is in ALT HOLD;The A/T is ON after GS capture;AFDS is in V/S mode;All the answers are correct;1;Automatic flight
+73;The use of aileron trim with the autopilot engaged is:;Encouraged;Limited to 400ft AGL;Limited to 25kt headwind;Prohibited;4;Automatic flight
+74;LNAV automatically disconnects when:;The HGD SEL mode is engaged;Upon VOR or localizer capture;Reaching a route discontinuity;All the answers are correct;4;Automatic flight
+75;Which statement is true concerning the Cockpit Voice Recorder (CVR)?;Only one channel records flight deck area conversations using the area microphone;Recordings older than 60 minutes are automatically erased;The Cockpit Voice Recorder uses two independent channels to record flight deck audio for 1hr;Other channels are used for Audio Control Panel (headset) audio and transmission for the observers only;1;Communications
+76;The Audio Control Panel (ACP) push-to-talk switch:;Has an I/C (intercom) position. This position keys the oxygen mask or boom microphone for transmission via the transmitter selector;Has an R/T (radio/transmit) position. This position keys the oxygen mask or boom microphone as selected by transmitter selector;Has an I/C (intercom) position. This position keys the oxygen mask or boom microphone for direct transmission over the flight interphone utilizing the transmitter selector;Has two position for Intercom and Radio-Telephone;2;Communications
+77;"In the degraded mode, the audio system cannot access the passenger address system through the Audio Control Panel. What combinations for transmission
+and reception at the degraded station.";Captain/VHF1, FO/VHF2, OBS/VHF2;Captain/VHF2, FO/VHF1, OBS/VHF1;Captain/VHF1, FO/VHF1, OBS/CHF1;Captain/VHF1, FO/VHF2, OBS/VHF1;4;Communications
+78;The Flight Deck CALL light illuminated blue:;Simultaneously with a single high-tone chime;"Indicates that the flight deck is being called by Cabin
+Attendants";"Indicates that the flight deck is being called by Ground
+Crew";All the answers are correct;4;Communications
+79;Altitude alert, Ground Proximity Warning System (GPWS) and windshear are:;Integral components of the flight mode alerting system;Audible through the audio panel in the degraded mode;"Not heard (audio warning) on an audio system operating i
+the degraded mode";All the answers are correct;3;Communications
+80;If the BUS TRANSFER switch is in the AUTO position and the source powering the TRANSFER BUS is disconnected or fails, the source powering the opposite TRANSFER BUS automatically picks up the empowered bus through the BTBs;True;False;;;1;Electrical
+81;AC transfer busses:;Supply power to the 110 volts AC main busses;Can be powered by both external power and APU at the same time;Can be paralleling sources power;"Whenever external power is powering both busses and   the engine generator is applied to its onside transfer bus, external power continues to supply power to the remaining
+transfer bus";4;Electrical
+82;"In flight, one engine-driven generator drops offline and the BUS TRANSFER switch is in the AUTO position, what indications will the pilot see on the panel
+failed side?";A TRANSFER BUS OFF light and a GEN OFF BUS light illuminate;SOURCE OFF and GEN OFF BUS are illuminated and the TRANSFER BUS OFF light remain extinguished;Illumination of the fuel pump, probe heat, and hydraulic pump lights;SOURCE OFF and GEN OFF BUS are illuminated and the TRANSFER BUS OFF light illuminated;2;Electrical
+83;"Under which of the following conditions will the Cross Bus Tie Relay
+automatically open isolating DC bus 1 from DC bus 2?";An engine driven generator drop offline;The BUS TRANSFER switch is position to OFF;"At the localizer capture, during a flight directory or
+autopilot ILS approach";In-flight if an amber TR until light illuminates;2;Electrical
+84;"With the STANDBY POWER switch in the AUTO position, the loss of all normal
+AC power causes the battery to power the standby loads:";Only in flight;Only on the ground;Both in the air and on the ground;None of the answers are correct;3;Electrical
+85;"AC amperage can be observed on the AC ammeter for the source selected by
+the AC meters selector.";True;False;;;1;Electrical
+86;The illumination of the amber BAT DISCHARGE light indicates:;The battery is being overcharged;"Excessive battery discharge is detected with the battery
+switch ON";"Battery discharge when the DC meter is in the BAT
+position with the battery switch ON";The battery is not being powered;2;Electrical
+87;In flight an amber TR UNIT illuminates if:;Any TR unit fails;The cross bus tie relay opens;TR1 or TR2 and TR3 fails;TR1 and TR3 fails;3;Electrical
+88;On the ground an amber ELEC light will illuminate if:;A fault exists in the AC or standby power system;"A fault exists in DC power system or standby power
+system";A fault exists in the AC, DC or standby system;A fault exists in the AC power system;2;Electrical
+89;"Illumination of the amber Generator Drive (DRIVE) light indicates low oil
+pressure caused by which of the following?";IDG failure;"IDG disconnected through generator drive DISCONNECT
+switch";IDG automatic disconnect due to high oil temperature;All the answers are correct;4;Electrical
+90;Illumination of the blue GRD POWER AVAILABLE light indicates:;"Ground power is connected and meets aeroplane power
+quality standards";"External ground power is connected, however no
+aeroplane power quality is assured";"External ground power is connected and the AC GRD
+SERVICE BUS 1 is automatically powered";"External ground is connected and both AC GRD SERVICE
+BUSSES are automatically powered";1;Electrical
+91;The SOURCE OFF light will illuminate:;"No source has been manually selected to power the
+related transfer bus";The manually selected source has been disconnected;"Both transfer busses are being powered if a source has
+been selected to power the opposite transfer bus";All the answers are correct;4;Electrical
+92;Illumination on the GEN OFF BUS light indicates:;The related main bus is not powered;The related transfer bus is not powered;The IDG is not supplying power to the related transfer bus;The APU is running and not powering a bus;3;Electrical
+93;The APU generator can meet the following conditions:;The APU bleed load maximum altitude is 17000ft;"The APU bleed and electrical load maximum altitude is
+10000ft";The APU electrical maximum altitude is 41000ft;All the answers are correct;4;Electrical
+94;"Illumination of the STANDBY PWR OFF light indicates one or more of the
+following busses are unpowered:";The AC standby bus;The DC standby bus;The battery bus;All the answers are correct;4;Electrical
+95;Both AC TRANSFER busses can be powered simultaneously by:;A single IDG on the ground or in flight;The APU generator while in flight or on the ground;The APU or external power;All the answers are correct;4;Electrical
+96;When takeoff is made with the APU powering TRANSFER busses:;One TRANSFER bus will disconnect automatically after take-off;"If the APU is either shuts down or fails, the engine generators are automatically connected to their related
+TRANSFER bus";The generator will not automatically come on line if the APU either shuts down or fails;Both TRANSFER busses will automatically disconnect after lift off;2;Electrical
+97;"On the ground, with the Battery (BAT) switch OFF and the STANDBY POWER
+switch in AUTO, the battery bus is:";Not powered;Powered by TR3;Powered by the Hot Battery Bus;Powered by the battery;1;Electrical
+98;"The GRD PWR switch when momentarily moved to the ON position and ground
+power is available:";"Removes previously connected power from DC transfer
+busses";"Connects ground power from to AC Main busses if power
+quality is correct";Disconnects ground power from AC TRANSFER busses;"Connects ground power to AC TRANSFER busses if
+power quality is correct";4;Electrical
+99;One basic principle of operation for the Boeing 737 electrical system is:;"All generator bus sources can be automatically connected
+by the standby power system";There is no paralleling of AC sources of power;There is no paralleling of any power source;"An AC power source may be used in parallel with a DC
+power source";2;Electrical
+100;"With the BUS TRANSFER switch in AUTO, the cross bus tie relay automatically
+opens under which of following conditions?";At localizer capture;"At glide slope capture during a flight directory or autopilot
+ILS approach";When TR1 or TR2 fails;"When AC volts meter reaches 26 volts (plus or minus 4
+volts)";2;Electrical
+101;When the STANDBY POWER switch is OFF:;The STANDBY PWR OFF light will be illuminated;"The AC standby bus, static inverter and DC standby bus
+are powered";"The AC standby bus is powered by the battery through
+the static inverter";"The static inverter provides 28 volts DC power to transfer
+bus No.1";1;Electrical
+102;The 115 volts AC standby bus is powered  by:;"The 115 volts AC TRANSFER bus No.1 under normal
+conditions";"Any source if the AC source powering either transfer bus
+fails or is disconnected";"The battery through the static invert with a failure of both
+engine driven generators";All the answers are correct;4;Electrical
+103;"The cross bus tie relay automatically opens at glide slope capture during a fligh
+director or autopilot ILS approach to:";"Prevent a single bus failure from affecting both navigation
+receivers and flight control computers";Provide more power to the DC standby bus;Ensure that the standby DC bus is powered;Isolate DC bus 1 from bus 2;1;Electrical
+104;The engine Integrated Drive Generator ( IDG):;Is three phases, 115 volts, 400 cycle direct current;"Adjusts varying generator speeds throughout normal
+range of operation";"Maintains a constant generator speed throughout the
+normal operating range of the engine";Cannot be electro-mechanically disconnected;3;Electrical
+105;DC busses powered from the battery following a loss of both generators are:;Switched hot battery bus;Battery bus and hot battery bus;DC standby bus;All the answers are correct;4;Electrical
+106;"With the STANDBY POWER switch in the AUTO position, automatic switching
+from normal to alternate power occurs if:";Power from either AC  transfer bus 1 or DC bus 1 is lost;"Either AC TRANSFER bus 1 or the power source for DC
+bus 2 loses power";Loss of the power to either AC main bus;Failure of TR1 or TR2 and TR3;1;Electrical
+107;If engine oil pressure is in the amber band with takeoff thrust set:;No action is necessary;Continuously monitor oil temperature;"Reduce thrust after takeoff to maintain acceptable oil
+temperature";DO NOT TAKE OFF;4;Engines / APU
+108;"What is the position of the engine bleed air switches during the shutdown
+procedure?";ON;AUTO;OFF;HIGH;1;Engines / APU
+109;What are the indications on B737-800 that the engine starter has disengaged?;The fuel LOW PRESSURE lights extinguish at 56% N1;"The ENGINE START switch return to OFF at 56% N2 and
+the START VALVE OPEN alert extinguish";The ENGINE START switch returns to OFF at 36% N2;"The ENGINE START switch rotates to FLT, N1 goes to
+17-20% and N2 RPM stabilize";2;Engines / APU
+110;"The amber DUAL BLEED light is illuminated after engine start.
+What Crew actions?";Limit engine thrust to idle while the light is illuminated;Place the APU BLEED AIR switch to OFF;Pull the engine fire handles;"Limit engine thrust to idle and/or place the APU BLEED Ai
+switch to OFF";4;Engines / APU
+111;Which hydraulic system during normal operation powers the thrust reversers?;System A;System B;System A for engine N°1 and system B for engine N°2;The standby system;3;Engines / APU
+112;The thrust reverser  may be deployed:;During cruise when the thrust lever is at idle;When either radio altimeter senses less than 10ft altitude;When air/ground safety sensor is in the ground mode;When either radio altimeter senseless than 10ft altitude or when the air/ground safety sensor is in the ground mode;4;Engines / APU
+113;"Which APU annunciator light is not associated with an automatic shutdown of
+the APU?";LOW OIL PRESSURE;MAINT;FAULT;OVERSPEED;2;Engines / APU
+114;An APU shutdown in flight occurs:;Automatically by moving the battery switch to OFF;Only by exceedance;With a LOW FUEL alert in the N°1 tank;When the MAINT annunciator light illuminates;1;Engines / APU
+115;"The APU may be used as an electrical and bleed air source simultaneously up
+to:";10000FT;17000FT;25000FT;30000FT;1;Engines / APU
+116;Engine EEC abnormal start protection:;"Requires that hydraulic system B must be pressurized
+prior to start";There is no abnormal start protection;Is provided for EGT protection on the ground only;"Is provided for EGT protection both in flight and on the
+ground";3;Engines / APU
+117;If upper DU fails:;Engine indications automatically shift to lower DU;Display of all engine indications are lost;Engine indications automatically shift to either inboard DU;"N1 and N2 indications are not displayed, manually
+selected either inboard DU";1;Engines / APU
+118;"When the ECC is not powered the following indications are displayed directly
+from the engine sensor:";Fuel flow and oil pressure;Oil temperature and engine vibration;N1, N2, oil quantity and engine vibration;Oil temperature, pressure and quantity indications;3;Engines / APU
+119;During start, when the EEC is not powered:;"Only oil quantity and engine vibration  are available before
+placing the ENGINE START switch to GND";"Only N1, N2, oil quantity and engine vibration are available
+and are displayed from engine sensor";"The EEC is not powered until the engine accelerates to a
+speed greater then 15% N2";Only digital readouts are visible for engine indications;2;Engines / APU
+120;The EEC hard alternate mode thrust is:;"Always equal to or greater than normal mode thrust for
+the same lever position";Not approved for use;"Always less than normal mode thrust for the same lever
+position";"Used only for assumed temperature reduction takeoffs
+and go-around";1;Engines / APU
+121;The EEC provides redline over-speed protection for:;N1 only, both in the normal and alternate modes;N2 only, both in the normal and alternate modes;N1 and N2 in the normal mode only;N1 and N2 in both the normal and alternate modes;4;Engines / APU
+122;"What position must be the forward thrust levers before reverser thrust can be
+selected?";T/O position thrust position;Continuous thrust position;Idle thrust position;Any forward thrust position;3;Engines / APU
+123;The EEC automatically selects approach idle in flight anytime:;The aeroplane descends below 15000ft MSL;"The flaps are in the landing configuration or ENGINE
+START switches are placed to CONT or FLT";"The flaps are in the landing configuration and thrust lever
+angle is above 34 degrees either engine";"The flaps are in the landing configuration or engine anti-ic
+is ON for either engine";4;Engines / APU
+124;The APU starts and operates up to:;17000ft;35000ft;37000ft;41000ft;4;Engines / APU
+125;Regarding the APU, both transfer busses can be powered:;On the ground only;In-flight only;On the ground or in-flight;"None of the answers are correct, only one transfer bus at
+a time can be powered";3;Engines / APU
+126;The APU supplies bleed air for both air conditioning packs:;On the ground only;In the air only;On the ground and in the air;"The APU should never be used as a bleed air source for
+both air conditioning packs";1;Engines / APU
+127;APU cooling air:;Enters through the air inlet door;Enters through the ram air door;"Enters through a cooling air inlet above the APU exhaust
+outlet";Is supplied by the air conditioning packs;3;Engines / APU
+128;Electrical power to start the APU comes from:;DC ground power receptacle;Either AC transfer bus;Number 1 galley bus;Number 1 transfer bus or aeroplane main battery;4;Engines / APU
+129;"With AC power available, the starter generator uses AC power to start the
+APU, without AC power available, the starter generator uses battery power to start the APU";True;False;;;1;Engines / APU
+130;The APU start cycle may takes as long as:;90 sec;120 sec;135 sec;60 sec;2;Engines / APU
+131;The APU electronic control unit (ECU) provides automatic:;"Shut down protection for overspeed conditions, low oil
+pressure and high oil temperature";"Shut down protection for APU fire, fuel control unit failure
+and EGT exceedance";"Automatic control of APU speed through the electronic fue
+control";All the answers are correct;4;Engines / APU
+132;If the APU is the only source of electrical power:;In flight, the galley busses are automatically shed;In flight, the APU attempts to carry the full electrical load;On the ground, the galley busses are automatically shed;"On the ground, the main busses are shed first if an
+overload condition is sensed";1;Engines / APU
+133;"If wet start is detected, the EEC turns off the ignition and shuts off fuel to the
+engine";15sec after the start valve opens during ground start;"15sec after the start lever is moved to IDLE during ground
+starts";"10sec on the ground or 30sec in flight after the start lever
+is moved to idle";There is no wet start protection;2;Engines / APU
+134;Regarding the APU, moving the battery switch to OFF:;"Automatically shuts down the APU because of power loss
+to the electric control unit";Does not affect the APU, it has its own power source;Shuts down the APU after 2min;Shuts down the APU after a delay of 3min;1;Engines / APU
+135;Moving the APU switch to OFF:;Trips the APU generator;Closes the APU bleed air valve;Extinguishes the APU GEN OFF BUS lights;All the answers are correct;4;Engines / APU
+136;On B737-800, starter cutout speed is:;25 % N2;46% N2;Approximately 50% N1;Approximately 56% N2;4;Engines / APU
+137;Pulling the Engine Fire Warning Switch up:;"Closes both engine fuel shutoff valve and the spar fuel
+shutoff valve";"Deactivates related engine driven hydraulic pump LOW
+PRESS light";"Closes the hydraulic fluid shutoff valve and disables the
+thrust reverser for the related engine";All the answers are correct;4;Fire protection
+138;"Some of the indications for an engine fire are: MASTER CAUTION lights, ENG OVERHEAT light, MASTER FIRE WARN lights.
+What are other indications?";The fire warning bell sounds;The engine fire warning switch illuminates;The OVHT/DET system annunciator light illuminates;All the answers are correct;4;Fire protection
+139;Fire extinguisher provides a mean of extinguishing:;Engine, APU, Wheel Well and lavatory fires;APU, Wheel Well and Cargo compartment fires;Engine and APU fires only;Engine, APU, Lavatories and Cargo Compartments fires;4;Fire protection
+140;Illumination of the APU DET INOP light indicates:;Caution when starting the APU;APU will fail to start;No fire protection, DO NOT start the APU;APU is not installed;3;Fire protection
+141;Placing the TEST switch in the FAULT/INOP position tests:;The engine overheat detectors;The fault detection circuits for both engines and the APU;"The APU DET INOP light, FAULT light and APU BOTTLE
+DISCHARGE light";"The APU DET INOP light and the engine overheat
+detectors";2;Fire protection
+142;Engine Fire Detection requires:;"Both detector loops must sense a fire or overheat
+condition";One detector loop is not sufficient for detection;All three loops are needed for detection;None of the answers are correct;1;Fire protection
+143;Pulling the APU Fire Warning Switch:;Closes the APU air inlet door;"Trips the APU generator control relay and breaker, arms the APU fire extinguisher bottle squib and closes the APU
+bleed air valve";Closes the APU fuel shutoff valve, allows the APU fire warning switch to be rotated for discharge;All the answers are correct;4;Fire protection
+144;The power source for engine fire extinguishing is:;Transfer bus N°1;The switched hot battery bus;The hot battery bus;None of the answers are correct;3;Fire protection
+145;Prior to perform the OVHT/FIRE TEST with the APU operating:;Ground personnel should be notified;Have handheld fire extinguisher ready;B system hydraulic pressure is required;Battery switch is not required to be on;1;Fire protection
+146;The illumination of the engine/overheat detector FAULT light:;Will cause the illumination of the MASTER CAUTION Light;Will trip the generator field circuit breaker;Indicates that both loops on an engine have failed;There is a fire in one of the engines;3;Fire protection
+147;Yaw damper inputs either main or standby can be overridden:;Only when the yaw damper switch is off;By trim inputs but no rudder pedal inputs;By rudder pedal inputs but no trim inputs;By either trim or rudder pedals inputs;4;Flight Controls
+148;"If wheel spin-up is not detected on landing with the SPEED BRAKE armed, the
+flight spoilers will deploy automatically:";Only when the right main landing gear strut is compressed;"When the air/ground system senses ground mode (any
+gear strut compresses)";When the ground spoilers deploy;"Flight spoilers do not deploy on landing, only ground
+spoilers deploy";2;Flight Controls
+149;The number of slats located on each wing is:;2;3;4;6;3;Flight Controls
+150;When the Standby Yaw Damper is active, rudder movements:;Are indicated by the yaw damper indicator;Are not indicated on the yaw damper indicator;Are indicated on the standby yaw damper indicator;None of the answers are correct;2;Flight Controls
+151;Conditions for speed trim operation include:;The autopilot not engaged;10sec following release of trim switches;Airspeed between 120KIAS and Mach 0.50;All the answers are correct;1;Flight Controls
+152;Main electric trim authority limit is (flaps up):;With flaps retracted 3.95 to 14.5 units;With flaps retracted 3.95 to 12.5 units;With flaps extended .20 to 16.9 units;With flaps extended .50 to 14.5 units;1;Flight Controls
+153;Autopilot trim and stabilizer trim:;Use separate electric trim motors;Use the same electric trim motor;Use separate hydraulically driven systems;Use the same hydraulically driven system;2;Flight Controls
+154;In the event of a control column jam an override mechanism allows:;"For lighter than normal forces to be used on the control
+column for take off or landing";The control columns to be physically separated;"Either crew member to apply force against the jam to
+breakout the Captain’s control column only";"The elevator feel and centring unit to transfer proper
+aerodynamic forces to the control columns";2;Flight Controls
+155;How many flight spoilers are located on the upper surface of each wing?;2;3;4;6;3;Flight Controls
+156;The Trailing Edge devices consist of:;Double slotted flaps inboard and outboard of each engine;Single slotted flaps inboard and outboard of each engine;Krueger flaps inboard of each engine;Krueger flaps inboard of each engine;1;Flight Controls
+157;The Flaps Load Relief system is operative at:;All flaps setting;Flaps 25, 30 and 40;Flaps 30 and 40;Flaps 40 only;3;Flight Controls
+158;The flap/slat electronics unit (FSEU) provides:;"LE skew detection for slats 2 through 7 except during
+autoslat operations";TE asymmetry protection;"Uncommanded motion protection for LE devices or TE
+flaps";All the answers are correct;4;Flight Controls
+159;"The Trailing Edge flaps are at 15. The correct indications on the LE DEVICES
+annunciator panel for the leading devices is:";All amber TRANSIT lights illuminated;All LE devices FULL EXT lights illuminated;ALL LE devices EXT lights illuminated;"LE slats EXT lights and LE flaps FULL EXT lights
+illuminated";2;Flight Controls
+160;"During descent, you need to decrease your airspeed by using your speed
+brakes. What is the correct position for SPEED BRAKE LEVER?";ARMED;FLIGHT DETENT;UP;Any intermediate position;2;Flight Controls
+161;What is the maximum flap extension altitude?;10000ft;17000ft;20000ft;23000ft;3;Flight Controls
+162;The ALTERNATE FLAPS Master switch to ARM:;Fully extend the LE devices electrically, and extends the TE flaps using standby hydraulic pressure;Closes the flight spoiler shutoff valve;Activates the standby hydraulic pump and pressurizes the standby rudder control unit;Arms the ALTERNATE FLAPS Position switch, activates the standby pump and closes the TE flap bypass valve;4;Flight Controls
+163;The amber LE FLAPS TRANSIT light:;Indicates all LE devices are fully extended;Indicates LE slats are fully extended;Is inhibited during autoslat operation in flight;Provides TE flaps asymmetry protection;3;Flight Controls
+164;The autoslats system:;Provides for slats deployment above Vmo/Mmo;"Drives the LE slats to full extended position when the TE
+flaps 1 through 5 are selected and the aeroplane approaches a stall";Is normally powered by hydraulic system A;Is normally powered by the Power Transfer Unit (PTU);2;Flight Controls
+165;"The Power Transfer Unit (PTU) provides an alternate source of power for
+autoslat system if:";A loss of hydraulic system A pressure is sensed;The hydraulic system A engine driven pump is inoperative;"The alternate flaps position switch is momentarily held
+down";"Loss of pressure is sensed from higher volume system B
+engine driven pump";4;Flight Controls
+166;"In addition to SYSTEM A and B, the rudder can also be powered by the
+Standby Hydraulic System through the:";System A standby rudder power control unit;System B standby rudder power control unit;Standby rudder power control unit (PCU);Main rudder power control unit;3;Flight Controls
+167;"Elevator Feel System is provided by elevator feel computer. This computer
+receives inputs of:";Altitude and elevator position;Elevator balance tabs position;Only system A hydraulic pressure;Airspeed and stabilizer position;4;Flight Controls
+168;The amber FEEL DIFF PRESS light illuminates the:;TE flaps are up or down and an excessive differential pressure exists in the elevator feel computer;Flaps are not up and a hydraulic pressure imbalance is detected or one of the elevator feel pilot system fails;Flaps are up or down and a hydraulic pressure imbalance is detected or if one of the elevator pilot system fails;None of the answers are corrected;1;Flight Controls
+169;Select the correct statement:;"The primary flight controls are powered by hydraulic SYSTEM A and B, with backup from the standby hydraulic system for the rudder and manual reversion for the
+ailerons and the elevator";Flight spoilers are used both for roll control, descent and deceleration;The TE flaps can be both extended and retracted using the alternate extension system;All statements are correct;4;Flight Controls
+170;LOSS OF SYSTEM B pressure:;Does not disengage the YAW DAMPER switch;Does disengage the YAW DAMPER switch;"Does not disengage the YAW DAMPER switch, but the
+light illuminates";"Does disengage the YAW DAMPER switch and the yaw
+damper light illuminates";1;Flight Controls
+171;When you place the ALTERNATE FLAPS Position switch to the DOWN position:;Extends the LE devices to the intermediate position using standby hydraulic pressure and if held in the down position, electrically extends the TE flaps until released;Extends the LE devices to intermediate position using standby hydraulic pressure and electrically extend the TE flaps after actuated momentarily;Fully extend the LE devices using standby hydraulic pressure and if held in to the DOWN position, electrically extends the TE flaps after actuated momentarily;Fully extends the LE devices using standby hydraulic pressure and if momentary positioned to the DOWN position, electrically extends the TE flaps until released;3;Flight Controls
+172;The ALTERNATE FLAPS Position switch is spring loaded to the OFF position:;From the down position and from up position;From the down position only;From the up position only;"From neither, is not spring loaded to either the up or down
+position";2;Flight Controls
+173;"If you looses the SYSTEM B pressure, will the YAW DAMPER switch move to
+OFF position?";"No, the switch stays in the ON position until the FLT
+CONTROL B switch is placed to the STBY RUD";No, the switch never disengages, its required for flight;Yes, the switch disengages immediately;"No, the yaw damper is powered by the system A
+pressure";1;Flight Controls
+174;What is the function of yaw damper?;Prevents dutch roll;Dampens gust;Helps coordinate turn;All the answers are correct;4;Flight Controls
+175;What causes the FEEL DIFF PRESS light to illuminate?;"Excessive differential pressure in the elevator feel
+computer";Failure of either hydraulic SYSTEM (A or B);Failure of either elevator feel pilot system;All the answers are correct;4;Flight Controls
+176;"The Speed Trim System (STS) improves flight characteristics during operations
+with:";Low gross weight and aft center of gravity;High thrust;Autopilot not engaged;All the answers are correct;4;Flight Controls
+177;Conditions for speed trim operation are:;Airspeed between 100 KIAS and Mach 0.60;10sec after takeoff;5sec following release of trim switches;All the answers are correct;4;Flight Controls
+178;Conditions for speed trim operation are:;High thrust setting;Autopilot not engaged;Sensing of trim requirement;All the answers are correct;4;Flight Controls
+179;Mach Trim System:;Provides stability at mach numbers above .615;Adjusts the elevators with respect to the stabilizer as airspeed increases;"The Mach Trim actuator repositions the elevator feel and centering unit which adjust the control column neutral
+position";All the answers are correct;4;Flight Controls
+180;What flaps setting are required for autoslat to function?;1, 2 or 5;1, 5 or 15;5, 15, or 30;Any flap setting;1;Flight Controls
+181;"As the aeroplane approaches stall angle, the autoslat system causes the slats
+automatically to drive to the:";Up position;Full extended position;Intermediate position;Extend position;2;Flight Controls
+182;SYSTEM A pressure to the rudder PCU is reduced at what airspeed?;125KIAS;135KIAS;145KIAS;155KIAS;2;Flight Controls
+183;The number of ground spoilers on each wing is:;2;3;4;6;1;Flight Controls
+184;The decision height or minimum altitude reference display on the CDS is set:;Automatically when the approach is selected;"Independently by each pilot by using left or right EFIS
+control panel";"By entering the desired DH on the FMC CDU APPROACH
+REFERENCE page";"By using the DH selector knob on the forward instrument
+panel";2;Flight instrument display
+185;"With the CONTROL PANEL Select Switch, on the DISPLAYS Source Panel, in
+BOTH ON 2 position:";"The selected EFIS control panel provides input for both
+sets of pilot displays";Both pilot’s displays are using the No.2 symbol generator;DEU 2 control all six displays units;"ADIRU inputs for both the left and right ADIRU are
+received from the FO’s pitot probe";1;Flight instrument display
+186;"The aeroplane is on the ground and the flight recorder switch is normal. The
+flight recorder:";Operates anytime electrical power is available;Operates when either engine is running;Operates whenever the Battery switch is ON;Both A and B are correct;2;Flight instrument display
+187;"What will occur if the aeroplane pitch attitude reaches the pitch limit indicator
+when the flaps are not up?";The aeroplane stalls;The aeroplane will experience initial stall buffet;Stick shaker activation for existing flight conditions;The stick shaker pushes the control column forward;3;Flight instrument display
+188;A scaled representation of the holding pattern is displayed when:;"The selected range is 80nm or less and the aeroplane is
+within 3min of the holding fix";"A selected range is 160nm or less and the aeroplane is
+within 5min of the holding fix";A holding pattern is a fixed size;All of the answers are correct;1;Flight instrument display
+189;"The position trend vector segments extending from the aeroplane symbol on th
+navigation displays represent:";"A predictions position of the aeroplane at the end of 30,
+60 and 90sec intervals";A presentation of aeroplane’s pitch attitude;An indication of the aeroplane true airspeed;All the answers are correct;1;Flight instrument display
+190;The navigation display’s wind arrow with wind direction/speed is:;Displayed if wind magnitude is greater than 6kt;Blanked if wind speed become less than 5kt;Displayed only in the EHSI MAP mode;Displayed only when flying an ILS approach;1;Flight instrument display
+191;ROLL displayed in amber in the lower portion of the Attitude Indicator means:;The aeroplane has exceeded 40° of bank;No F/D or autopilot roll mode has been engaged;Captain’s roll attitude is more than 3° in error;"Captain’s and FO’s roll angle displays differ by more than
+5°";4;Flight instrument display
+192;"The First Officer observes the word PITCH displayed in amber in the lower
+portion of the Attitude Indicator during an ILS approach. This means:";The autopilot has defaulted to CWS pitch;The glide slope is not being tracked;"Captain’s and FO’s pitch angle displays differ by more
+than 5°";FO’s pitch displays more than 3° in error;3;Flight instrument display
+193;"During an ILS approach the crew observes the Radio Altitude Indication read
+out turns amber:";The radio altitude data is unreliable;"The aeroplane has descended below the selected radio
+altitude minimums";A windshear has been encountered;The aeroplane has descended below 1000ft;2;Flight instrument display
+194;The CDS FAULT annunciation:;Is displayed in flight only;Is displayed on the ground only;Is a dispatchable fault;Is displayed after the second engine start;2;Flight instrument display
+195;The NO VSPD flag is displayed:;When all V-speeds are selected;When V1 or VR has not been entered or is invalid;If the airspeed indicator is inoperative;Prior to selecting Vref;2;Flight instrument display
+196;An amber DSPLY SOURCE annunciation indicates:;"The altimeter is receiving inputs from a source other that
+ADIRU and should be considered unreliable unless verified by another source";A single DEU has been manually selected or automatically selected to drive all six display units;A non-dispatchable CDS fault has occurred;A single EFIS control panel provides input for both sets of pilot displays;2;Flight instrument display
+197;Operational turbulence penetration speed is:;285KIAS/.72M;280KCAS/.75M;280KIAS/.76M;280KTAS/.75M;3;Limitations
+198;"The maximum demonstrated takeoff and landing crosswind is         kt (winglet
+aeroplane):";25kt;38kt;36kt;33kt;4;Limitations
+199;The maximum cabin differential pressure (relief valves) is:;11.1psi;9.1psi;7.3psi;8.5psi;2;Limitations
+200;Fuel system limitation for temperature using Jet A, Jet A1 or JP 5 is:;Max temperature 49°C;"Min temperature 3°C below the freezing point of the fuel
+being used";Min temperature -43°C;Max temperature 40°C;1;Limitations
+201;"Operation with assumed temperature reduced takeoff thrust is not permitted
+with:";Inoperative alternate nose wheel steering;Inoperative RTO mode;Inoperative antiskid;Inoperative alternate brakes;3;Limitations
+202;Do not deploy the speedbrakes in flight at radio altitudes less than:;700ft;400ft;1500ft;1000ft;4;Limitations
+203;"When using the ALTERNATE FLAPS MASTER SWITCH during loss of hydraul
+System B the maximum speed is:";230kt;235kt;270kt;No speed restriction;1;Limitations
+204;During loss of both engine driven generators, and main tank fuel pumps inoperative, thrust deterioration or engine flameout may occur at whet altitude?;30000ft and above;25000ft and above;33000ft and above;Any altitude below 30000ft;1;Limitations
+205;"During RAPID DEPRESSURIZATION QRH check list recall items, the PASS
+OXYGEN switch is activated when:";Cabin altitude exceeds 15000ft;Cabin altitude is 12500ft or lower;Cabin altitude is 14000ft;Cabin altitude is uncontrollable;4;Limitations
+206;"The maximum allowable wind speeds when conducting a dual channel CAT II or
+III landing are predicted on autoland operations?";Headwind 20kt;Tailwind 10kt;Crosswind 20kt;All of the answers are correct;4;Limitations
+207;What is the maximum airspeed limit with a WINDOW OVERHEAT?;250kt;280kt;250kt below 10000ft;280kt below 10000ft;3;Limitations
+208;What is the maximum flap extension altitude?;20000ft;15000ft;25000ft;30000ft;1;Limitations
+209;What is the wheel base distance between main landing gear?;5.7m;6.1m;6.9m;7.7m;1;Limitations
+210;What is the minimum width of pavement for 180° turn?;24.0m;23.5m;26.2m;22.7m;1;Limitations
+211;What is the minimum wing tip radius?;22.9m;24.8m;26.2m;21.8m;1;Limitations
+212;The purpose of Minimum Equipment List is to allow the operator to:;"Operate the aeroplane in various nonstandard configuration approved by the appropriate regulatory
+agency (Civil Aviation Authority)";Ferry the aeroplane to next destination with revenue pax aboard;Conduct flight operations for 10 consecutive days before repair the item is made;Conduct flight solely at Commander discretion in non emergency conditions;1;Limitations
+213;"Items for which the Authority feels special procedures are necessary are identified by an (M) and/or (O). Items in the Minimum Equipment List preceded
+by an (O) indicates?";Normal Flight Crew procedures modified or supplemented to account for the inoperative item;"A requirement for a specific operations procedure which must be accomplished in planning for and/or operating
+with the listed item inoperative";Operations are approved for 3 consecutive days before repairs are made;Specific procedures accomplished only by maintenance personnel;2;Limitations
+214;For narrow runway operations, reduce crosswind limits by:;2kt per meter of width less than 40m;1kt per meter of width less than 45m;1kt per meter of width less than 40m;2kt per meter of width less than 45m;3;Limitations
+215;Operational limitation for runway slope is:;+/- 4%;+/- 3%;+2%;+/- 2%;4;Limitations
+216;"The allowable lateral imbalance between main tanks 1 and 2 must be schedule
+to be:";Zero;Within 453kg for all flight conditions;Within 453kg for taxi and takeoff;Within 453kg for flight and landing;1;Load balance and servicing
+217;To gain access to the aeroplane batteries:;Remove the access panel above the E/E compartment;Remove the aft access panel in the nose wheel well;Remove the  forward access panel in the nose wheel well;"Remove the forward access panel in the forward cargo
+compartment";4;Load balance and servicing
+218;"During refueling operations, the FUEL Quantity Indicators begin to flash on and
+off at a one second intervals. That indicate that:";The fuel tank test is in progress;The tank is empty and ready for refueling;The tank is filled beyond his capacity;The system is inoperative;3;Load balance and servicing
+219;To refill oil to the APU, is added:;To the left side of accessory section on the APU;To the right side of accessory section on the APU;To a designated reservoir on the right side of the APU;To a designated reservoir on the left side of the APU;1;Load balance and servicing
+220;"When connecting external pneumatic to aeroplane, what is the maximum
+pressure?";100psi;90psi;85psi;60psi;4;Load balance and servicing
+221;"To manually service the hydraulic reservoir the 3 position selector valve needs
+to be moved to the correct position. The valve located in the:";Right wheel well below the manual suction pump;Right wheel well above the manual suction pump;Left wheel well above the N°1 electric pump;Left wheel well below the N°1 electric pump;2;Load balance and servicing
+222;"To have several brake or parking brake applications the Hydraulic  Brake
+Accumulator Pressure must be:";1000psi;1500psi;Fully charged, 2800-3000psi;Greater than 500psi;3;Load balance and servicing
+223;Choose the best answer. Takeoff trim setting is chosen to produce:;Reasonable rotation column forces;An aeroplane that is nearly in trim at V2 engine out;An aeroplane that is nearly in trim at V2+15 all engine;All of the answers are correct;4;Load balance and servicing
+224;"At what fuel quantity would you see the amber IMBAL indication between main
+tank quantity displays on the Upper Display Unit?";When main tanks differ by more than 91kg;When main tanks differ by more than 363kg;When main tanks differ by more than 453kg;When main tanks differ by more than 726kg;3;Load balance and servicing
+225;"How many drain masts are installed on the bottom of the fuselage for the
+purpose of draining waste water from the lavatory wash basins and galley?";1;2;3;4;2;Load balance and servicing
+226;Magnetic variation stored in each IRS memory is between:;70°15’ N and 70°15’ S;73°N and 60°S;82°N and 82°S;78°25’ N and 78° 25’ S;3;Flight management, navigation
+227;LNAV will:;Engages if the aeroplane is within 3nm of the LNAV course;Arms if the aeroplane is on an intercept heading of 90° or more regardless of the distance from the LNAV course;Engages if the aeroplane is on an intercept heading of 90° or less and the intercept will occur before the active waypoint;"Engages if the aeroplane is within 3nm of active route or engage if the aeroplane is on an intercept heading of 90° or less and the intercept will occur before the active
+waypoint";4;Flight management, navigation
+228;"An acceptable required time of arrival entry found on the ACT RTA
+PROGRESS page 3/4 is:";10/30/45;10304;10/30.5;103045B;4;Flight management, navigation
+229;If an engine fails during flight:;Execution  of the ENGINE OUT page disengages VNAV and all subsequent performance predictions are blanked;"Execution  of the ENGINE OUT page disengages VNAV and all  performance data must be reentered before
+VNAV can be reengaged";Selecting the ENG OUT CRZ page provides information only. The execute light does not illuminate;VNAV immediately disengage and cannot be reengage;3;Flight management, navigation
+230;"Which data is available by line selecting the RTA DATA prompt on the ACT RT
+LEGS page.";FMC calculated speed and altitude data for each waypoint;"Manually entered speed and altitude restrictions for each
+waypoint";ETA and forecast wind data for each cruise waypoint;All the answers are correct;3;Flight management, navigation
+231;When an active database expires in flight:;"The expired database continues to be used until the active
+date is changed after landing";All waypoints on the ACT RTE LEGS page are deleted;Only entries in the temporary database are reliable;No entries are permitted in the temporary database;1;Flight management, navigation
+232;The FMC supplies a default required navigation performance (RNP) value that:;Should not exceed actual navigation performance;"With RNP exceeded the message “RNP EXCEEDED”
+appears in the scratch pad";Is shown on the POS SHIFT page 3/3 only;"Is used for en-route, oceanic, terminal and approach
+phase of flight";4;Flight management, navigation
+233;What does the DES NOW prompt on the PATH DES page provide?;It provides a DES NOW display in ACT or MOD mode;"Execution allows early initiation of a SPD descent at
+1000fpm until intercepting the computed path";"Execution allows early initiation of a PATH descent at
+1000fpm until intercepting the computed path";"It arms the DES NOW function and extinguishes the exec
+light";3;Flight management, navigation
+234;"During an IRS alignment a flashing white ALIGN light indicates that alignment
+cannot be completed due to IRS detection of:";"Entered Lat/Lon position is not within 4nm of origin
+aerodrome";No present position has been entered;"Entered Lat/Long position does not pass the IRS internal
+comparison test";All the answers are correct;4;Flight management, navigation
+235;The transition altitude of the PERF INIT page:;Displays 10000ft at FMC power up;"Can change if a different departure is selected with a
+different transition altitude";Cannot be manually changed by the crew;"Is automatically entered when the TRIP/CRZ altitude is
+entered";2;Flight management, navigation
+236;Zero fuel weight is:;Not normally required on the PERF INIT page;"Automatically displayed if aeroplane gross weight is
+entered first and fuel on board is valid";The aeroplane gross weight minus reserves;None of the answers are correct;2;Flight management, navigation
+237;After completing the FMC CDU preflight actions, you look at the POS INIT page again. The SET IRS POS line is missing. What is required?;Nothing. This is a normal indication once the both IRSs have transitioned to the navigation mode;Re-enter the aerodrome of origin Lat/Long;"The alignment was not performed, cycle the IRSs to OFF
+and start a new alignment, then re-enter gate Lat /Long position";Return to ALIGN, then NAV and enter the GPS Lat/Long into the left or right IRS unit;1;Flight management, navigation
+238;A company route (CO ROUTE):;Can be entered in flight or on the ground;"Can only include origin and destination aerodromes with
+connecting en-route airways";"Is called up from the navigation database by entering the
+route identifier";Is required for trip lengths in excess of 400nm;3;Flight management, navigation
+239;Which factor is not considered in the TRIP/CRZ ALT computation?;GROSS WT;COST INDEX;ORIGIN;RESERVES;4;Flight management, navigation
+240;What does MOD on the RTE LEGS page indicate?;The route has been altered and cannot be changed;The route has been altered;The destination is Modesto;"MOD mean exceedance of the minimum operational
+distance";2;Flight management, navigation
+241;BYPASS notification occurs on the RTE LEGS page when:;A route discontinuity appears;"It is impossible for the aeroplane to turn and capture the
+leg to the next waypoint";The crew decides to fly around the active waypoint;None of the answers are correct;2;Flight management, navigation
+242;The SELECT DESIRED WPT page:;"Automatically appears when entering a waypoint in the
+scratch pad";Appears anytime a unique waypoint is selected;"Is automatically displayed when the FMC encounters
+more than one identifier for the same waypoint name";Must be used to select each waypoint along the route;3;Flight management, navigation
+243;On the RTE page invalid VIA entries are:;"Airways and company routes which do contain the VIA
+waypoints of the previous line";"Airways and company routes that are in the navigation
+database";"Airways and company routes that are in the performance
+database";"Airways and company routes which do not contain the TO
+waypoints of the previous line";4;Flight management, navigation
+244;On the DEP/ARR INDEX page:;Selecting the OTHER DEP/ARR prompts displays information from the alternate destination page;DEP/ARR information on the OTHER line will be displayed for the aerodrome entered in the scratch pad;The OTHER line is used to select a departure/arrival procedure at the alternate aerodrome;All of the answers are correct;2;Flight management, navigation
+245;Standard Instrument Departures (SIDS):;"Will not be display on the departures page until a runway
+is entered on the route page";"Are displayed on the DEPARTURE page for all
+aerodrome runways";Are not listed in the FMC database;Cannot be entered on the ROUTE page;2;Flight management, navigation
+246;The FIX INFO page:;"Will display radial and distance information for all
+waypoints worldwide";"Will display ETA and DTG when a distance entered
+intersects the active route";Can be used to enter waypoints into the active route;"Displays radial and distance from the fix to the aeroplane
+only when that page is initially selected";2;Flight management, navigation
+247;When aligning the IRS between 78°15’ North and South latitude:;Rotate the MSU switch from OFF to ALIGN;"Alignment time will vary from 5min to 17min depending on
+the aeroplane latitude";"The alignment process begins when the ON DC light
+illuminates and the ALIGN light extinguishes";Aeroplane present position is not a required entry;2;Flight management, navigation
+248;The fuel quantity displayed on the PROGRESS page 1/4 is:;Wing tank fuel only;Center tank fuel only;"The present total fuel quantity remaining as obtained from
+the aeroplane fuel quantity indication system";"Total fuel used since engine start, based on inputs to the
+FMC";3;Flight management, navigation
+249;Waypoints on the RTE LEGS page can be entered and moved. This includes:;Adding new waypoints;Deleting existing waypoints;Resequencing new waypoints;All of the answers are correct;4;Flight management, navigation
+250;The purpose of the FIX INFO page is to:;Identify waypoint fixes for display on the navigation display;Copy information into the route, if desired;"Determine ETA and DTG where a radial or distance
+intersects the active route";All of the answers are correct;4;Flight management, navigation
+251;Descend now (DES NOW):;Is displayed on the DES page when the page is active;"On the PATH DES page, execution allows early initiation of a PATH descent at 1000 fpm until intercepting the
+computed path";Is blank for any SPD DES page if a path decent is not available;All of the answers are correct;2;Flight management, navigation
+252;"To climb in the shortest horizontal distance, MAX ANGLE should be selected on
+this FMC page:";CRZ;PROG;CLB;PERF;3;Flight management, navigation
+253;On the CDU, how is the MOD CRZ CLB page automatically displayed?;Entering a higher cruise altitude on the CRZ page;Pressing the CLB Mode Key during cruise;"Entering a higher cruising altitude in the STEP TO line on
+the CRZ page";All of the answers are correct;1;Flight management, navigation
+254;On the CRZ page the turbulence N1 (TURB N1):;Is selected to the scratch pad on the CRZ page and transferred to the N1 LIMIT page for activation;Is executed on the CRZ page;Display proper N1 for turbulence penetration. The value is for reference only. It is not commanded to the A/T;Is the minimum N1 commanded by the A/T during all flight conditions to ensure safe penetration;3;Flight management, navigation
+255;LNAV modifications include:;Adding and deleting waypoints;Linking discontinuities;Intercepting a course;All of the answers are correct;4;Flight management, navigation
+256;"In the FMC a lateral offset may be specified up to 99.9nm. Some legs are
+invalid for offset, one of these is:";The beginning of a flight plan waypoint;Route discontinuity;A PPOS holding pattern;Course change greater than 90°;2;Flight management, navigation
+257;During cruise the primary FMC pages are:;RTE LEGS, PROGRESS, CRZ and INTC CRS;FMC NAV, PROGRESS and CRZ;RTE LEGS, PROGRESS and CRZ;NAV STATUS, PROGRESS and RTE LEGS;3;Flight management, navigation
+258;The Vref speeds displayed on the APPROACH REF page:;Cannot be updated directly from the crew;Speeds are based on a calculated gross weight;"Once selected will not be updated unless deleted or
+different speeds is entered";"Double line selection will remove the Vref speed from the
+airspeed display";3;Flight management, navigation
+259;The HOLD page:;Is used to enter a holding pattern into the route;"Entries make route modifications, which can be erased or
+executed";Has two version possible (Left or Right turn);All of the answers are correct;4;Flight management, navigation
+260;The FMC advisory message BUFFET ALERT indicates.;"Current conditions result in maneuver margin less than
+specified";"Clear air turbulence has been detected in the immediate
+flight path";The aeroplane is in partial or full stall;The aeroplane is well within the maneuver margin;1;Flight management, navigation
+261;The FMC alerting message SELECT MODE AFTER RTA means:;The RTA mode has been discontinued due to sequencing of the RTA waypoints;The RTA time does not fall within the earliest and the latest takeoff time;The RTA mode has been discontinued because another RTA waypoint has been added to the flight plan;The RTA mode is no longer available;1;Flight management, navigation
+262;After RTA waypoint entry the displayed ETA is based on:;The proposed flight plan;"Performance parameters at the same time of waypoint
+entry";Desired RTA and may not be overwritten;ECON CRZ Speed;2;Flight management, navigation
+263;"Speed restrictions (SPD REST) displays the most restrictive of the following
+speeds:";Destination aerodrome speed minus 5kt;Waypoint speed restriction if greater than 200kt;Minimum flaps up maneuvering speed;Minimum flaps retraction speed;3;Flight management, navigation
+264;"Which of the following parameters related to present vertical path do the
+vertical path parameters (FPA, V/B, V/S) display?";"FPA - actual flight path angle based on flight path ground
+speed and vertical speed";"V/B - vertical bearing direct from the present position on
+the WPT/ALT line";V/S - the required vertical speed to fly the displayed FPA;Blank line if there is no entry on the E/D ALT line;2;Flight management, navigation
+265;"When aeroplane GROSS WT is not available from the FMC, the APPROACH
+Ref page display will be:";Flashing;Blank;Box prompts;Invalid;3;Flight management, navigation
+266;What information is available with the IRS mode selector in ATT?;Only position and ground speed information;Only heading information;Only attitude and heading information;Only attitude information;3;Flight management, navigation
+267;Normal IRS alignment is initiated by rotating the MSU switch from OFF to:;ALIGN;NAV;ATT;ON;2;Flight management, navigation
+268;When the IRS are operating in the normal navigation mode they provide:;Attitude, true and magnetic heading;Acceleration, vertical speed and ground speed;Track, present position and wind data;All of the answers are correct;4;Flight management, navigation
+269;A fast realignment should be completed in:;30 sec;1 min;5 min;10 min;1;Flight management, navigation
+270;When does an IRS enter the NAV mode?;"The mode selector is moved from OFF to ALIGN and
+10min have elapsed";"The mode selector is in NAV, present position entered and
+the alignment cycle is complete";"The mode selector is moved from ATT to NAV and
+alignment is complete";"When all of the information are available for the normal
+operations in the ALIGN mode";2;Flight management, navigation
+271;Which of the following is not a major component of the Inertial System?;Air data inertial reference units (ADIRU);Inertial system display unit (ISDU);Instrument display unit (IDU);Mode selector unit (MSU);3;Flight management, navigation
+272;If the FAULT light on the IRS MSU illuminates, it indicate:;The IRS is not in ALIGN mode;An entry of invalid present position;"A system fault affecting the related IRS ATT and/or NAV
+mode has been detected";That DC power for the respective IRS is not normal;3;Flight management, navigation
+273;Flashing ALIGN lights on the IRS MSU indicates:;"Alignment cannot be complete until the present position is
+entered";That the aeroplane has been moved;The IRSs have entered the ATT mode;The IRSs are in the ALIGN mode;1;Flight management, navigation
+274;On which CDU page is the FMC and IRS ground speed displayed?;PROGRESS page 1;CRZ page;POS REF page 2/3;POS INIT page 1;3;Flight management, navigation
+275;"An entry of .720 for descend into the TGT SPD line on the ACT ECON SPD
+DES page will:";Change the descent mode to a M.720 PATH DES;Change the title to display ACT M.720 SPD DES;Result in VNAV disengagement;Result in VNAV and LNAV disengagement;2;Flight management, navigation
+276;Valid entries in the VIA column on the RTE page include:;DIRECT;TO;DEPARTURES;ARRIVALS;1;Flight management, navigation
+277;"When the FMC is not receiving the required fuel data from fuel quantity
+indication system dashes are displayed and a manual entry is possible.";True;False;;;1;Flight management, navigation
+278;"On the RTE page, the origin aerodrome must be entered if the company route
+is entered.";True;False;;;2;Flight management, navigation
+279;Pushing the ACTIVATE key arms the route for execution as active route.;True;False;;;1;Flight management, navigation
+280;"Selection of an approach or runway from an ARRIVALS page will automatically
+delete a previously selected approach or runway.";True;False;;;1;Flight management, navigation
+281;Arrivals can be selected on FMC for either the origin or destination aerodrome.;True;False;;;1;Flight management, navigation
+282;"On the FIX INFO page, RAD/DIS FR displays the radial and distance from the fix to the aeroplane. This information is continually updated as the aeroplane
+position changes.";True;False;;;1;Flight management, navigation
+283;The RTE LEGS page is used to monitor route progress and modify the route.;True;False;;;1;Flight management, navigation
+284;During a VNAV path descent the FMC uses idle thrust and pitch to fly a vertical path which complies with an altitude and speed restrictions an the flight path.;True;False;;;1;Flight management, navigation
+285;"The FMC advisory message DRAG REQUIRED indicates the aeroplane is on
+10kt or more above the FMC target speed or within 5kt of Vmo/Mmo.";True;False;;;1;Flight management, navigation
+286;If the FMC receives invalid fuel data:;VNAV disengages and VNAV operation is not possible;The scratch pad message “VERIFY GW AND FUEL” may be displayed;Periodic entry of fuel weight is required in order to keep gross weight value current;The scratch pad message “VERIFY GW AND FUEL” may be displayed and periodic entry of fuel weight is required in order to keep gross weight and value current;4;Flight management, navigation
+287;"Which of the following systems must be operative for an autopilot approach in
+CATII conditions?";"2 sources of electrical power (APU GEN may not be used
+as a substitute for the right or left source)";1 IRU associated with the engaged autopilot;"2 hydraulic system (the standby system may be used as a
+substitute for the A and B system)";None of the answers are correct;4;Low visibility operations
+288;"During a CATIIIA approach, at 150ft RA, on glide slope, with the weather at minimums, you notice a steady autopilot disengage warning light (stabilizer out
+of trim). You should:";Continue the approach with autopilot engaged;Disengage the autopilot and execute a manual landing;Disengage the autopilot and immediately execute a manual go-around;Lift and turn the alternate stabilizer trim switch to “on” position before continuing approach;3;Low visibility operations
+289;"Which of the following systems is not required to be operative for a FD (Flight
+Director) approach in CATII conditions?";2 sources of electrical power;FD approach is not permitted in CATII conditions;2 separate Flight Directors;"2 ADI displays supplied by different symbol generator
+(DEU)";2;Low visibility operations
+290;"During a CATII approach you notice at 500ft RA that there is no FLARE arm
+annunciations, you should:";Continue the approach with the autopilot engaged;Disengage the autopilot and execute a manual level off;Immediately execute a go-around;"Engage the autopilot if disengaged and continue the
+approach";3;Low visibility operations
+291;Maximum allowable crosswind for a dual channel CATIIIA landing is:;15kt;20kt;25kt;28kt;2;Low visibility operations
+292;For CATIIIA operations, what minima is the 737-800 certified to:;25ft   RA and 200m RVR;50ft   RA and 200m RVR;75ft   RA and 200m RVR;100ft RA and 200m RVR;2;Low visibility operations
+293;"You experience a flashing red Autopilot Disengage Light and warning tone while at 200ft RA on a CATIIIA approach (weather conditions at minimums), what you
+should do?";Continue the approach with the autopilot disengaged;Engage the autopilot and execute a landing;Execute an immediate manual go around;Engage standby autopilot and execute a go around;3;Low visibility operations
+294;"The aeroplane is approved for Flight Director or single autopilot operations to
+CATI minimums with an engine initially inoperative if:";Aeroplane is trimmed for the condition;Flight Director and/or autopilot may be used;Autothrottle is disengaged;All of the answers are correct;4;Low visibility operations
+295;"Boeing 737-800 is classified as category          aeroplane for straight
+approaches:";D;C;A;B;2;Low visibility operations
+296;"Boeing 737-800 for circling approaches, uses category          minima or the
+minima associated with the anticipated circling minima:";C;D;B;A;1;Low visibility operations
+297;"ILS Critical Area is restricted from all vehicle or aeroplane operations anytime
+the weather at the aerodrome is reported less than:";800ft ceiling and/or 2 miles visibility;600ft ceiling and/or 2 miles visibility;1000ft ceiling and/or 2 miles visibility;100ft ceiling and/or ½ miles visibility;1;Low visibility operations
+298;CAT II approaches must be conducted using:;One autopilots;Two autopilots;Flight director only;All of the answers are correct;2;Low visibility operations
+299;The PSEU system on the ground monitors which of the following?;Takeoff and landing configuration warnings;Landing gear;Air/ground sensing;All of the answers are correct;4;Warning System
+300;"Which of the following will cause activation of the take off configuration warning
+horn?";"Leading Edge flaps in the extend position and Trailing
+Edge flaps at 5";"Leading Edge flaps in the full extend position and Trailing
+Edge flaps at 15";"Spoilers not down with the speed brake lever in the
+DOWN position";Speed brake lever in the DOWN position;3;Warning System
+301;The red Landing Gear Indicator Lights are illuminated under which of the following conditions?;Landing gear is not in disagreement with LANDING GEAR lever position (not in transit or unsafe);"Landing gear is not down and locked (with either or both forward thrust levers retarded to idle and below 800ft
+AGL)";Landing gear is up and locked with the LANDING GEAR lever UP and OFF;Landing gear is down and locked;2;Warning System
+302;"While in flight and performing the landing checklist the PSEU light illuminate on
+recall. This indicate:";A normal condition;"A fault is detected in the landing gear locking system or in
+the air/ground sensing system";"The landing gear configuration warning horn will sound
+upon landing";"A problem exists in the PSEU light because this light
+should be inhibited in flight";4;Warning System
+303;The MACH AIRSPEED WARNING  TEST is:;Inhibited on ground;Inhibited during IRS alignment;Inhibited until the clacker sound between 50ft and 300ft;Inhibited while airborne;4;Warning System
+304;"The Stall Management Yaw Damper (SMYD) computers determine when the
+stall warning is required based on which of the following:";Anti-ice controls;ADIRU outputs;FMC outputs;All of the answers are correct;4;Warning System
+305;How can you silence the Mach/airspeed warning in flight?;Reduce the aeroplane speed to below Vmo/Mmo;Press the mach/airspeed warning cutout switch;All of the answers are correct;Press the mach/airspeed override switch;1;Warning System
+306;"On an ILS approach 1.3 dots below glide slope, a BELOW G/S alert occurs. To
+cancel or inhibit the ground proximity GLIDE SLOPE alert:";Correct the flight path back to the localizer;"Push either pilot’s BELOW G/S P-EXTINGUISH light while
+in the alerting area";"Push the BELOW G/S P-INHIBIT light when below 1000ft
+RA";Turn the volume control off;3;Warning System
+307;The Ground Proximity System Test switch (SYS TEST)is:;Inhibited in flight;Active between 50ft and 200ft RA;"Momentary active on ground, with terrain display test
+pattern exhibited on PFD";Active (push) on ground for 60sec;1;Warning System
+308;An intermittent Takeoff Configuration Warning horn sound if:;Stabilizer trim is not set in the takeoff range;The Leading Edge devices not configured for takeoff;The speed brake lever is not in the DOWN position;All of the answers are correct;4;Warning System
+309;A ground proximity alert does not guarantee terrain clearance.;True;False;;;1;Warning System
+310;The GPWS provides alerts for all of the following except:;Excessive descent rate;"Unsafe terrain clearance  when not in the landing
+configuration";"Terrain clearance is guaranteed with a ground proximity
+alert";Excessive deviation below an ILS glide slope;3;Warning System
+311;When deviating by 200ft from the selected altitude, a momentary tone sounds and the current altitude box turns amber and begins to flash and continues until:;The altitude deviation becomes less than 200ft;A new altitude is selected;The altitude deviation becomes more than 900ft;All of the answers are correct;4;Warning System
+312;The PSEU light is inhibited;In flight;"When the thrust levers are advanced toward takeoff
+power";For 30sec after landing;All of the answers are correct;4;Warning System
+313;"The GPWS provides alerts based on radio altitude and combinations of barometric, altitude, airspeed, glide slope deviation and aeroplane configuration
+during:";Normal descent rate;Altitude loss after level off;Unsafe terrain clearance when in landing configuration;Excessive terrain closure rate;4;Warning System
+314;"The Stall Management Yaw Damper (SYMD) computers provide outputs for all
+stall warning to include:";DEU’s;Pitch indicator;Altimeters;GPWS windshear detection and alert;4;Warning System
+315;The Landing Gear Configuration Warning horn is activated by forward thrust lever and flap position as follow:;"Flaps up through 10 - altitude below 800ft RA, landing gear warning horn can be silenced (reset) with the landing
+gear warning HORN CUTOUT switch";"Flaps 15 through 25 - landing gear warning horn can be silenced with the landing gear warning HORN CUTOUT
+switch";Flaps 25 - landing gear warning horn can be silenced with the landing gear warning HORN CUTOUT switch;"Flaps 40 - forward thrust lever position is 90% N1, landing gear warning horn cannot be silenced with the landing
+gear warning HORN CUTOUT switch";1;Warning System
+316;Center tank fuel is used before main tanks fuel because:;Center tank check valves open at a lower differential pressure than main tank check valves;Center tank check valves open at a higher differential pressure than main tank check valves;Center tank fuel pumps produce higher pressure than main tank pumps;"Main tank pumps cannot produce pressure until the center tank LOW PRESSURE lights illuminate and the center
+tank pump are turned OFF";3;Fuel
+317;The fuel quantity indication system:;Calculates and displays total fuel quantity;Calculates the usable fuel quantity in each tank;Displays fuel quantity in analog format only;Calculates the usable fuel quantity in the main tanks;2;Fuel
+318;The capacity of the center fuel tank is:;"Greater than the capacity of the two main fuel tanks
+combined";"Greater than the capacity of either main  tank but less
+than the capacity of both main tanks together";Is less than the capacity of either main tank;Is equal to the capacity of both main tanks combined;1;Fuel
+319;There are CDS fuel alert indications for:;Fuel quantity low in the main tank, impending fuel filter bypass, more than 453kg per hour fuel flow difference between engines;"Fuel quantity less than 907kg in main tank, both center tank fuel pumps producing low or no pressure with greater than 726kg in the center tank, greater than 453kg fuel
+difference between  main tanks";"Fuel quantity low in center or main tank, either center tank fuel pump producing low or no pressure with greater than 726kg fuel in the center tank and excessive fuel flow
+difference between engines";Any fuel pump producing low or no pressure with  the pump switch on, impending fuel filter bypass, greater than 453kg fuel quantity difference between main tanks;2;Fuel
+320;"During cruise, both center tank fuel pumps have failed and the center tank fuel pump switches are OFF. You still have 320kg of fuel in the center tank and both
+main tanks are full. The Upper Display Unit will show:";A LOW indication;A CONFIG indication;A pump LOW PRESSURE indication;None of the answers are correct;4;Fuel
+321;You have 2500kg of fuel in the main tank N°1 and 3060kg of fuel in the main tank N°2. You will see:;A low indication below main tank N°1 accompanied by a Master Caution light and system annunciation for fuel;An IMBAL indication below main tank N°1 accompanied b a Master Caution light and system annunciation for fuel;An IMBAL indication below main tank N°1 with no Master Caution light and no system annunciation for fuel;The fuel quantity arc and digits on main tank N°2 turn amber;3;Fuel
+322;In flight below FL300, two fuel pump LOW PRESSURE lights for the main tank N°1 illuminate. What happens to the engine N°1?;It receives fuel from main tank N°2 automatically;It will shut down due to fuel starvation;"It will continue to operate. Mechanically engine driven fuel pumps provide suction feed in the event that normal
+electrical fuel pump operation is not available";It continues to operate using fuel through the center tank bypass valve;3;Fuel
+323;The center tank scavenge jet pump operates when:;Both center tank fuel pump switches are turned off;"The main tank N°1 fuel is about ½ full and the main tank
+N°1 forward pump is operating";The center fuel tank about 2/3 full;Either engine is operating;2;Fuel
+324;In which fuel tanks are bypass valves located?;The canter tank;Both main tanks;All tanks;No tanks;2;Fuel
+325;"What is the condition of the VALVE OPEN light when the crossfeed selector is
+positioned OPEN and the crossfeed valve is closed?";Illuminated dim blue;Illuminated bright blue;Illuminated amber;Extinguished;2;Fuel
+326;What is the source of electrical power for the engine fuel shutoff valves?;The Hot Battery Bus;The Battery Bus;The DC Standby Bus;The AC Standby Bus;2;Fuel
+327;Ground transfer of fuel between the tanks:;Is accomplished at the wing fueling station;Is accomplished from the fuel control panel;Is not possible;"Can only be accomplished if the center tank contains more
+than 3850kg";1;Fuel
+328;"During fuel balancing operations, fuel pump pressure should be supplied at all times. Without fuel pump pressure, thrust deterioration or engine flameout may
+occur above which altitude?";20000ft;25000ft;30000ft;35000ft;3;Fuel
+329;If the fuel quantity indication system is inoperative:;Manually compute Vref and enter it in the CDU;Manually set Vref with the SPD REF switch;Vref will be not available;"Enter and periodically update manually calculated fuel
+weight on the FMC PERF INIT PAGE";4;Fuel
+330;What causes the ENG VALVE CLOSED lights to illuminate bright blue?;When the valve has seated in the position indicated by the switch position;When the valve is in transit or valve position and engine start lever or engine fire warning switch disagree;When AC power is removed, the lights illuminate bright blue as a warning;Turning either engine start switch to the GND position;2;Fuel
+331;"What is the power source for opening and closing the Spar Fuel Shutoff
+Valves?";AC power from the Standby AC Bus;DC power from the Switched Hot Battery Bus;DC power from the Hot Battery Bus;DC power from the Main DC bus N°1;3;Fuel
+332;Where is the fuel temperature sensor located?;In the main tank N°2;In the center tank fuel;In main tank N°1;In the main fuel manifold;3;Fuel
+333;What is the maximum fuel temperature?;49° C;43° C;49° F;94° F;1;Fuel
+334;What is the minimum inflight tank fuel temperature?;"-49°C or 3°C above freezing point of fuel being used,
+whichever is higher";"-43°C or 5°C above freezing point of fuel being used,
+whichever is higher";"-43°C or 3°C above freezing point of fuel being used,
+whichever is higher";"-43°F or 3°F above freezing point of fuel being used,
+whichever is higher";3;Fuel
+335;What causes the crossfeed VALVE OPEN light to illuminate bright blue?;"Crossfeed valve is in transit or valve position and
+crossfeed selector disagree";"Crossfeed valve open with crossfeed selector in open
+position";"Crossfeed valve closed with crossfeed selector in closed
+position";Crossfeed valve or crossfeed selector inoperative;1;Fuel
+336;When must the crossfeed valve be closed?;Approach and landing;During climbs and descents;Only during ground operations;For takeoff and landing;4;Fuel
+337;What powers the crossfeed valve?;AC power through the Standby AC bus;DC power so with complete loss of AC power, fuel can be directed to both engines from any tank;AC power unless AC power is lost. Power source then shifts to DC power through the switched hot battery bus;AC power through Main AC bus 2;2;Fuel
+338;What causes the FILTER BYPASS light to illuminate?;Complete filter obstruction due to contaminants;Fuel is bypassing the filter;"Fuel filter has malfunctioned causing fuel to be routed
+around it";Impending filter bypass due to a contaminated filter;4;Fuel
+339;What causes the center fuel pump LOW PRESSURE light to illuminate?;"Fuel pump output pressure is low with the FUEL PUMP
+switch ON";"Fuel pump output pressure is low or fuel pump switch is
+OFF";Turning the center tank fuel pump switches OFF;Fuel pump output pressure is low;1;Fuel
+340;What causes the center tank fuel pump LOW PRESSURE light to extinguish?;Turning FUEL PUMP switch ON;Turning the crossfeed valve switch to the open position with main tank FUEL PUMP switches in the ON position;Center tank FUEL PUMP switch OFF or FUEL PUMP switch ON and output pressure is normal;Using the main tank boost pumps to replenish center tank fuel quantity;3;Fuel
+341;How is the center tank fuel pump LOW PRESSURE light different from the main tank fuel pump LOW PRESSURE lights?;Main tank fuel pump LOW PRESSURE lights illuminate only when switched ON and output pressure is LOW;Main tank fuel pump LOW PRESSURE lights illuminate when output pressure is low regardless of switch position;Main tank fuel pump LOW PRESSURE lights illuminate only when fuel quantity in main tanks drops below 907Kg;Main tank fuel pump LOW PRESSURE lights extinguish when switches are turned OFF;2;Fuel
+342;"The center tank fuel scavenge jet pump, transfers fuel remaining in the center
+tank into which main tank?";N°2 main tank;Both N° 1 and N°2 main tanks;N°1 main tank;"Neither. Fuel is pumped directly to the hydro mechanical
+units";3;Fuel
+343;"When AC fuel pumps are not operating, fuel for the APU is suction fed from
+which tank?";N°2 main tank;The center fuel tank;N°1 and N°2 main tanks depending on which has more fue;lN°1 main tank;4;Fuel
+344;What does an illuminated main tank fuel pump LOW PRESSURE light indicate?;Low fuel pressure in the affected tank;Fuel pump switch is OFF;The fuel pump pressure output is low;"Fuel pump switch is OFF and/or the fuel pump output
+pressure is low";4;Fuel
+345;What powers the center tank and main tank fuel pumps?;AC powered. Therefore with a complete loss of AC power the engines are being suction fed;DC powered. Therefore with a loss of AC power the pumps will still be powered by the Standby power system;AC primary with the DC Standby power as backup in case of AC failure;DC Hot Battery Bus to enable pump operation at any time;1;Fuel
+346;What is the de-fueling valve used for?;The de-fueling valve, located on each trailing edge of the starboard wing is used for emergency fuel jettison;The de-fueling valve, located outboard of the engine N°2, is used for de-fueling and tank to tank transfer operation;The de-fueling valve, located on the outboard trailing edge of the port wing is used to de-fueling the aeroplane and jettison fuel in specified non-normal situations;"The de-fueling valve, located on the aft section of the APU fuel manifold is used to drain fuel from the APU fuel manifold for manifold is used to drain fuel from the APU
+fuel manifold for maintenance operations";2;Fuel
+347;Can tank to tank fuel transfer be performed in flight?;Yes;No;"Yes, but only from center tank to either main tank. Main
+tank fuel cannot be transferred";"Yes, but only from one main tank to another. Fuel cannot
+be transferred to or from the center tank";2;Fuel
+348;Which fuel tank produce greater pressure?;Main tank pumps produce greater pressure at all times;Center tank pumps until center tank fuel quantity decrease below 91kg, then main tank pumps produce greater pressure to prevent cavitations of center tank fuel;Main tank pumps produce greater pressure until 907kg remain in each tank in order to use main tanks fuel first;"Center tank pumps produce greater pressure overriding the main tank pumps in the fuel manifold. Therefore the center fuel will be used to pressure feed the engines
+before the main tank fuel is used";4;Fuel
+349;"At what fuel quantity would you see the amber LOW indication on the Upper
+Display Unit?";Center tank below 907kg;Either main tank below 1134kg;Either main tank is less than 907kg;Any tank below 907kg;3;Fuel
+350;When is the CONFIG indication inhibited?;When the center tank quantity is less than 363kg;When the center tank quantity is less than 91kg;When the center tank boost pumps are turned off;"From takeoff (ground speed >80kt) until 30sec after
+touchdown";1;Fuel
+351;"Random fuel imbalance must not exceed                for taxi, takeoff, flight or
+landing.";0 (Zero);91kg;363kg;453kg;4;Fuel
+352;"If the center tank contains more than 453kg, what must be true of the main tank
+fuel quantity?";Main tanks must be full;Main tanks must be at least 2/3 full;Main tanks can be no more than half empty;Main tanks must have a minimum of 760kg in each tank;1;Fuel
+353;The engine fuel shutoff valve:;Are controlled by both the engine fire warning switch and the engine start lever;Are the only fuel shutoff valve with an associated blue ligh on the forward overhead fuel panel;And the spar fuel shutoff valve require AC power to operate;"And the spar fuel shutoff valve close whenever their respective engine fire warning switch is pulled or engine
+start lever is placed to CUTOFF";4;Fuel
+354;"On the ground with 460kg fuel difference in the main tanks, would you see the
+IMBAL indication?";No. It is inhibited when the aeroplane is on the ground;Yes. The difference is greater than 453kg;Yes. The difference is greater than 363kg;No. The difference must exceed  726kg;2;Fuel
+355;If you have an IMBAL and LOW situation simultaneously, which one will be displayed on the Upper Display Unit?;IMBAL has priority;LOW has priority;"Neither. This is a fuel system non-normal situation. The Master Caution will illuminate along with a “fuel”
+annunciation";Low has priority unless the imbalance exceed 726kg then the imbalance message will be annunciated;2;Fuel
+356;"The imbalance indication (IMBAL) shows until the main tanks are within             
+kg of each other:";453kg;363kg;113kg;91kg;4;Fuel
+357;"At what fuel quantity would you see the amber IMBAL indication between main
+tank quantity displays on the Upper Display Unit?";When main tank differ by more than 91kg;When main tank differ by more than 363kg;When main tank differ by more than 453kg;When main tank differ by more than 726kg;3;Fuel
+358;What is the allowable scheduled fuel imbalance between main tanks 1 and 2?;453kg or less;91kg or less;363kg with center tank boost pumps OFF;0 (Zero);4;Fuel
+359;"What causes the amber CONFIG indication at the CTR tank fuel indicator on
+the Upper Display Unit?";Center fuel tank quantity greater than 726kg;"Both center tank pumps producing low or no pressure and
+either engine operating";Both of the answers A and B are correct;Neither of the answers are correct;3;Fuel
+360;"The STANDBY HYD LOW QUANTITY light illuminates, what other indication wi
+you have:";System A quantity between ¾  and RF (refill) indication;"Both Master Caution lights and the flight control
+annunciator light illuminate";Both system B pumps overheat lights illuminated;"Illumination of the low pressure standby hydraulic amber
+light";2;Hydraulics
+361;The refill indication (RF) is displayed adjacent to it’s respective hydraulic system quantity:;Automatically when the hydraulic quantity of the respective system is below 88%;At all times;"When the hydraulic quantity is below 76% in either system and valid only when the aeroplane is on the ground with both engines shutdown or after landing with flaps up
+during taxi-in";Only during the Master Caution system recall;3;Hydraulics
+362;If a leak occurs in the system B, the standby hydraulic system will:;Leak to zero capacity;Leak to 74% capacity;Leak to 76% capacity;"A leak in the B system has no effect on the standby
+hydraulic system";4;Hydraulics
+363;When the system B engine driven hydraulic pump pressure is lost, the Power Transfer Unit (PTU) supplies an additional volume of hydraulic fluid to operate?;Trailing edge flaps;Alternate landing gear transfer unit;AutoslatS and leading edge flaps and slats at the normal rate;Outboard spoilers;3;Hydraulics
+364;Autoslats are normally powered by?;System B;System A;Standby system;All of the answers are correct;1;Hydraulics
+365;Pulling the engine N°2 fire warning switch, shuts off hydraulic fluid to:;The engine driven pump in system A;The engine driven pump in system B;Both engine driven pumps;Both electric hydraulic pumps;2;Hydraulics
+366;The standby hydraulic system provides backup power for:;The outboard spoilers, rudder and thrust reversers;"Thrust reversers, rudder, leading edge flaps and slats
+(extend only) and standby yaw damper";The inboard spoilers, rudder and thrust reversers;"The alternate brakes, rudder, thrust reversers and
+standby yaw dumper";2;Hydraulics
+367;If a leak occurs in the standby system:;"System B reservoir fluid level indication decreases and
+stabilizes at approximately 72% full";The standby reservoir quantity decreases to zero;All of the answers are correct;"The LOW QUANTITY light illuminates when the standby
+reservoir is approximately half full";3;Hydraulics
+368;The amber Standby Hydraulic System LOW PRESSURE is armed:;At all times;"Only when either FLT CONTROL switch is moved to
+STBY RUD";"Only when the ALTERNATE FLAPS switch is moved to
+ARM";"Only when standby pump operation has been selected or
+the automatic standby function is activated";4;Hydraulics
+369;"During normal operations, variations in hydraulic quantity indications occur
+when:";The system becomes pressurized after engine start;"Raising or lowering the landing gear or leading edge
+devices";Cold soaking occurs during long periods of cruise;All of the answers are correct;4;Hydraulics
+370;"If the system A engine driven  hydraulic pump LOW PRESSURE (Amber)
+annunciator light illuminates:";Position the hydraulic pump switch to OFF;Pull the engine N°1 fire warning switch;Disconnect the N°1 IDG;Monitor system B pressure;1;Hydraulics
+371;What is the minimum fuel for ground operation of electric hydraulic pumps?;453kg in the related main tank;726kg in both main tanks;760kg in the related main tank;760kg in the center tank;3;Hydraulics
+372;"The system B engine driven pump supplies the volume of hydraulic fluid needed
+to operate the Landing Gear Transfer Unit when:";Either main landing gear is not up and locked;The engine N°1 RPM drops below a limit value;Airborne with the landing gear lever positioned UP;All conditions must exist together;4;Hydraulics
+373;"The standby hydraulic system can be activated manually or automatically and
+uses a single electric motor driven pump to power:";The rudder and thrust reversers;All of the answers are correct;The leading edge flaps and slats (extend only);Standby yaw damper;2;Hydraulics
+374;"If engine N°1 fails and the APU generator is inoperative, what hydraulic pumps
+are operational?";"One system A electric pump, two system B pumps engine
+driven and electric";"Two system A pumps, two system B pumps and no
+standby hydraulic pump";"One system A engine driven pump, two system B pumps
+and the standby pumps";"One system B electric pump and the standby hydraulic
+pump";1;Hydraulics
+375;With the loss of hydraulic System B, (System A operating normally) and flaps up:;"Main yaw damper functions are available as long as hydraulic system A is providing normal pressure and the
+yaw damper switch is ON";"Standby yaw dumper functions are available as long as hydraulic system A is providing normal pressure and the
+switch is ON";Main and standby yaw damper functions are inoperative;"Standby yaw dumper functions are available if the FLT CONTROL B switch is placed to STBY RUD and the yaw
+damper switch is reset to ON";3;Hydraulics
+376;"An engine driven hydraulic pump supplies approximately         times the volume
+of an electric hydraulic pump:";4;2;3;5;1;Hydraulics
+377;What does the standby hydraulic LOW QUANTITY light illuminated indicate?;Reservoir is below 76%;Reservoir is below 54%;Reservoir is empty;Low quantity in the standby hydraulic reservoir;4;Hydraulics
+378;With a loss of hydraulic System A and the System A FLIGHT CONTROL switch in the STBY RUD position, what are some of the inoperative items?;Autopilot B, yaw damper, alternate nosewheel steering, normal brakes and flight spoiler (2 on each wing);Ground spoilers, flight spoilers (2 on each wing), autopilot A,  normal nosewheel steering and alternate brakes;Standby rudder, power transfer unit, autoslats & trailing edge flaps;None of the above;2;Hydraulics
+379;With the loss of System B hydraulic fluid and the system B FLIGHT CONTROL switch to STBY RUD, what allows the movement of trailing edge flaps?;A system pressure;Standby hydraulic system pressure;Power transfer unit (PTU);Electric motor;4;Hydraulics
+380;System A and B hydraulic fluid is cooled by:;Air provided by the recirculation fans;Heat exchangers in the left and right pack;Heat exchangers located in the main fuel tanks;None of the above;3;Hydraulics
+381;"If a leak develops in system B (either pump, line or component), the quantity
+decreases to:";76%;20%;Approximately zero and System B pressure is lost;B system is self sealing and any leak would stop;3;Hydraulics
+382;When the manual extension access door is open:;"Manual landing gear extension is possible with the landing
+gear lever in any position";"Normal landing gear extension is still possible if hydraulic
+system B pressure is available";Landing gear retraction is enabled;None of the answers are correct;1;Landing gear
+383;Fittings located in the wheel well ring opening on each main gear wheel well:;Are intended to provide automatic braking to main gear wheels during retraction;Provide positive uplock during main gear retraction;"Are intended to provide protection to wheel well components during gear retraction by preventing that a spinning tire with loose tread from entering the wheel well
+causing damage";Allow the landing gear transfer unit to use hydraulic system B pressure to raise the gear if hydraulic system A fails;3;Landing gear
+384;Which pressure is indicated by HYD BRAKE PRESSURE Indicator?;Normal pressure of 3500psi;A maximum pressure of 3500psi;A normal pressure of 2000psi;A normal pre-charge of the brake accumulator of 2000psi;2;Landing gear
+385;Both normal and alternate Brake System provide:;Skid, locked wheel, touchdown and hydroplane;Skid and hydroplane only;Skid, locked wheel and hydroplane;None of the answers are correct;1;Landing gear
+386;If a landing is made with RTO selected (AUTO BRAKE select switch not cycled through OFF):;Automatic braking action occurs at the RTO level;Automatic braking occurs at the MAX level;Braking occurs and the AUTO BRAKE DISARM light illuminates three seconds after touchdown;No automatic braking occurs and the AUTO BRAKE DISARM light illuminates two seconds after touchdown;4;Landing gear
+387;Landing autobrake settings may be selected after touchdown:;"However, the AUTO BRAKE DISARM light will be
+illuminated";"However, autobrake action will occur only when both
+thrust lever are retracted to reverser thrust range";Prior to decelerating through 60kt groundspeed;After decelerating through 60kt groundspeed;3;Landing gear
+388;"After braking has started, which of the following pilot actions will disarm the AUTO BRAKE System immediately and illuminate  the AUTO BRAKE DISARM
+light:";Moving the SPEED BRAKE lever to the down detent;Advancing the forward thrust lever(s), except during the first two seconds after touchdown for landing;Applying manual brakes;All of the answers are correct;4;Landing gear
+389;The air/ground system receives air/ground logic signals from:;Four sensors, two on each  landing gear;Three sensors, one on each landing gear;Six sensors, two on each landing gear;Three laser signal generators, one on each landing gear;3;Landing gear
+390;What system normally provides hydraulic pressure for nose wheel steering?;System A;System B;Standby system;The nose wheel steering accumulator;1;Landing gear
+391;If the nose gear steering lockout pin is not installed for pushback or towing:;The System B hydraulic pumps must be placed OFF;"Movement of the nose wheel is possible greater than 78
+degrees left or right of center";The System A hydraulic pumps must be placed OFF;System A and B must be pressurized;3;Landing gear
+392;Which of the following is not part of the Brake System?;Antiskid protection;Parking brake;Brake accumulator;Nose wheel brakes;4;Landing gear
+393;"Which of the following conditions must exist to arm the RTO mode prior to
+takeoff?";All of the answers are correct;Wheel speed less than 60kt;Forward thrust lever positioned to IDLE;The AUTO BRAKE switch positioned to RTO;1;Landing gear
+394;What could cause the amber ANTISKID INOP light to illuminate?;The AUTO BRAKE select switch positioned to OFF;"A system fault has been detected by the antiskid
+monitoring system";Brake accumulator pressure is in the red band;System B pressure is low;2;Landing gear
+395;What airspeed must be considered with a wheel well fire situation?;The extend limit speed of 280K/.72M;The retract landing gear speed of 245kt maximum;250KIAS at all altitudes;The extend limit speed of 270K/.82M;4;Landing gear
+396;"What happens if you reject a takeoff after reaching 90kt with the AUTO BRAKE
+Select Switch in RTO?";"Maximum braking pressure is applied when thrust levers
+are retarded to idle";Automatic braking when reverser thrust selected;None of the answers are correct;The AUTOBRAKE DISARM light will illuminate;1;Landing gear
+397;"The Brake Accumulator Pressure also provides pressure to maintain the parkin
+brake when both normal and alternate braking are lost.";True;False;;;1;Landing gear
+398;"Hydraulic pressure from System B supplies a volume of hydraulic fluid required
+to raise the landing gear at normal rate when:";The landing gear lever is positioned up;Either main landing gear is not up and locked;"When airborne and the engine N°1 RPM drop below a limi
+value";All of the answers are correct;4;Landing gear
+399;Alternate Brake System provides antiskid protection:;To wheel pairs;To individual wheels;To inboard antiskid valve of each wheel pair;None of the answers are correct;1;Landing gear
+400;"Which of the QRH takeoff speeds must be adjusted when the takeoff is made
+with the antiskid inoperative?";V1 - VR - V2;V1 - VR;V1 - VMBE;V1;4;Performance and flight planning
+401;"Which of the normal QRH/FMC takeoff speeds may be used if stopway was
+used to increase the takeoff weight?";None;V1;VR and V2;V1 - VR - V2;3;Performance and flight planning
+402;"Choose the list which contains AFM restrictions on the use of assumed
+temperature reduced thrust?";"Antiskid inoperative, contaminated runway, max thrust
+reduction -25%";"Antiskid inoperative, tailwind takeoff, max thrust reduction
+25%";"Antiskid inoperative, contaminated runway, max thrust
+reduction -15%";"Antiskid inoperative, contaminated runway, max thrust
+reduction -5%";1;Performance and flight planning
+403;Choose the correct statement:;"In landing planning, aeroplanes must be able to stop withi
+60% of the available runway";"The quick turnaround limit ensures sufficient brake energy
+capability in the next takeoff";The brake cooling schedule can be used for landing only;"The minimum climb gradient of 3,2% is based on one
+engine operative";1;Performance and flight planning
+404;Select the best definition of V1(MCG) speed:;"The V1 speed associated with the maximum aerodynamic
+control speed on the ground";"The V1 speed associated with the minimum aerodynamic
+control speed on the ground";"The speed by which you must have made the decision to
+stop the aeroplane";"The speed by which you must have made the decision to
+continue the takeoff";2;Performance and flight planning
+405;Select the best definition of V1 speed:;"The minimum speed where the rudder is effective for
+steering the aeroplane";"The maximum speed where an action must occur to stop
+the aeroplane on the runway";"The maximum speed at which the takeoff can be
+continued following recognition of an engine failure";"The speed at which the pilot starts the decision process
+for the stop-go decision";2;Performance and flight planning
+406;Select the best definition of V2 speed:;"The normal all engine initial climb speed. Minimum V2
+must be equal to or greater than 1.1 times the 1-g stall speed and 1.1 times Vmca";"The normal all engine initial climb speed. Minimum V2
+must be equal to or greater than 1.13 times the 1-g stall speed and 1.1 times Vmca";"The normal engine inoperative initial climb speed. Minimu
+V2 must be equal or greater than 1.1 times the 1-g stall speed and 1.13 times Vmca";"The normal engine inoperative initial climb speed. Minimu
+V2 must be equal or greater than 1.13 times the 1-g stall speed and 1.1 times Vmca";4;Performance and flight planning
+407;Select the best definition of VMBE speed:;The lowest speed which can be used as the decision speed for the aeroplane;"The minimum speed that the wheel brakes have
+demonstrated the ability to absorb the energy required to stop the aeroplane for takeoff conditions";"The maximum speed that the wheel brakes have
+demonstrated the ability to absorb the energy required to stop the aeroplane for takeoff conditions";The V1 speed associated with the maximum aerodynamic control speed on the ground;3;Performance and flight planning
+408;If the takeoff is limited by the climb limited weight which is less than the field length limited weight and the decision to abort the takeoff occurs two seconds after V1 speed has been reached:;The aeroplane will easily stop on the runway since weight is less than the field length limited weight;The aeroplane cannot stop on the runway;The aeroplane may not be capable of stopping on the runway since stop is initiated after V1;"The aeroplane will easily stop on the runway since the weight is less than the field length limited weight and the thrust reverser is not considered in the calculation of the
+dry field length limited weight";3;Performance and flight planning
+409;"When using the assumed temperature method of reduced thrust the take off
+speeds are determined at which temperature?";"V1 - Vr - V2 at the outside temperature, V1MCG at the
+assumed temperature";"V1 - Vr - V2 at the assumed temperature, V1MCG at the
+outside temperature";"V1 - Vr - V2 at the outside temperature, V1MCG at the
+outside temperature";"V1 - Vr - V2 at the assumed temperature, V1MCG at the
+assumed temperature";2;Performance and flight planning
+410;Choose the correct statement:;"Assumed temperature reduced thrust is allowed with anti-
+skid inoperative";Derate is allowed on contaminated runways;"Using derate will always yield lower MTOW capability on
+contaminated runways than a full rate take off";"Assumed temperature is allowed on slippery and
+contaminated runways";2;Performance and flight planning
+411;Which is a restriction on Vr with the respect to VMCA?;Vr is equal to or greater than 1.05 VMCG;Vr is equal to or greater than 1.05 VMCA;Vr is equal to or greater than 1.5 VMCA;Vr is equal to or greater than 1.5 VMCG;2;Performance and flight planning
+412;During III° segment of a takeoff climb profile, the minimum engine-out climb required capability for a two engine aeroplane above 400ft is a gradient of:;Equal or greater than 2.4%;Equal or greater than 1.2%;Positive rate;None of the above;2;Performance and flight planning
+413;Flying ECON speed will result in:;Maximum trip fuel;Minimum trip time;Minimum trip cost;Maximum payload;3;Performance and flight planning
+414;Choose the best description of the performance technique called “improved climb”:;The practice of reducing the takeoff weight to meet the takeoff climb limit requirements;"The scheduling of a take off speed greater than the normal QRH/FMC V2 in order to takeoff at a weight
+greater than the normal climb limit weight";The practice of over boosting the engines to obtain more climb capability;The practice of adjusting the center of gravity in order to improve the climb capability of the aeroplane;2;Performance and flight planning
+415;Which statement in NOT true regarding the use of clearway?;Maximum clearway adjustments are provided for guidance when more precise data are unavailable;Use of clearway is not allowed on wet runways;Takeoff speeds adjustments are to be applied when using takeoff weights are based on the use of clearway;Use of clearway is allowed on wet runways;4;Performance and flight planning
+416;"Regarding flap maneuver speeds; during flap retraction/extension, movement of the flap to the next position should be initiated when within        kt of the
+recommended position:";20;10;30;40;1;Performance and flight planning
+417;"Regulation  permits the use of up to         % assumed temperature reduced
+takeoff thrust for operation with anti-skid inoperative?";20;25;30;0;4;Performance and flight planning
+418;Which of these is NOT a relevant condition to classify an aerodrome adequate?;"The pavement strength is compatible with aeroplane
+weight or a derogation is obtained from Aerodrome Authorities";It can be reached while respecting the rules of the air;Is located within 25nm from the route centerline;The available runway length and width is sufficient to meet aeroplane performance requirements;3;General basic
+419;"An aerodrome is considered ""suitable"" for operations, when in addition to the requirement in order to be ""adequate"", the weather report or forecast, or any combination thereof indicate the weather conditions are above the operating
+minima applicable and s";True;False;;;1;General basic
+420;"Neos S.p.A. B737-800 operations normally require at least following category
+of fire fighting and rescue services (RFF):";5;6;7;8;3;General basic
+421;For straight in approaches the B737-800 is certified in category:;C;D;B;A;1;General basic
+422;For Circling approach the B737-800 is certified in category:;C;D;A;B;1;General basic
+423;"An aerodrome is equipped with CATI facilities, which is the required minima to
+file it as takeoff alternate?";CATI;Non precision;Non precision plus 200ft/1000m;Circling;2;General basic
+424;"One engine out cruising speed to calculate the distance from the en-route
+alternate is:";400kt;420kt;440kt;410kt;4;General basic
+425;The lowest circling minima permitted to the Neos S.p.A. B737-800 is:;700ft/3600m;600ft/2400m;500ft/1600m;400ft/1500m;1;General basic
+426;"An aerodrome is equipped with Non-precision facilities, which is the required
+minima to file it as destination alternate?";Circling;Non-precision plus 200ft/1000m;CATII;Non precision;2;General basic
+427;"An aerodrome is equipped with CATIII facilities, which is the required minima to
+file it as en-route alternate?";Circling;Non-precision;CATI;CATII;3;General basic
+428;It is a Neos S.p.A. requirement that all approaches are stabilized by:;1500ft in VMC;1500ft in IMC;1000ft in VMC;1000ft in IMC;4;General basic
+429;Minimum Diverting Fuel (MDF) is considered:;Alternate fuel to diverting aerodrome + Final Reserve Fuel (30min holding at 1500ft);Alternate fuel to diverting aerodrome + Final Reserve Fuel (30min holding at 1500ft) + extra fuel (at least 500kg);Final Reserve Fuel(30min holding at 1500 ft) + contingency fuel;Alternate fuel to diverting aerodromes (first and second alternate) + Final Reserve Fuel (30min holding at 1500ft);1;General basic
+430;During preflight minimum block fuel required for the flight must include:;"Trip fuel, contingency fuel, alternate fuel (if destination alternate is required), final reserve fuel, additional fuel required by the operation type (e.g. ETOPS) and extra
+fuel at Commander discretion";Taxi fuel, trip fuel, contingency fuel, alternate fuel (if destination alternate is required), additional fuel required by the operation type (e.g. ETOPS);"Taxi fuel, trip fuel, contingency fuel, alternate fuel (if destination alternate is required), final reserve fuel, additional fuel required by the operation type (e.g.
+ETOPS) and extra fuel at Commander discretion";"Taxi fuel, trip fuel, alternate fuel (if destination alternate is required), final reserve fuel, additional fuel required by the operation type (e.g. ETOPS) and extra fuel at
+Commander discretion";3;General basic
+431;Last Minute Change (LMC) are accepted, without the requirement of a new load sheet (mass and balance documentation), up to a maximum change of:;1000kg;500kg;1,5% of actual weight;1% of actual weight;4;General basic
+432;"Boeing 737-800 are certified to operate an ILS (no glide path-LLZ) procedure
+down to which of following minima?";300ft;250ft;200ft;310ft;2;General basic
+433;"Boeing 737-800 are certified to operate a VOR/DME procedure down to which
+of following minima?";300ft;250ft;310ft;350ft;2;General basic
+434;"Boeing 737-800 are certified to operate a VOR procedure down to which of
+following minima?";300ft;250ft;350ft;400ft;1;General basic
+435;"Boeing 737-800 are certified to operate a NDB procedure down to which of
+following minima?";400ft;450ft;300ft;350ft;3;General basic
+436;When the contingency fuel may be reduced from 5% to 3%?;When Takeoff Weight is less than 70.000kg;When CG is expected to be >than 25%;"When an enroute alternate aerodrome (3%ERA) is
+available";"When Commander of the flight load at least 1000kg of
+extra fuel";3;General basic
+437;"Fuel required to fly to a Isolated aerodrome (alternate does not exist) include among others requirements, fuel required to fly for 2 hours at normal cruise consumption after arriving overhead the destination aerodrome including final
+reserve fuel.";True;False;Procedure not applicable;Procedure applicable only for ETOPS flights;3;General basic
+438;Icing conditions exist when:;"The OAT on the ground or TAT in-flight is 0° or below and visible moisture in any form is present or there is standing water, slush, ice or snow on the ramp, taxiways or
+runways";"The OAT on the ground or TAT in-flight is 10° or below and visible moisture in any form is present or there is standing water, slush, ice or snow on the ramp, taxiways
+or runways";"The OAT on the ground or TAT in-flight is 10° or above and visible moisture in any form is present or there is standing water, slush, ice or snow on the ramp, taxiways
+or runways";The OAT on the ground or TAT in-flight is 10° or below and visibility is less than 10km;2;General basic
+439;An approach regardless of the reported RVR/Visibility may be commenced if reported RVR/Visibility is less than applicable minima, and continued down to:;Final Approach Fix;Middle Marker;Minimum Descent Height;1000ft AGL;4;General basic
+440;"When RVR or factored visibility, as applicable, is reported at or above
+Company minima, descent to MDA/DA may be made:";If ceiling is at or above Company minima;If previous aeroplane landed safely;Regardless the cloud ceiling;If previous aeroplane reported field in sight at the minima;3;General basic
+441;"What is the maximum distance and time from an adequate aerodrome at which
+the aeroplane may be flown unless an ETOPS authorization is obtained from the applicable Authority:";410nm and 60min;420nm and 60min;400nm and 60min;420nm and 120min;1;General basic
+442;No instrument or visual approach shall be made at angle less than:;ILS glide path or less than 2.5° if no ILS is available;ILS glide path or less than 3° if no ILS is available;ILS glide path or less than 3.5° if no ILS is available;3.5° anytime;2;General basic
+443;"The descent below Circling Minima should not be made until visual reference  has been established and can be maintained, the pilot has the landing threshold in sight, the required obstacle clearance can be maintained and the aeroplane i
+in a position to c";True;False;;;1;General basic
+444;"The circling is designated to provide a terrain clearance of at least              above
+the highest spot elevation within           from the runway threshold :";700ft - 5nm;349ft - 4.2nm;394ft - 4.2nm;493ft - 4.2nm;3;General basic
+445;Minimum RVR/Visibility for a day takeoff on a runway with edge lighting and/or centerline markings is establish in:;500m;300m;250m;200m;3;General basic
+446;"Minimum RVR/Visibility for takeoff on a runway with edge and centerline lighting
+is establish in:";500m;300m;250m;200m;4;General basic
+447;Category C  include aeroplane with a range of final approach speeds of:;85  - 130kt;115 - 160kt;130 - 185kt;135 - 230kt;2;General basic
+448;Category C  maximum speeds for missed approach are (intermediate and final):;130 - 150kt;160 - 240kt;185 - 265kt;230 - 275kt;2;General basic
+449;During night the visual approach may be executed?;"Yes, the only requirement is to maintain visual contact with
+the runway";"Yes, the only requirement is to maintain VMC ground
+contact";No, the visual approach is prohibited;"Yes, but must not be conducted outside the circling area
+protection";4;General basic
+450;Alternate fuel must be sufficient for:;"Full missed approach procedure from DH, DA, MDA, MDH at destination aerodrome to missed approach altitude; climb from missed approach altitude to cruising level/altitude; cruise from TOC to TOD; descent from
+TOD to the point where the approach is initiate";"Full missed approach procedure from DH, DA, MDA, MDH at destination aerodrome to missed approach altitude; climb from missed approach altitude to cruising level/altitude; cruise from TOC to TOD; descent from
+TOD to the point where the approach is initiate";"Full missed approach procedure from DH, DA, MDA, MDH at destination aerodrome to missed approach altitude; climb from missed approach altitude to cruising level/altitude; cruise from TOC to TOD; descent from
+TOD to the point where the approach is initiate";"Full missed approach procedure from DH, DA, MDA, MDH at destination aerodrome to missed approach altitude; climb from missed approach altitude to cruising level/altitude; cruise from TOC to TOD; descent from
+TOD to the point where the approach is initiate";3;General basic
+451;Final Reserve Fuel, select most accurate definitions:;It is the fuel necessary to fly for 30min at the holding speed at 1500ft above the aerodrome elevation;"It is the fuel necessary to fly for 30min at the holding speed at 1500ft above the aerodrome elevation in standard conditions, calculated with estimated mass on arrival at the alternate or destination when no alternate is
+required";It is the fuel necessary to fly 7 holding pattern at holding speed overhead the destination alternate;"It is the fuel necessary to fly 15 holding pattern at the holding speed at 1500ft above the aerodrome elevation in standard conditions, calculated with estimated mass on arrival at the alternate or destination when no alternate is
+required";2;General basic
+452;"The reported meteorological visibility can be factored during a CATII/III
+approaches?";Yes;Yes, but only if is day;No;Yes but only for CATII approach;3;General basic
+453;For an IFR flight less than 6 hours when the alternate is not required?;At least 2 separate runways are available at the destination;At least 2 separate runways are available at the destination and meteorological condition must be CAVOK for the ETA + 1 hr;"At least 2 separate runways are available and usable  at the destination and the appropriate weather reports or forecast indicate that, for a period from 1h before until 1h after the ETA  at destination, the ceiling will be at least
+2000ft or circling hei";For an IFR flight is mandatory to file an alternate;3;General basic
+454;"Which is the ICAO minimum required climb gradient during a missed approach
+from a CATI approach?";2%;2,1%;2,3%;3,3%;2;General basic
+455;"Which is the ICAO minimum required climb gradient during a missed approach
+from a CATII approach?";2,1%;2,4%;2,5%;2,6%;3;General basic
+456;"Which is the ICAO minimum required climb gradient during a missed approach
+from a Non-precision approach?";2,1%;3,1%;2,2%;3,2%;1;General basic
+457;Which effect has on landing minima the crosswind?;"DH/MDH must be increased by 10ft for each 10kt of
+crosswind in excess of 10kt";"DH/MDH must be increased by 50ft for each 10kt of
+crosswind in excess of 15kt";"DH/MDH must be increased by 10ft for each 15kt of
+crosswind in excess of 10kt";"DH/MDH must be increased by 50ft for each 10kt of
+crosswind in excess of 10kt";4;General basic
+458;Standard baggage weight for international flight (within Europe) is:;11kg;13kg;15kg;17kg;2;General basic
+459;Standard baggage weight for intercontinental flight is:;11kg;13kg;15kg;17kg;3;General basic
+460;Standard baggage weight for domestic flight (within Italy) is:;11kg;12kg;13kg;15kg;1;General basic
+461;"Prior to operating to a Cat B aerodrome the Commander should be briefed and must visit the aerodrome as an observer and/or undertake instruction in a flight
+simulator approved by the Authority for the purpose:";True;False;;;2;General basic
+462;"Prior to operating to a Cat C aerodrome the Commander should be briefed and must visit the aerodrome as an observer and/or undertake instruction in a flight
+simulator approved by the Authority for the purpose:";True;False;;;1;General basic
+463;"CATI operation is a precision instrument approach and landing using ILS, MLS
+or PAR facilities and normally with a decision height not lower than:";50ft;100ft;200ft;250ft;3;General basic
+464;A take off alternate shall be nominated:;"If the weather conditions are below Company minima for
+landing";"If the weather conditions are below alternate landing
+minima";"Is never necessary if autoland capability are tested and a
+CATIII can be performed";If there are less than 2 separate runways;1;General basic
+465;During an hijack condition:;Selcal must be used by ground station to call the aeroplane;"No selcal shall be originated by the ground station to an
+aeroplane in known hijack condition, unless otherwise instructed by the pilot";There is no regulation concerning the use of selcal;Selcal code 7500 is used;2;General basic
+466;What word shall be used to alert all air crew member of an hijacking?;ALERT;EMERGENCY;INVOKE;INPLORE;3;General basic
+467;When icing conditions exist?;Visible moisture and OAT in flight 10°C or below;Visible moisture and OAT in flight 0°C or below;Visible moisture and TAT in flight 10°C or below;Visible clouds and OAT in flight 10°C or below;3;General basic
+468;According to Italian Authority, security search at home base:;Is not compulsory;"Must be performed after the boarding is completed and all
+pax are on board";Must be performed immediately prior the boarding;Must be performed during taxi before the cabin clear;3;General basic
+469;During refueling HF, xponder and WX radar must be kept OFF:;True;False;;;1;General basic
+470;According to Italian regulation, select the correct statement:;Refueling can be performed inside an hangar only if there is a fire fighting truck within 15m from the refueling station;Refueling can be performed inside an hangar only if there is a fixed firefighting system active;Refueling must be performed in open without other specific restriction;Refueling must be performed in open space at a distance of at least 15m from the closest building;4;General basic
+471;During refueling with passengers on board, if one slide is inoperative, the door must be opened and connected with a loading bridge or a passenger stair.;True;False;;;1;General basic
+472;The maximum number of infant permitted on board is:;20;23;25;28;4;General basic
+473;Neos S.p.A. B737-800 can carry up to 2 stretchers:;True;False;False, up to 4 stretchers can be carried simultaneously;False, up to 6 stretchers can be carried simultaneously;2;General basic
+474;Minimum Cabin Crew on board the company B737-800 is as follow:;1 Cabin crew member for each 50 passengers boarded;"1 Cabin crew member for each 50 passenger seats
+installed (4 cabin crew members)";2 Cabin crew members for each 50 passengers boarded;3 Cabin crew members at all times;2;General basic
+475;"The Declaration of Competency is valid for 1 year but will expire if its privileges
+are not exercised for more than           by performing the inspection and signing the TLB page:";6 months;3 months;9 months;12 months;1;General basic
+476;"A fuel check must be performed at least every           and at least one per
+sector:";60min;15min;30min;2hrs;1;General basic
+477;"For flights towards isolated/remote aerodromes, over the latest point of
+diversion the fuel expected in order to continue inbound the intended destination must be not less than:";Fuel to fly for 30min over the destination;Fuel to fly for 15min over the destination;Holding  reserve fuel requirement;Fuel to fly for 15min over the destination at 1000ft;3;General basic
+478;"On positioning flights no Cabin Crew member is required for up to         company
+staff traveling on that flight:";20;25;10;15;1;General basic
+479;Company Flight Crew Members are required to wear earphones at least:;"Pre flight operations to 10000ft and from 10000ft to post
+flight operations and any time situation dictate";"Pre flight operations to TOC and from TOD to post flight
+operations and any time situation dictate";Any time from preflight to post flight operations;At Crew discretions;2;General basic
+480;Navigation lights must be on at least:;All the time;Only in IMC;Only in VMC;From sunset to sunrise;4;General basic
+481;"Anti-collision lights must be on before starting an engine to after the last engine
+has been shutdown:";True;False;;;1;General basic
+482;"Alcohol must not be consumed by Crew Members while on duty an during the
+preceding:";12h;16h;10h;8h;4;General basic
+483;"Blood donations are forbidden in the period of           hours before commencing
+flying duty or stand-by:";16;24;36;48;4;General basic
+484;"Deep diving exceeding 10m (33ft) is forbidden in the period of           hours
+before commencing flying duty or stand-by:";24;12;26;48;1;General basic
+485;"Deep diving not exceeding 10m (33ft) is forbidden in the period of           hours
+before commencing flying duty or stand-by:";24;12;26;48;2;General basic
+486;The Duty End coincides with:;"The completion of the post flight operations, which is quantified
+as 30 min after ATA last sector.";"The completion of the post flight operations, which is quantified
+as 40 min after ATA last sector.";"The completion of the post flight operations, which is quantified
+as 45 min after ATA last sector.";"The completion of the post flight operations, which is quantified
+as 60 min after ATA last sector.";1;General basic
+487;The maximum daily FDP may be extended due to in-flight rest for Flight Crew:;With one additional Flight Crew member up to 16 hours.;With one additional Flight Crew member up to 15 hours.;With two additional Flight Crew member up to 15 hours.;At commander discrection.;2;General basic
+488;"Neos SpA standby procedures are designed to ensure that the combination of standby
+and FDP do not    lead to more than              awake time:";21 hours;20 hours;18 hours;19 hours;3;General basic
+489;"Post flight operations are quantified in 30 min after the block time of the last
+sector:";True;False;;;1;General basic
+490;Transit time between two operational flight is quantified in:;50 min;45 min;30 min;60 min;1;General basic
+491;With visibility of           m or less the LHS must be PF for landing:;1200;1000;550;500;2;General basic
+492;Commander may permit the Copilot to carry out takeoff day or night (from the RHS only) providing:;The runway surface is normal (no slush, snow, ice or standing water);"The RVR is not below 400m or a combination of poor visibility and cross-wind is not likely to result in directional
+control difficulties for takeoff";Both answers A and B are correct;The Copilot is qualified accordingly;3;General basic
+493;When RVR is less than 400m:;"Takeoff max crosswind component permissible is 50% of
+that normally applied";Operations on wet runway are not permitted;Operations on contaminated runway are not permitted;Separation between aeroplane is increased by 50%;1;General basic
+494;If after passing 1000ft the tower report that RVR is dropped below minima the crew should:;Discontinue immediately the approach and perform the missed approach procedure;Continue the approach to the Middle Marker but landing is not permitted unless the RVR increased above the minima;"Continue the approach down to the applicable minima and
+land if the required visual reference are obtained otherwise execute the published missed approach";RVR has no influence on the continuation of the approach at any time;3;General basic
+495;"Compliance with published noise abatement takeoff/approach/landing
+procedures should not be required in adverse operating conditions:";True;False;;;1;General basic
+496;"B-RNAV operations require an accuracy in the designated airspace of
+plus/minus           nm:";0,02;0,5;2;5;4;General basic
+497;Flying staff, flight dispatcherr and load planners, working for Operators authorized to carry dangerous goods, need to be aware?;"General Philosophy, Limitations, List of Dangerous goods, Provisions for passengers and crew, labelling and marking, storage and loading procedures, NOTOC,
+Emergency procedures.";General Philosophy, Limitations, Provisions for passengers and crew, Documentation from the shipper, Loading, restrictions on loading and segregation.;Provisions for passengers and crew, labelling and marking, Emergency procedures, Classification and list of Dangerous Goods.;;1;Dangerous Goods
+498;How are the passengers informed of the regulations?;Info on the ticket, info at check in desk, info at boarding area, displayed outside the airport.;"Info on the ticket, notices that contain visual
+representation of those items which are forbidden displayed at check in desk, info at boarding area.";"info at check in desk, info on board, displayed at any
+location at the airport, notices displayed on the boarding card.";;2;Dangerous Goods
+499;What is the definitions of Dangerous Goods?;Article or substances which are capable of posing a risk to health, safety, property or the environment and which are shown in the DG list contained in the IATA DGR or which are classified i.a.w. DGR.;Article or substances which are capable of posing a risk to health, safety, security or the environment, forbidden for air transport and which are shown in the DG list in DGR or which are classified i.a.w. DGR.;Article or substances which are capable of posing a risk to health, safety, security or the flight and which are shown in the DG list in DGR or which are classified i.a.w. DGR but that can be transported as cargo.;;1;Dangerous Goods
+500;Recurrent training is required within how many months of previous training?;12;24;36;;2;Dangerous Goods
+501;"For an alcoholic beverage 65% alcohol by volume not exceeding 5L, does the
+passenger need the approval of the operator?";Yes;No;"Only if the quantity is more than 6 liters and not in retail
+packages.";;2;Dangerous Goods
+502;Give the appropriate class or division number for Flammable liquid:;2;3;4;;2;Dangerous Goods
+503;Give the appropriate class or division number for the Organic peroxide:;3;5,2;1,2;;2;Dangerous Goods
+504;How many divisions and how many labels are there in class 6?;1;2;3;;2;Dangerous Goods
+505;Power banks are considered as?;"Special Banks where deposits can give high interest rates
+.";Batteries, spare/loose containing lithium.;Portable electronic devices.;;2;Dangerous Goods
+506;May a passenger take, in carry-on baggage, two 750 mL hair spray aerosols?;Yes;No;Yes, but the approval from the operator is required;;2;Dangerous Goods
+507;"For the Small oxygen cylinders (medical use), does the passenger need the
+approval of the operator?";Yes, the cylinder must not exceed 5 kg gross weight.;No, permitted on one’s person.;"No, because this transport is not
+allowed.";None of the above.;1;Dangerous Goods
+508;"Should the pilot in command be notified for the wheelchair with a spillable
+battery:";yes;No;No, only to the ramp agent;"Individually protected and can be used in flight prior
+Captain permission,";1;Dangerous Goods
+509;Which packing group represents the greater danger:;I;II;III;All packing group are dangerous.;1;Dangerous Goods
+510;What CAO label stands for:;Air Operator Certificate;Cargo Aircraft Only;Cabin Assistant Only;Civil Aviation Organization;2;Dangerous Goods
+511;What stands NOTOC for and what is its purpose?;"Notification to Captain providing information on the DG
+loading";No Transport On Cabin;Notice of Carriage including special loads;"Notice to the Commander on the items contained in the
+ULD";1;Dangerous Goods
+512;May a passenger transport lithium ion batteries (Spare) in checked baggage?;Yes.;No.;Only if used for personal training.;With the approval of the Operator.;2;Dangerous Goods
+513;E-cigarettes containing batteries according to Neos S.p.A. regulations must be:;Individually protected and can be used during the flight.;Not allowed on board.;"Individually protected and are permitted in carry-on
+baggage only.";;3;Dangerous Goods
+514;"Maximum quantity for carbon dioxide, solid (dry ice) per person when used to
+pack perishables is:";5 kg.;2.5 kg.;Approval of the Operator and 2.5 lb.;2.5 kg with the approval of the Operator.;4;Dangerous Goods
+515;A passenger aeroplane has a Class C cargo compartment  that means:;"There is a separate approved smoke detector or fire detector system to give warning to the flight deck, built-in fire extinguishing system, there are means of excluding hazardous quantities of smoke/flames from any compartment occupied by the passengers; there are
+means of controlling ventilation.";It can be loaded with ULDs only and there are no fire extingushers.;It is only for Cargo aeroplanes and the fire is confined in the area by closing ventilation and there are no fire extinguishers.;None of the above.;1;Dangerous Goods
+516;"If using an ULD (Unit load device) to transport Dangerous Goods,  which
+indications should be provided?";A label attached indicating point of departure and arrival.;"Hazard labels on the exterior indicating that dangerous
+goods are contained.";Approval of the Operator label.;CAO label and “Keep away from heat” label.;2;Dangerous Goods
+517;"Live animals should not be loaded in close proximity to cryogenic liquids or dry
+ice.";Only cats and dogs are allowed.;True. A level above packages containing dry ice.;Approval of the Operator is required.;No special instructions if the journey is less than 24 hours;2;Dangerous Goods
+518;"Wheelchairs or other battery-powered mobility aids with non-spillable batteries
+must be loaded:";As checked baggage only.;"Battery disconnected, as checked baggage only and
+approval of the Operator.";"Approval of the Operator label and in the cargo
+compartment.";"In a special suitcase, insulated and with “Battery-Powered
+Wheelchair” label.";2;Dangerous Goods
+519;Dangerous Goods  are listed in the DGR Manual using…?;Correct chemical name and number.;"Assigned UN numbers and proper shipping names according to their
+hazard classification and composition.";"Packaging type and number suitable to protect from damage,
+properly labelled.";"Dangerous Goods are listed in the Blue pages of the DGR Manual
+by Class and ERG Code.";2;Dangerous Goods
+520;Dangerous Goods/Inspection Kit is carried in the passengers cabin and consist of:;"Protective gloves (1 pair), Plastic bags (5), Tie wraps (8), security seals (5), aeroplane emergency response drills (1
+page).";"Plastic gloves (1 pair), Plastic bags (5), Tie wraps (8), security seals (5), aeroplane emergency response drills (1
+page), 1 alcohol bottle.";"Protective gloves (1 pair), Plastic bags (5), Tie wraps (8), security seals (5), aeroplane emergency response drills (1
+page), Tri-fold scrab cutter.";None of the above.;1;Dangerous Goods
+521;"Neos is authorized to carry Dangerous Goods on its aeroplanes. Does the
+authorization include Radio Active materials?";Yes.;No.;Only if the transport is for medical use.;None of the above.;2;Dangerous Goods
+522;Segregation of packages means:;Dangerous goods should be place in quarantine before loading.;Exposure to the sunlight should be avoid;"Packages containing DG which might react dangerously with each other, must not be stowed next to each other or in a position that would allow interaction between them in
+the event of leakage.";Separation from Dangerous Goods and normal cargo requirements due to non compatibility;3;Dangerous Goods
+523;Radioactive materials are identified by handling label under Class:;6;7;9;No special label;2;Dangerous Goods
+524;Emergency Response Guidance for Aircraft Incidents Involving Dangerous Goods is a:;Special procedure coordinated with Ministry of Transport to deal with Emergency involving dangerous goods.;"So called “RED BOOK”, ICAO publication containing emergency information for flight crew in relation to
+Dangerous Goods.";Company publication used as a guidance in case of Dangerous Goods incidents/accidents.;B is correct and the ICAO Publication is on board Neos aeroplanes (Flight deck).;4;Dangerous Goods
+525;In case of an emergency involving Dangerous GOODS flight crew must:;Count until 10 before doing anything then follow checklist.;"Follow aeroplane emergency procedures for fire or smoke removal, NO SMOKING sign ON, consider landing as soon as possible, determine emergency response drill
+code (from Red Book)";"Verify nature of the emergency, coordinate with Cabin Crew the type of Dangerous Goods. Verify drill code before diverting to an airport. Inform ATC about number of
+passenger and meals on board.";"Send a message of distress, inform Cabin Crew to   prepare the aeroplane for an Emergency landing or ditching. Switch off non essential cabin equipment, instruct
+fire fighting team not to open any door.";2;Dangerous Goods
+526;When finding an undeclared or mis-declared dangerous goods in the aeroplane, the Operator must:;Inform Company Operations, Safety and Compliance Monitoring as soon as possible.;Inform Dangerous Goods training Manager and Safety Manager.;No special procedure, send a report to CAA and Airport Authorities after landing.;Make a report to the appropriate authorities of the State of the Operator and the State in which this occurred.;4;Dangerous Goods
+527;Which form should be used by Neos Flying Staff to report an occurrence related to Dangerous Goods?;Confidential report;ASR marking the appropriate box DG and the DG occurrence report.;Corrective Action Report giving a description of the incident/accident.;Make an entry on the TLB and fill in the ASR marking the dedicated box DG and submit the DG occurrence report.;4;Dangerous Goods
+528;Aircraft Emergency Response Drills can be found in the:;Operation Manual Part A.;CAM, AFM, IATA Manuals.;OM Part A, ICAO doc 9481, Dangerous Goods Kit.;;3;Dangerous Goods
+529;For a drill code nr 6, what kind of risks you can expect?;"Dangerous goods should be placed away from
+passengers; fire fighting team must wear the PBE and use gloves due to the toxicity; water contamination.";Exposure to toxic gasses, possible fire, contamination of air conditioning system, contamination of crew meals.;Toxicity, aeroplane contamination, fatal injury if ingested, possible abrupt loss of pressurization.;Low risk, use 100% oxygen, no other effects.;3;Dangerous Goods
+530;"Is a passenger or crew member allowed to carry safety matches on board an
+aircraft, and if so where must they be carried?";Never.;In the checked baggage and carry on baggage.;Dangerous Goods Kit.;Permitted only on one’s person.;4;Dangerous Goods
+531;Immediately upon opening the cargo compartment after arrival, the ramp staff advise that a package containing flammable liquid is leaking. What actions are required?;Follow checklist for ground incidents and notify Fire brigade about the leakage. Do not smoke inside the cargo.;"Where safe to do so, the package should be removed  from the aeroplane. Emergency services must be notified. Precautions against fire must be taken.  An entry must be made in the maintenance log, to ensure that the cargo compartment is inspected for damage or contamination and that any contamination is removed. A full report of the incident must be submitted in accordance with company
+procedures.";Verify nature of the goods, coordinate with Cabin Crew and ground staff the type of fire extinguisher that should be used. Advise Airport authorities of the incident.;Advise the ground staff as soon as possible and be prepared for a deplane. Notify airport authorities and medical services. Fill in a report within 72 hours from the time the incident occurred.;2;Dangerous Goods
+532;When transporting “COMAT” do you need to perform an acceptance checklist?;Never.;Only if transporting class 3 dangerous goods.;If the shipment destination is Tortola (BVI).;"Yes, the shipment must not be allowed to travel without a
+full acceptance check.";4;Dangerous Goods
+533;"Packages to be loaded on a cargo aeroplane must be loaded so they are
+accessible. What does “accessible” mean?";In an easy position to be downloaded.;Separated from the passenger luggage.;Easy to handle and not sealed to be easily inspected.;"Packages can be seen, handled and when size and weigh
+permits, separated from other cargo in flight.";4;Dangerous Goods
+534;Dangerous Goods in Operator property can include but are not limited to:;Batteries, Meals, dry ice, fuel, vending machines.;Fire extinguishers, fuel, oil, first aid kits.;Duty free items, alcoholic drinks, fuel, batteries, lap tops.;"Batteries, fire extinguishers, first-aid kits, life saving appliances, portable oxygen supplies, insecticides/air
+fresheners, PEDs.";4;Dangerous Goods
+535;What is a POC ?;Point of contact.;"Portable Oxygen Concentrators: a device for medical use that removes nitrogen from the air increasing the oxygen
+content of the resulting air up to 96%.";Spare parts of the aeroplane.;Portable oxygen supply, included in the first-aid kit.;2;Dangerous Goods
+536;"Which kind of permission is required for the Carriage of weapons , munitions of
+war?";FOPH approval, CAA approval.;IATA permission and PPR.;"Over-Flight Permission given by any State intended to be
+overflown.";;3;
+537;May a passenger carry any weapon on board Neos aeroplanes?;Only if he/she is a Police member .;Not permitted.;Commander must be notified.;Answer a and c are correct.;4;Dangerous Goods
+538;"Each lavatory has a Water Supply selector Valve, the Water Supply selector
+Valve has four positions, and is located:";In the forward galley next to the door 1R;In the aft galley;In the forward cabinet below the sink;In each cabinet below the sink;4;Safety
+539;The water supply selector valve has four position:;SUPPLY/DRAIN - ONLY AFT - ONLY FWD - SHUTOFF;"SUPPLY/DRAIN - ONLY GALLEY - ONLY TOILET -
+SHUTOFF";SUPPLY/DRAIN - UP - DOWN - SHUTOFF;"SUPPLY/DRAIN - ONLY FAUCET - ONLY TOILET -
+SHUTOFF";4;Safety
+540;"The lavatory temperature indicator has dots sensible to the temperature, when it increase between 76° and 79°C they change color. Select the correct
+sentence:";Green normal temperature, red over temperature;Gray normal temperature, black over temperature;Green normal temperature, black over temperature;Gray normal temperature, red over temperature;2;Safety
+541;"About the lavatory fire extinguisher system, if the extinguisher nozzles should become discolored, both the fire extinguisher and the temperature indicator
+must be replaced:";True;False;;;1;Safety
+542;The Overwing Emergency Exits are commanded locked when three conditions are met. If DC power is lost what happen to the Overwing Emergency Exits?;Unlock and can be opened;Remain locked until DC power is restored;They’re indipended from DC power because they are AC powered;Unlock if engine or APU fire warning switch have been pulled;1;Safety
+543;The optimum fire fighting distance for Halon fire extinguisher usage is:;0,5 meter from the fire;1 meter from the fire;5 meters from the fire;1,5 to 2 meters from the fire;4;Safety
+544;"Yellow adult life vest are stowed under each passenger seat. In addition, there
+are           spare life vests on board the aeroplane:";5;7;10;13;3;Safety
+545;In the Neos S.p.A. B737-800 are located a total of         Halon Fire Extinguisher:;5;3;4;6;3;Safety
+546;In the Neos S.p.A. B737-800 are located a total of         Water Fire Extinguisher:;1;2;3;4;1;Safety
+547;"In the Neos S.p.A. B737-800 are located a total of         Protective Breathing
+Equipment (PBE):";5;6;7;8;2;Safety
+548;"The phrase “Attention: Crew on Station!” means: 1) Go to assigned CA stations immediately. 2) Show increased attention. 3)                      .  4) Wait further
+commands. Select the correct statement for the point 3::";Start an evacuation;None of the answers is correct;Report immediately to the CA1;Report immediately to the Flight Crew.;2;Safety
+549;"Approximately the touchdown is expected in       min after the phrase “Attention
+Crew: On Station”";4;3;None of the answers is correct;1;3;Safety
+550;"In case of an emergency with time to touchdown in excess of 30min the phrase
+will be announced by the Flight Crew:";Prepare for emergency landing/ditching;Passenger evacuation;Attention crew on station;N°1 to flight deck;4;Safety
+551;In the event of passenger evacuation (land)  what action will the F/O perform after completing the appropriate Non-Normal Checklist?;Help to evacuate at the Door 1R;Take a flashlight, open door 1R (if not yet opened) leave the aeroplane through door 1R, move the passenger away from the aeroplane ,give assistance;"Take a flashlight, open door 1R (if not yet opened) leave the aeroplane just before the Commander through door 1R, move the passenger away from the aeroplane, give
+assistance";Collect all documents, exit immediately the aeroplane and reach the nearest authority office;2;Safety
+552;"The Cabin oxygen system provide oxygen for the passenger from a chemical oxygen generator located in the overhead modular compartment. Each unit has
+masks and will last for approximately          :";4 masks, 12 min;4 masks, 9 min;3 masks, 9 min;3 masks, 12 min;1;Safety
+553;The passenger oxygen system provide protection against smoke:;True;False;;;2;Safety
+554;The oxygen generator surface temperature may reach 260°C:;True;False;;;1;Safety
+555;In the event of the passenger evacuation (sea) what action will the F/O perform after completing the appropriate Non-Normal Checklist?;Help to evacuate at the Door 1R;Take a flashlight, open door 1R (if not yet opened), inflate life vest, leave the aeroplane through door 1R, move the passenger away from the aeroplane, give assistance;"Take a flashlight, open door 1R (if not yet opened) leave the aeroplane just before the Commander throught door 1R, move the passenger away from the aeroplane, give
+assistance";Collect all documents, exit immediately the aeroplane and reach the nearest authority office;2;Safety
+556;In the event of the passenger evacuation (land) what action will the Commander perform after completing the appropriate Non-Normal Checklist?;Help to evacuate at the Door 1R;"Take a flashlight, proceed to the main cabin and, if evacuation is not complete give help, check cabin clear, leave the aeroplane from any suitable exit and direct passenger away from aeroplane, give assistance as
+necessary";Take a flashlight, proceed to the main cabin and, if evacuation is not complete give help, leave the aeroplane from any suitable exit and direct passenger away from aeroplane, give assistance as necessary;Leave the aeroplane through any available exit;2;Safety
+557;In the event of the passenger evacuation (water) what action will the Commander perform after completing the appropriate Non-Normal Checklist?;Help to evacuate at the Door 1R;"Take a flashlight, proceed to the main cabin and, if evacuation is not complete give help, check cabin clear, inflate life vest, leave the aeroplane from any suitable exit and direct passenger away from aeroplane, give
+assistance as necessary";Take a flashlight, proceed to the main cabin and, if evacuation is not complete give help, leave the aeroplane from any suitable exit and direct passenger away from aeroplane, give assistance as necessary;Leave the aeroplane through any available exit;2;Safety
+558;"During deplane with stairs or finger its mandatory for the passenger to take
+their hand baggage with them:";True;False;;;1;Safety
+559;The difference between an emergency evacuation and a deplane is:;"Only after selected non-normal checklist is possible to
+perform the deplane";Deplane procedure is not recommended;"Deplane must be performed purely as a precautionary
+measure";"Deplane differ from emergency evacuation because is
+ordered by CA1";3;Safety
+560;Deplane, select the correct statement:;Can be performed when instructed by the tower;"Follow a situation where the aeroplane must be vacated
+purely as precautionary measure";Can be performed only through overwing emergency exit;Deplane procedures is not an approved procedure;2;Safety
+561;"When performing deplane through slides the passengers should jump onto the
+slides instead sit down:";True;False;;;2;Safety
+562;"The command ""Brace, Brace"" is announced by the Flight deck when:";Before landing at about 1500 ft agl;After landing;Before an evaquation;Before landing at about 500ft agl;4;Safety
+563;"If the causing condition of an emergency come to an end, the Commander will
+make following announcement:";Cancel alert;End of emergency;Resume normal operation;N°1 to the cockpit;1;Safety
+564;During refueling with passengers on board 1 pilot must stay in flight deck:;True;False;;;1;Safety
+565;"During refueling with passengers on board the door 1L must be open with stair
+or jetways in position:";True;False;;;1;Safety
+566;During refueling with passengers on board door 1R and 3R must be:;Open with a stair connected or closed with slides armed;Closed with slides not armed;"Open (1R) with stair or jetway connected and closed (3R)
+with slides armed";Closed with slides armed;4;Safety
+567;During refueling with passengers on board at least minimum Cabin Crew must be in position (one CA for each door) only if door are closed with slides armed:;True;False;;;2;Safety
+568;"During refueling with passengers on board the only condition that permits to
+keep the door 1R and 3R open is for catering operations with the truck connected:";True;False;;;2;Safety
+569;Heat resistant gloves: select correct statement;"Are located in the flight deck and in the cabin near fire
+extinguishers and can protect up to 400°C";Are located only in the cargo area;"Are located in the flight deck and in the cabin near fire
+extinguishers and can protect up to 200°C";"Are located in the flight deck near fire extinguishers and
+can protect up to 200°C";1;Safety
+570;Regarding Halon fire extinguisher, uninterrupted discharge time is:;1min;30sec;5min;8-10sec;4;Safety
+571;Regarding Water fire extinguisher, uninterrupted discharge time is:;1-2min;30-45sec;5-10min (depending on the cabin altitude);6-10sec;2;Safety
+572;"Protective Breathing Equipment (SCOTT type) once activated will provide
+oxygen supply and smoke and toxic air protection for:";5min;10min;15min;24min;3;Safety
+573;Flashlight battery will provide at lest             hours of light operation:;1;2;3;4;4;Safety
+574;Flashlight battery charge can be checked by observing the red condition light. Indications of a fully charged battery is:;Flashes at 3sec interval;Flashes at 4sec interval;Flashes at 10sec interval;Flashes at 9sec interval;2;Safety
+575;"Flashlight battery charge can be checked by observing the red condition light.
+Indications of a battery to be renewed is:";Flashes at 3sec interval;Flashes at 4sec interval;Flashes at 10sec interval;Flashes at 9sec interval;3;Safety
+576;Once the mask have dropped and the generator activated...;Can be stopped by closing the oxygen mask door;Cannot be stopped;"Can be stopped by switch located at the fwd Cabin
+Attendant station";"Can be stopped by switch located on the chemical oxygen
+generator";2;Safety
+577;The primary principle in dealing with a suspect object is that:;The device must be moved immediately;"The device must be moved immediately and placed in a
+safe place such as aft toilet";The device should not normally be touched;"The device must be moved immediately and placed close
+to a door";3;Safety
+578;The LRBL (Least Risk Bomb Location) is:;Near door 1L;Near door 3L;Near door 1R;Near door 3R;4;Safety
+579;In case of ditching doors 3L/R must be opened first:;True;False;;;2;Safety
+580;In case of ditching the aft door slides are taken away and opened on the wings:;True;False;;;1;Safety
+581;PRM (Passenger with Reduced Mobility) in even of evacuation:;Shall leave the aeroplane first;"Shall leave the aeroplane last with escort, who shall slide
+with them placed between their legs or receive them at the end of the slide";"Shall leave the aeroplane first with escort, who shall slide
+with them placed between their legs or receive them at the end of the slide";Shall leave the aeroplane last with escort, who shall wait with them for a stair;2;Safety
+582;"If an aeroplane due to technical problem in flight doesn’t meet anymore the two
+independent altitude measurement systems, what statement should the crew tell to the ATC:";Unable RVSM;Unable RVSM due equipment;Unable RVSM due failure;Unable RVSM due altimeter;2;RVSM / B-RNAV
+583;"If an aeroplane due to turbulence, what statement should the crew tell to the
+ATC:";Unable RVSM;Unable RVSM due weather;Unable RVSM due turbulence;Unable maintain altitude;3;RVSM / B-RNAV
+584;"Which statement should the pilot transmit to indicate that the aeroplane is
+RVSM approved following a query from the ATC:";Positive RVSM;Cleared RVSM;Auto RVSM;Affirm RVSM;4;RVSM / B-RNAV
+585;"Which statement should the pilot transmit to indicate that the aeroplane is not
+RVSM approved following a query from the ATC:";Negative RVSM;Not cleared RVSM;No RVSM;Not RVSM approved;1;RVSM / B-RNAV
+586;What are the minimum operational equipment required by RVSM?;2 independent altitude measurement systems;"One secondary surveillance measurement radar transponder, with altitude reporting that can be connected to the altitude measurement system in use for altitude keeping one automatic alerting system and one automatic
+altitude control system";One automatic alerting system and one automatic altitude control system;All the answers are correct;4;RVSM / B-RNAV
+587;RVSM airspace extend vertically from:;FL 290 to FL 410 including;FL 310 to FL 400 including;FL 295 to FL 405 including;FL 300 to FL 400 including;1;RVSM / B-RNAV
+588;"Which letter indicate in the ATC flight plan that the aeroplane is RVSM
+approved?";Y;W;Y;M;2;RVSM / B-RNAV
+589;"Which statement will use ATC to query an aeroplane about the RVSM approval
+status?";Confirm aeroplane RVSM status;Confirm positive RVSM;Confirm RVSM approved;Confirm can operate in RVSM;3;RVSM / B-RNAV
+590;"Basic-RNAV defines actual European RVAN operations which satisfy a required
+“track keeping” accuracy of:";+/- 5nm for at least 95% of the flight time;+/- 0.05nm for at least 95% of the flight time;+/- 0.5nm for at least 95% of the flight time;+/- 3nm for at least 95% of the flight time;1;RVSM / B-RNAV
+591;"Operators of non-RVSM approved state aeroplane with a requested flight level of FL 290 or above shall insert ""STS/NONRVSM"" in item 18 of ICAO flight plan.";True.;False.;;;1;RVSM / B-RNAV
+592;"Flyng an RNAV SID/STAR is it permitted to change altitude/speed contraint on
+the legs page of the FMC?";Yes, but only the speed.;No, it is not permitted.;Yes, but only the altitude.;Both A and C are correct.;2;RVSM / B-RNAV
+593;"Flyng an RNAV STAR it's very important to insert the correct transition level on
+the FMC?";Yes, but only when the transition level is below 7000ft.;"No, because the FMC has always the correct transition
+level stored of procedure to be flown.";"Yes, that's because the pilots check it during the
+approach briefing.";"It is not possible to change the transition level stored on
+the FMC.";3;RVSM / B-RNAV
+594;"Flyng an RNAV SID/STAR is important that the pilots check on the proper FMC
+page that RNP 1 is shown.";True.;False.;;;1;RVSM / B-RNAV
+595;"A fly-by waypoint requires the use of turn anticipation to avoid overshoot of next
+flight segment.";True.;False.;;;1;RVSM / B-RNAV
+596;"A fly over waypoint precludes any turn until the waypoint is overflown and is
+followed by an intercept maneuver of the next flight segment.";True.;False.;;;1;RVSM / B-RNAV
+597;Is it possible to update manually the RNP number on the proper FMC page?;No, because it's a fixed data of the FMC.;"Yes,but it is not recomended because after that the
+automatic updating is inhibited until the next landing.";"Yes, it's a Neos S.p.A. S.O.P. to update it during the
+flight.";None of the answers are correct.;2;RVSM / B-RNAV
+598;What is the vertical boundary of the Oceanic Control Area (OCA)?;FL 55 to unlimited;FL 275 to FL 400;Sea Level to unlimited;FL 100 to unlimited;1;LONG HAUL - ETOPS
+599;If in Oceanic Control Area (OCA) a deliberate temporary deviation from track is required, under normal circumstances, usually to avoid severe weather…;ATC approval should be obtained;ATC approval is required only if the deviation is more than 10nm;ATC approval is NOT required;ATC approval should be obtained if below FL 280;1;LONG HAUL - ETOPS
+600;The lateral separation for aeroplanes operating outside MNPS is:;90nm;120nm;60nm;30nm;2;LONG HAUL - ETOPS
+601;"Standard longitudinal separation between turbojet aeroplanes, operating within
+MNPS airspace, provided the Mach Number Technique is applied is:";15min;10min;5min;30min;2;LONG HAUL - ETOPS
+602;"Flying in the OCA, if an immediate temporary change in the Mach Number is
+essential, ex: due to turbulence, ....";The change must be requested to ATC unit;The new estimate must be notified to ATC unit;"ATC must be notified as soon as possible that such
+change has been made";All the answers are correct;3;LONG HAUL - ETOPS
+603;If you do NOT receive the oceanic clearance from the ATC unit approaching the OCA boundary …;If you are going to enter Shanwick OCA, you must query domestic ATC and request instructions to remain clear of oceanic airspace whilst awaiting such clearance;In all NAT OCA’s, except Shanwick, you can enter whilst awaiting for a delayed oceanic clearance;If any difficulty is encountered you should NOT hold while awaiting clearance unless so directed by ATC, except entering into Shanwick OCA;All the answers are correct;4;LONG HAUL - ETOPS
+604;All RVSM airspace is defined by ICAO as “Special Qualification Airspace”.;True;False;;;1;LONG HAUL - ETOPS
+605;Which equipment should be operating normally at entry into RVSM airspace?;Two primary altitude measurement systems, one automatic altitude control system;One automatic altitude control system, one altitude alerting device;"Two serviceable independent primary altitude measuring systems, one altitude alerting system, one automatic altitude control systems, a functioning mode C SSR
+transponder";One altitude alerting device, two primary altitude measurement systems, one automatic altitude control system, one radio-altimeter;3;LONG HAUL - ETOPS
+606;"Flying within the OCA, what is the lateral separation between aeroplanes
+complying with the MNPS requirements?";120nm;60nm;90nm;50nm;2;LONG HAUL - ETOPS
+607;"Early information of ETA and Flight Level at Oceanic Boundary is of extreme importance to ATC for planning purposes. Therefore, aroplanes should, as
+routine, call Shanwick oceanic control:";Between 00° and 02° West;Between 00° and 01° West;Between 00:09 and 02:00 UTC;40 minutes before OCA entry;4;LONG HAUL - ETOPS
+608;"West bound traffic should call Shanwick/Santa Maria as soon as possible. In which order should you send the message?
+1) Mach Number
+2) OCA entry point and ETA
+3) Any change to Flight Plan affecting OCA
+4) Flight Level
+5) Call Sign
+6) The highest acceptable FL which can be maintained at the OCA entry point";1,2,3,4,6,5;4,3,1,2,5,6;3,2,4,1,5,6;5,2,1,4,3,6;4;LONG HAUL - ETOPS
+609;"If a change in the Mach Number, during your flight, is requested by Neos S.p.A.
+OCC, via Stockholm Radio you should ...";Request a new clearance to the appropriate ATC unit;Notify the new estimate to ATC unit;Report the new Destination Estimate to Malpensa OCC;All the above answers are correct;1;LONG HAUL - ETOPS
+610;What are the Vertical and Lateral dimension of MNPS airspace:;FL 285 to FL 420;"Reykjavik CTA to the North Pole; Shanwick OCA; Gander
+OCA; Santa Maria OCA";"New York OCA, North of 27°N but excluding the area
+west of 60°W and south of 38°30’N";All the above answers are correct;4;LONG HAUL - ETOPS
+611;Flying in the OCA, the longitudinal separation between aeroplanes complying with the MNPS requirements is:;10min, for Jet aeroplanes;5min, if the preceding aeroplane arriving at the Oceanic Entry Point is flying at speed Mach 0.06 greater than the following aeroplane, provided it is possible to ensure that required time interval exists at a common point;10nm, if visual separation is maintained;A and B are correct;4;LONG HAUL - ETOPS
+612;For all flights intending to operate within MNPS/RVSM airspace for any portion of their flights, which letter should be inserted in Item 10 of ATC Flight Plan?;X-W;Y-S;S-W;W-X-Y;1;LONG HAUL - ETOPS
+613;Where can you find the ETOPS approval number issued by ENAC?;"In the ""Certificato di Navigabilità"" issued by RAI";"In the AOC copy issued by ENAC, contained in the
+Aeroplane Technical Box";In the OM Part B;In the Operational Flight Plan;2;LONG HAUL - ETOPS
+614;GNE (Gross Navigation Error) is defined as a deviation from cleared track of:;20nm;25nm or more;15nm;25nm or less;2;LONG HAUL - ETOPS
+615;"How many Long Range Navigation Systems must be serviceable (B737-800) to
+enter in a MNPS Airspace?";Two FMSs and two IRSs;Two FMSs and one IRS;One IRS and one FMS;"Two IRSs and one FMC, for aeroplane equipped with
+""Standby Navigation System""";4;LONG HAUL - ETOPS
+616;Meteorological reports are mandatory flying in the Organized Track System:;It is mandatory send meteorological report at each position report, especially flying in the Organized Track System;Yes they are, but only when requested by ATC using the phrase “send met report”;Meteorological Report are at the complete discretion of the crew;"Aircraft are no longer required to provide voice reports of MET observations of wind speed and direction nor outside air temperature. Nevertheless any turbulence or other significant meteorological conditions encountered should
+be reported to ATC.";4;LONG HAUL - ETOPS
+617;"The planned Mach Number for each portion of the route within the NAT shall be
+specified in item 15 of the ATC Flight Plan.";True;False;;;1;LONG HAUL - ETOPS
+618;"From 01:00 UTC to 08:00 UTC (night time) when most of the traffic flow is
+eastbound, Track nomination is issued by ...";Gander;Shanwick;Reykjavik;New York;1;LONG HAUL - ETOPS
+619;"From 11:30 UTC to 19:00 UTC (day light time) when most traffic flow is
+westbound, Track nomination is issued by ...";Gander;Shanwick;New York;Reykjavik;2;LONG HAUL - ETOPS
+620;Peak Westbound traffic operating between 11:30 UTC and 19:00 UTC and peak Eastbound traffic between 01:00 UTC and 08:00 UTC, refer to position:;30° E;20° W;30° W;45° W;3;LONG HAUL - ETOPS
+621;"OTS Change Over Period time between Westbound NAT and East bound NAT
+is:";"08:01 UTC → 11:29 UTC     and     18:01 UTC → 00:59
+UTC";"01:00 UTC → 08:00 UTC       and       08:01 UTC → 11:29
+UTC";"11:30 UTC → 19:00 UTC       and        19:01 UTC → 00:59
+UTC";"08:00 UTC → 11:30 UTC       and       18:00 UTC → 00:01
+UTC";1;LONG HAUL - ETOPS
+622;"Having planned and filed an Organized Track, the flight is subsequently delayed
+to such an extent as to arrive at 30°W after the relevant day or night Tracks have been expired.";The original Flight Plan is expired;A new Flight Plan as to be filled nominating the same route as Random;Delay to such an extent the Track System would be activated again;It doesn’t matter: once the flight has been planned there is no need to change Flight Plan;2;LONG HAUL - ETOPS
+623;By who, and in which color the route shall be drawn in the Progress Chart;"PF draws the expected route in red and ETOPS arcs in
+yellow";PNF draws the expected route in red;"Commander draws the expected route in yellow and
+ETOPS arcs in red";"First Officer draws the expected route in red and ETOPS
+arcs in yellow";2;LONG HAUL - ETOPS
+624;Oceanic Clearance, expected to be flown into OTS, will be requested/received when first in contact with the appropriate unit. The read back must include:;Full coordinates and Flight Level;Full coordinates, Flight Level and Mach Number;Full coordinates, Flight Level, Mach Number and Spot Wind;Track Letter, Flight Level, Mach Number and Track Message Identification number (TMI);4;LONG HAUL - ETOPS
+625;"Flying in the US Airspace, how is it called the route portion between the Costal
+Fix and Inland Fix?";Common Portion;Non Common Portion;Domestic Portion;NAT Track;1;LONG HAUL - ETOPS
+626;"Flying in the USA Airspace, how is it called the route portion between the Inland
+Fix and the destination aerodrome?";Common Portion;Non Common Portion;Inland Portion;NAT Track;2;LONG HAUL - ETOPS
+627;"Eastbound flights which cross Gander Domestic FIR in high level structure
+between 23:00UTC and 08:00UTC are required";To monitor the appropriate control sector frequency;"To establish contact with “Gander Clearance Delivery”
+when within 200nm from Gander";To monitor 121.50 VHF;Answers A) and B) are correct;4;LONG HAUL - ETOPS
+628;"Flying in the NAT- MNPS airspace if the estimated time for the next position, last reported to ATC, is found to be in error by ... ? A revised estimated must
+be transmitted.";3 or more minutes;More than 3 minutes;2 or more minutes;5 minutes;1;LONG HAUL - ETOPS
+629;"What is the Transponder Code that should be set in the North Atlantic FIR
+unless otherwise instructed by ATC?";2000 westbound;3000 eastbound;2000 regardless the direction of the flight;2000 day time, 3000 night time;3;LONG HAUL - ETOPS
+630;"For non ETOPS flights (twin engine aeroplane) the route must be planned so
+that the aeroplane remains within:";60 minutes from an adequate aerodrome;60 minutes from a suitable aerodrome;90 minutes from an adequate aerodrome;90 minutes from a suitable aerodrome;1;LONG HAUL - ETOPS
+631;The forecast weather at the ETOPS alternates must meet the requirement for a suitable aerodrome at a specified time. What is the time?;"From one hour prior to the earliest possible arrival at the alternate to one hour after the latest possible arrival at the
+alternate";The aerodrome must meet suitability requirements at the time of dispatch;During the entire flight;"From one hour prior to the earliest possible arrival at the alternate to two hours after the latest possible arrival at
+the alternate";1;LONG HAUL - ETOPS
+632;In addition to the required Trip Fuel which factors are used when computing diversion fuel required for Critical Fuel Scenario (CFS)?;Emergency Descent to 10000ft, two engines level cruise of 250kt, descent to 1500ft, approach, one missed approach, approach and landing;"At the Critical Point (CP), consider simultaneous failures of: one propulsion system and the pressurization system; emergency descent to 10000ft, cruise at 10000ft, approaching the en-route alternate speed 250kt, descent to 1500ft, approach, missed approach, approach and landing";"At the Critical Point (CP), consider simultaneous failures of: one propulsion system and the pressurization system; immediate descent to 10000ft, cruise at 10000ft at one engine inoperative cruise speed, approaching the ETOPS en-route alternate descent to 1500ft, hold for 15min, approach, one missed approach, approach and landing";Emergency Descent to 10000 feet , one engine level cruise of 250kt, descent to 1500ft, approach, one missed approach, approach and landing;3;LONG HAUL - ETOPS
+633;"For Neos S.p.A. Boeing 737-800NG operations, which is for planning purposes
+the approved one-engine inoperative cruise speed?";430 KTAS;410 KTAS;290 KTAS;250 KTAS;2;LONG HAUL - ETOPS
+634;"For Neos S.p.A. Boeing 737-800NG, ETOPS Operations authorized distance
+is?";410nm;797nm;820nm;240nm;2;LONG HAUL - ETOPS
+635;Flying in NAT MNPS airspace what initial actions should be taken by the Commander of a twin engine aeroplane if one engine becomes inoperative whil on track?;The aeroplane should leave its assigned route or track at least 45° to the right or to the left whenever this is possible, climb or descent while acquiring the offset track, stop the offset at 15NM, as soon as practicable advise ATC.;Obtain ATC clearance, start descent whilst acquiring a track separated by 30nm from assigned track by turning 90° right or left and maintaining a Flight Level which differs from those normally used by 1000ft if above Flight Level 290;"If ATC clearance can not be obtained; initially minimize the descent rate to the extent that is operationally feasible; turn while descending to acquire and maintain in either direction a track laterally separated by 60nm from the assigned route or track and for subsequent level flight, a level should be selected which differs from those normally used by 1000ft if above FL 410 of 500ft if below FL 410";Obtain a revised clearance prior initiating any action;1;LONG HAUL - ETOPS
+636;Flying in the Nat MNPS airspace, unless otherwise cleared by ATC, a further turn towards the alternate aerodrome should not be commenced until the aeroplane can maintain a Flight Level which differs from those normally used;1000ft if above Flight Level 290;500ft if above Flight Level 290 or 1000ft if below Flight Level 290;Pilot discretion;Climb or descent 1000ft above Flight Level 410 or 500ft if below Flight Level 410;4;LONG HAUL - ETOPS
+637;Flying in NAT MNPS airspace select the correct statement:;20min after entering the OCA select Transponder 2000;30min after entering the OCA select Transponder 2000;20min after entering the OCA select Transponder 2200;20min after entering the OCA select Transponder 7600;2;LONG HAUL - ETOPS
+638;Choose the correct OCA boundaries:;"Shanwick Gander N45°W30° NewYork SantaMaria
+N45°W40°";"Shanwick Gander N30°W45° NewYork SantaMaria
+N30°W45°";"Shanwick Gander N40°W30° NewYork SantaMaria
+N40°W40°";"Shanwick Gander N40°W40° NewYork SantaMaria
+N40°W30°";1;LONG HAUL - ETOPS
+639;"Choose the items which have the greatest influence on the allowable ETOPS
+diversion distance:";"Weight at the time of diversion and chosen ETOPS one
+engine cruise speed";"ETOPS diversion time and chosen ETOPS one engine
+cruise speed";"ETOPS diversion time and aeroplane altitude at the time
+of the engine failure";"ETOPS diversion time and chosen ETOPS two engine
+cruise speed";2;LONG HAUL - ETOPS
+640;Choose the best description of a suitable aerodrome:;A suitable aerodrome is an adequate aerodrome that the airline chooses to use for its ETOPS operations;A suitable aerodrome is an adequate aerodrome with weather reports or forecast or any combination there of, indicating that the weather conditions are at or above operating minima and the field conditions reports indicate that a safe landing can be accomplished;A suitable aerodrome is an adequate aerodrome with weather conditions above minimums;A suitable aerodrome is an adequate aerodrome with forecast weather above minimums;2;LONG HAUL - ETOPS
+641;Choose the best description of adequate aerodrome;An adequate aerodrome is any aerodrome along ETOPS route;An adequate aerodrome is an adequate aerodrome with weather reports or forecast or any combination there of, indicating that the weather conditions are at or above operating minima and the field conditions reports indicate that a safe landing can be accomplished;An adequate aerodrome is an aerodrome, which the operator and the authority consider to be adequate, having regard to the performance requirements applicable at the expected landing weight;An adequate aerodrome is an aerodrome with forecast weather above minimums;3;LONG HAUL - ETOPS
+642;Choose the best description of EQUAL TIME POINT (ETP):;"Is a point on the aeroplane diversion route which is  located at the same flying time from two suitable diversion
+aerodromes";"Is a point on the aeroplane diversion route which is located at the same flying time from two adequate
+diversion aerodromes";Is a point on the aeroplane route which is located at the same flying time from two suitable diversion aerodromes;"Is a point on the aeroplane diversion route which is  located at the same flying time from one suitable diversion
+aerodromes";3;LONG HAUL - ETOPS
+643;Flying in Nat MNPS airspace you experience a complete failure of all navigation systems computers, state the correct procedure:;Divert immediately to the nearest aerodrome;Climb 1000ft or descent 500ft;Climb 1000ft or descent 500ft draw the cleared route, use the basic IRS/GPS outputs to adjust heading, every 15min plot position on the chart;"Draw the cleared route on a chart and extract mean true tracks between waypoints, use the basic IRS/GPS outputs to adjust heading to maintain mean track and to calculate ETA’s, at intervals of not more than 15min plot position(LAT/LONG) on the chart and adjust heading to
+regain track.";4;LONG HAUL - ETOPS
+644;Flying in NAT MNPS airspace you experience a wake turbulence…;Divert immediately to the nearest aerodrome;"If considered necessary, the pilot may offset from cleared track by up to a maximum of 2nm ATC should be advise and the aeroplane should be returned to cleared track as
+soon as the situation allows.";Climb 1000ft or descent 500ft;All the answers are correct;2;LONG HAUL - ETOPS
+645;"Critical Point (CP): Is the point on the aeroplane route which is critical with regards to the ETOPS FUEL REQUIREMENTS. The CP is usually but not
+always, the last ETP within the ETOPS SEGMENT.";True;False;;;1;LONG HAUL - ETOPS

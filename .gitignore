@@ -19,6 +19,7 @@ data/manuals-local/*
 !data/manuals-local/
 !data/manuals-local/manuals-manifest.example.json
 data/generated/*.json
+!data/generated/questions.json
 data/generated/*.sql
 data/generated/manual_chunks_sql_parts/
 !data/generated/manual_documents_seed_v5_3.sql

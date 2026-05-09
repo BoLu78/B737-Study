@@ -162,9 +162,9 @@ The dashboard is focused on the core study actions only:
 
 Topic selection lives in the Topics page so the dashboard does not show a partial or confusing topic list.
 
-Topic performance is stored locally in the browser using completed practice sessions. Supabase remains the source for the question database; no Supabase progress tables are required.
+Topic performance is stored locally in the browser using completed practice sessions. No Supabase progress tables are required.
 
-Supabase stores shared question and manual reference data. Personal progress, topic results, studied counts, accuracy, final test session state, and wrong-answer review state stay in the current browser/device only. Sharing the app link does not mix results across different devices or browser profiles. Results can mix only when people use the same browser profile on the same device.
+The active question bank is generated from `data/import/questions.csv` with `npm run build:questions`. The CSV is the canonical source; `data/import/questions.xlsx` is only a backup/editing source and is not imported at runtime. The old PDF-derived generated data is no longer used by the app. Supabase still stores manual reference data. Personal progress, topic results, studied counts, accuracy, final test session state, and wrong-answer review state stay in the current browser/device only. Sharing the app link does not mix results across different devices or browser profiles. Results can mix only when people use the same browser profile on the same device.
 
 Visible question IDs use the original NEOS PDF/table source ID (`source_id`) rather than the internal Supabase row ID. The database row ID stays internal for storage and UI keys only. To verify imported source ID coverage, run:
 
@@ -188,9 +188,10 @@ Final Test uses randomized selection instead of the first questions in the datab
 
 Manuals are secondary support. Use Manual References and Raw Manual Chunk Search outside the question flow to find official manual/page references, then verify in the private manual PDF.
 
-Original Supabase question records are not automatically modified by display cleanup. To inspect imported text quality, run:
+Generated question records are not automatically written back to Supabase. To rebuild and inspect imported text quality, run:
 
 ```bash
+npm run build:questions
 npm run questions:test-cleaner
 npm run questions:audit-text
 ```

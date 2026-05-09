@@ -13,7 +13,7 @@ import { getCanonicalTopic } from '../src/utils/topicNormalizer.js'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..')
-const localQuestionsPath = path.join(repoRoot, 'data/generated/t73_r01_questions.json')
+const localQuestionsPath = path.join(repoRoot, 'data/generated/questions.json')
 
 function assert(condition, message) {
   if (!condition) {
@@ -22,7 +22,7 @@ function assert(condition, message) {
 }
 
 function getQuestionKey(question) {
-  return String(question.source_id ?? question.sourceId ?? question.id ?? '')
+  return String(question.sourceId ?? question.id ?? '')
 }
 
 function hasDuplicates(questions) {
@@ -43,8 +43,7 @@ async function loadLocalQuestions() {
 
     return rows.map((row) => ({
       ...row,
-      id: row.source_id,
-      sourceId: row.source_id,
+      sourceId: row.id,
       topic: getCanonicalTopic(row.topic),
       status: row.status || 'active',
     }))

@@ -1,13 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
+import generatedQuestionBank from '../data/generated/questions.json'
 import {
   countManualChunks,
   createSignedManualUrl,
   getCurrentSession,
-  isSupabaseConfigured,
   loadManualChunksSearch,
   loadManualDocuments,
-  loadQuestionsFromSupabase,
   onAuthStateChange,
   signInWithEmailPassword,
   signOut,
@@ -23,14 +22,13 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v7.7'
-const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v1'
-const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v1'
-const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v1'
-const MARKED_QUESTIONS_STORAGE_KEY = 'b737StudyMarkedQuestions_v1'
+const APP_VERSION = 'v8.2'
+const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
+const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
+const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
+const MARKED_QUESTIONS_STORAGE_KEY = 'b737StudyMarkedQuestions_v8_2'
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
-const DATA_SOURCE_SUPABASE = 'Supabase'
-const DATA_SOURCE_FALLBACK = 'Local fallback'
+const DATA_SOURCE_GENERATED = 'CSV question bank'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
 const ANSWER_KEYS = ['A', 'B', 'C', 'D']
 const PLACEHOLDER_ANSWERS = new Set(['not applicable', 'n/a', 'na'])
@@ -65,74 +63,30 @@ const EMPTY_ADMIN_FORM = {
   difficulty: 'normal',
 }
 
-const RAW_FALLBACK_QUESTIONS = [
-  {
-    id: 'AS-01',
-    topic: 'Air System',
-    question: 'Which component regulates cabin pressure by modulating outflow air?',
-    answers: ['Outflow valve', 'Pack heat exchanger', 'Ram air inlet', 'Recirculation fan'],
-    correctAnswer: 0,
-    explanation:
-      'The outflow valve controls cabin pressure by releasing bleed air from the cabin at a controlled rate.',
-    status: 'active',
-  },
-  {
-    id: 'FC-02',
-    topic: 'Flight Controls',
-    question: 'What is the primary function of the trailing edge flaps during takeoff?',
-    answers: ['Increase lift', 'Reduce drag', 'Stabilize yaw', 'Lock spoilers'],
-    correctAnswer: 0,
-    explanation:
-      'Trailing edge flaps increase wing camber and lift at lower speeds during takeoff and landing.',
-    status: 'active',
-  },
-  {
-    id: 'FU-03',
-    topic: 'Fuel',
-    question: 'Which tank is typically used first on the B737 to maintain aircraft balance?',
-    answers: ['Center tank', 'Left main tank', 'Right main tank', 'Auxiliary tank'],
-    correctAnswer: 0,
-    explanation:
-      'The center tank is normally drained first to maintain an optimal lateral balance and CG.',
-    status: 'active',
-  },
-  {
-    id: 'HY-04',
-    topic: 'Hydraulics',
-    question: 'How many hydraulic systems provide primary flight control power on the B737?',
-    answers: ['Two', 'Three', 'One', 'Four'],
-    correctAnswer: 1,
-    explanation:
-      'The B737 uses three hydraulic systems (A, B, and standby) for primary flight control power.',
-    status: 'active',
-  },
-  {
-    id: 'LM-05',
-    topic: 'Limitations',
-    question: 'Which limit must be observed for maximum landing weight?',
-    answers: ['Structural limit', 'Cabin pressure limit', 'Engine oil limit', 'Flap speed limit'],
-    correctAnswer: 0,
-    explanation:
-      'Maximum landing weight is a structural limitation to ensure the airframe is within certified landing loads.',
-    status: 'active',
-  },
-  {
-    id: 'ET-06',
-    topic: 'Long Haul / ETOPS',
-    question: 'ETOPS planning is most critical for flights that operate beyond what point?',
-    answers: ['60 minutes from diversion airport', '70 feet AGL', 'Below FL200', 'During taxi'],
-    correctAnswer: 0,
-    explanation:
-      'ETOPS rules apply when the aircraft is beyond the maximum diversion time to a suitable alternate airport.',
-    status: 'active',
-  },
-]
+const GENERATED_QUESTIONS = generatedQuestionBank.map((question) => {
+  const correctAnswerLetter = String(question.correct || '').trim().toUpperCase()
+  const correctAnswerIndex = ANSWER_KEYS.indexOf(correctAnswerLetter)
+  const answers = ANSWER_KEYS.map((key) => question.options?.find((option) => option.key === key)?.text || '')
 
-const FALLBACK_QUESTIONS = RAW_FALLBACK_QUESTIONS.map((question) => ({
-  ...question,
-  rawTopic: question.topic,
-  topic: getCanonicalTopic(question.topic),
-}))
+  return {
+    id: question.id,
+    sourceId: question.id,
+    rawTopic: question.topic,
+    topic: getCanonicalTopic(question.topic),
+    subtopic: null,
+    question: question.question,
+    answers,
+    options: question.options || [],
+    correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : 0,
+    correctAnswerLetter,
+    explanation: '',
+    manualReference: null,
+    sourceDocument: 'questions.csv',
+    sourcePage: null,
+    status: 'active',
+    difficulty: null,
+  }
+})
 
 function buildAdminFormFromQuestion(question) {
   return {
@@ -215,6 +169,22 @@ function isPlaceholderAnswer(answerText) {
 
 function normalizeQuizOptions(question) {
   const correctAnswerKey = getCorrectAnswerKey(question)
+  if (Array.isArray(question?.options) && question.options.length > 0) {
+    return question.options
+      .map((option) => {
+        const key = String(option.key || '').trim().toUpperCase()
+        const originalIndex = ANSWER_KEYS.indexOf(key)
+        const text = cleanAnswerText(option.text)
+
+        if (!ANSWER_KEYS.includes(key) || !text || (isPlaceholderAnswer(text) && key !== correctAnswerKey)) {
+          return null
+        }
+
+        return { key, text, originalIndex }
+      })
+      .filter(Boolean)
+  }
+
   const answers = Array.isArray(question?.answers) ? question.answers : []
 
   return ANSWER_KEYS.map((key, originalIndex) => {
@@ -412,10 +382,10 @@ function createManualChunkExcerpt(text, query) {
 }
 
 function App() {
-  const [questions, setQuestions] = useState(FALLBACK_QUESTIONS)
-  const [isLoading, setIsLoading] = useState(true)
+  const [questions] = useState(GENERATED_QUESTIONS)
+  const [isLoading] = useState(false)
   const [loadError, setLoadError] = useState(null)
-  const [dataSource, setDataSource] = useState(DATA_SOURCE_FALLBACK)
+  const [dataSource] = useState(DATA_SOURCE_GENERATED)
   const [view, setView] = useState('dashboard')
   const [selectedTopic, setSelectedTopic] = useState('')
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -467,33 +437,18 @@ function App() {
   const [manualChunksCount, setManualChunksCount] = useState(null)
   const [hasManualSearchRun, setHasManualSearchRun] = useState(false)
 
-  const applyDatabaseResult = useCallback((data, error) => {
-    if (error || !data) {
-      setQuestions(FALLBACK_QUESTIONS)
-      setDataSource(DATA_SOURCE_FALLBACK)
-      setLoadError(error || 'Unable to load questions from Supabase.')
-      setIsLoading(false)
-      return
-    }
-
-    setQuestions(data)
-    setDataSource(DATA_SOURCE_SUPABASE)
-    setIsLoading(false)
-  }, [])
-
   useEffect(() => {
     let isMounted = true
 
     const loadInitialData = async () => {
-      const [{ data, error }, manualResult] = await Promise.all([
-        loadQuestionsFromSupabase(),
-        loadManualDocuments(),
-      ])
+      const manualResult = await loadManualDocuments()
 
       if (isMounted) {
-        applyDatabaseResult(data, error)
         setManualDocuments(manualResult.data || [])
         setIsManualCatalogLoading(false)
+        if (GENERATED_QUESTIONS.length === 0) {
+          setLoadError('Generated question bank is empty. Run npm run build:questions.')
+        }
       }
     }
 
@@ -502,7 +457,7 @@ function App() {
     return () => {
       isMounted = false
     }
-  }, [applyDatabaseResult])
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -1286,7 +1241,7 @@ function App() {
         <div className="header-status">
           {loadError && (
             <span className="status-chip status-chip-warning">
-              {isSupabaseConfigured ? 'Database connection warning — fallback active' : 'Supabase not configured — local fallback active'}
+              {loadError}
             </span>
           )}
           <span className="version-badge">{APP_VERSION}</span>
