@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.12'
+const APP_VERSION = 'v8.13'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -1051,16 +1051,6 @@ function App() {
     }
 
     startNewTopicSession(topic)
-  }
-
-  const handleContinueStudy = () => {
-    if (practiceMode === 'topic' && topicSessionQuestions.length > 0 && !isSessionComplete) {
-      setIsReviewingWrongAnswers(false)
-      setView('quiz')
-      return
-    }
-
-    handleOpenStudySetup()
   }
 
   const handleStartFinalTest = () => {
@@ -2291,20 +2281,6 @@ function App() {
         {view === 'dashboard' && (
           <section className="dashboard-view">
             <div className="primary-actions-grid">
-              <article className="action-card action-card-primary">
-                <h3>Continue</h3>
-                <p>Resume practice.</p>
-                <div className="card-actions">
-                  <button
-                    className="button button-primary"
-                    onClick={handleContinueStudy}
-                    disabled={isLoading || questions.length === 0}
-                  >
-                    Continue
-                  </button>
-                </div>
-              </article>
-
               <article className="action-card">
                 <h3>Study</h3>
                 <p>Random questions from the full database.</p>
@@ -2315,6 +2291,20 @@ function App() {
                     disabled={isLoading}
                   >
                     Start Study
+                  </button>
+                </div>
+              </article>
+
+              <article className="action-card">
+                <h3>Practice by Topic</h3>
+                <p>Choose a specific topic.</p>
+                <div className="card-actions">
+                  <button
+                    className="button button-secondary"
+                    onClick={() => setView('topics')}
+                    disabled={isLoading}
+                  >
+                    Topics
                   </button>
                 </div>
               </article>
@@ -2340,6 +2330,7 @@ function App() {
               }`}>
                 <h3 className="memory-title-critical">MEMORY ITEMS</h3>
                 <span className="memory-aircraft-badge">737NG</span>
+                <p>737NG critical recall items.</p>
                 <p>{MEMORY_ITEMS.length} total</p>
                 {memoryStatsSummary.testedCount > 0 ? (
                   <p>

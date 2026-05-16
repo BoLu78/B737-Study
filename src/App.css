@@ -362,11 +362,6 @@ code {
   justify-content: space-between;
 }
 
-.action-card-primary {
-  background: rgba(9, 20, 43, 0.98);
-  border-color: rgba(96, 165, 250, 0.28);
-}
-
 .memory-card {
   position: relative;
   overflow: hidden;
