@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.8'
+const APP_VERSION = 'v8.9'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -1396,32 +1396,27 @@ function App() {
   }
 
   const handleStartMixedTest = () => {
-    const selectedItems = deterministicShuffle(filteredMemoryItems, `${Date.now()}-mixed`).slice(0, Math.min(10, filteredMemoryItems.length))
-    const modes = [MEMORY_MODES.BLIND_RECALL, MEMORY_MODES.ACTION_DRILL, MEMORY_MODES.ORDER_DRILL]
-    const mixedItems = selectedItems.map((item, index) => ({
-      item,
-      mode: modes[hashString(`${item.id}-${index}`) % modes.length],
-    }))
+    const selectedItems = fisherYatesShuffle(filteredMemoryItems).slice(0, Math.min(10, filteredMemoryItems.length))
 
     setMixedSession({
-      items: mixedItems,
+      items: selectedItems,
+      currentIndex: 0,
       results: {},
     })
     setMemoryRevealedItems({})
     setMemoryBlindMarks({})
     setMemoryActionSelections({})
     setMemoryOrderSelections({})
-    setMemoryOrderShuffles(createMemoryOrderShuffleMap(
-      mixedItems.filter(({ mode }) => mode === MEMORY_MODES.ORDER_DRILL).map(({ item }) => item),
-    ))
+    setMemoryOrderShuffles({})
     setMemoryOrderReveals({})
     setMemorySavedResults({})
   }
 
-  const handleSaveMixedResult = (memoryItemId, result, mode) => {
-    saveMemoryErrorResult(memoryItemId, result, mode)
+  const handleSaveMixedResult = (memoryItemId, result) => {
+    saveMemoryErrorResult(memoryItemId, result, MEMORY_MODES.MIXED_TEST)
     setMixedSession((current) => ({
       ...current,
+      currentIndex: Math.min((Number(current?.currentIndex) || 0) + 1, current?.items?.length || 0),
       results: {
         ...(current?.results || {}),
         [memoryItemId]: result,
@@ -1689,6 +1684,154 @@ function App() {
           </>
         )}
       </div>
+    )
+  }
+
+  const renderMixedChecklistLineActions = (item, line) => {
+    if (line.right) {
+      const selections = memoryActionSelections[item.id] || {}
+      const selectedValue = selections[line.id]
+
+      return (
+        <div className="memory-answer-options">
+          {getMemoryActionOptions(line).map((option) => {
+            const selected = selectedValue === option
+            const hasSelection = Boolean(selectedValue)
+            const isCorrectOption = option === line.right
+            const optionClass = hasSelection
+              ? isCorrectOption
+                ? 'answer-button answer-correct'
+                : selected
+                ? 'answer-button answer-wrong'
+                : 'answer-button answer-disabled'
+              : 'answer-button'
+
+            return (
+              <button
+                className={optionClass}
+                key={option}
+                onClick={() => handleActionSelection(item.id, line.id, option)}
+                disabled={hasSelection}
+              >
+                {option}
+              </button>
+            )
+          })}
+        </div>
+      )
+    }
+
+    const marks = memoryBlindMarks[item.id] || {}
+
+    return (
+      <div className="memory-line-actions">
+        <button
+          className={marks[line.id] === true ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
+          onClick={() => handleBlindLineMark(item.id, line.id, true)}
+        >
+          Correct
+        </button>
+        <button
+          className={marks[line.id] === false ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
+          onClick={() => handleBlindLineMark(item.id, line.id, false)}
+        >
+          Wrong / Missed
+        </button>
+      </div>
+    )
+  }
+
+  const getMixedChecklistResult = (item) => {
+    const lines = getMemoryAssessableLines(item)
+    const selections = memoryActionSelections[item.id] || {}
+    const marks = memoryBlindMarks[item.id] || {}
+    const allAnswered = lines.every((line) => (line.right ? Boolean(selections[line.id]) : marks[line.id] !== undefined))
+    const errors = lines.filter((line) => (
+      line.right ? selections[line.id] && selections[line.id] !== line.right : marks[line.id] === false
+    )).length
+
+    return {
+      checks: lines.length,
+      errors,
+      errorRate: calculateMemoryErrorRate(errors, lines.length),
+      allAnswered,
+    }
+  }
+
+  const renderMixedChecklist = (item) => {
+    const result = getMixedChecklistResult(item)
+    const saved = Boolean(mixedSession?.results?.[item.id])
+
+    return (
+      <article className="memory-item-card" key={`mixed-${item.id}`}>
+        {renderMemoryItemHeader(item)}
+        {renderMemoryVisualCues(item)}
+        <ol className="memory-step-list memory-mixed-step-list">
+          {item.steps.map((step) => {
+            const parentLine = {
+              id: `${item.id}-step-${step.number}`,
+              left: step.left,
+              right: step.right || '',
+            }
+
+            return (
+              <li key={step.number}>
+                <div className="memory-drill-question memory-mixed-line">
+                  <div className="memory-step-line">
+                    <span>{step.left}</span>
+                    {step.right && (
+                      <>
+                        <span className="memory-separator">—</span>
+                        <strong>?</strong>
+                      </>
+                    )}
+                  </div>
+                  {renderMixedChecklistLineActions(item, parentLine)}
+                </div>
+                {step.substeps?.length > 0 && (
+                  <div className="memory-substep-list">
+                    {step.substeps.map((substep, index) => {
+                      const substepLine = {
+                        id: `${item.id}-step-${step.number}-substep-${index}`,
+                        left: substep.left,
+                        right: substep.right || '',
+                      }
+
+                      return (
+                        <div className="memory-drill-question memory-mixed-line" key={substepLine.id}>
+                          <div className="memory-substep-line">
+                            <span>{substep.left}</span>
+                            {substep.right && (
+                              <>
+                                <span className="memory-separator">—</span>
+                                <strong>?</strong>
+                              </>
+                            )}
+                          </div>
+                          {renderMixedChecklistLineActions(item, substepLine)}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </li>
+            )
+          })}
+        </ol>
+        {result.allAnswered && (
+          <div className="memory-result-panel">
+            <span>Errors: {result.errors} / {result.checks}</span>
+            <span>Error rate: {result.errorRate}%</span>
+            <button
+              className="button button-primary"
+              onClick={() => handleSaveMixedResult(item.id, result)}
+              disabled={saved}
+            >
+              {saved ? 'Saved' : 'Save result'}
+            </button>
+          </div>
+        )}
+      </article>
     )
   }
 
@@ -2378,15 +2521,15 @@ function App() {
                     <div className="reference-result-count">
                       Mixed Test: {Object.keys(mixedSession.results).length} of {mixedSession.items.length} saved
                     </div>
-                    {mixedSession.items.map(({ item, mode }) => (
-                      <div key={`mixed-${item.id}`}>
+                    {mixedSession.currentIndex < mixedSession.items.length && (
+                      <>
                         <p className="memory-mixed-mode-label">
-                          {mode === MEMORY_MODES.BLIND_RECALL ? 'Blind Recall' : mode === MEMORY_MODES.ACTION_DRILL ? 'Action Drill' : 'Order Drill'}
+                          Checklist {mixedSession.currentIndex + 1} of {mixedSession.items.length}
                         </p>
-                        {renderMemoryPracticeCard(item, mode, handleSaveMixedResult)}
-                      </div>
-                    ))}
-                    {mixedSession.items.length > 0 && Object.keys(mixedSession.results).length === mixedSession.items.length && (
+                        {renderMixedChecklist(mixedSession.items[mixedSession.currentIndex])}
+                      </>
+                    )}
+                    {mixedSession.items.length > 0 && mixedSession.currentIndex >= mixedSession.items.length && (
                       <article className="memory-item-card">
                         <div className="memory-result-panel">
                           <span>Memory Items tested: {mixedSession.items.length}</span>
