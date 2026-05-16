@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.11'
+const APP_VERSION = 'v8.12'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -627,6 +627,8 @@ function App() {
   const [isReviewingWrongAnswers, setIsReviewingWrongAnswers] = useState(false)
   const [isSessionComplete, setIsSessionComplete] = useState(false)
   const [sessionResults, setSessionResults] = useState([])
+  const [randomStudyCount, setRandomStudyCount] = useState(20)
+  const [randomStudySessionQuestions, setRandomStudySessionQuestions] = useState([])
   const [finalTestScope, setFinalTestScope] = useState(FINAL_TEST_SCOPES.ALL)
   const [finalTestCount, setFinalTestCount] = useState(100)
   const [finalTestSelectedTopics, setFinalTestSelectedTopics] = useState([])
@@ -773,9 +775,6 @@ function App() {
   }, [])
 
   const topics = Array.from(new Set(questions.map((item) => item.topic)))
-  const topicCards = Array.from(new Set([...topics, ...MEMORY_ITEMS.map((item) => item.topic)])).sort((first, second) =>
-    first.localeCompare(second, undefined, { numeric: true }),
-  )
   const questionLookup = createQuestionLookup(questions)
   const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
   const finalTestEligibleQuestions = getEligibleFinalTestQuestions(questions, finalTestScope, finalTestSelectedTopics)
@@ -791,14 +790,18 @@ function App() {
       ? finalTestSessionQuestions
       : practiceMode === 'marked'
         ? markedReviewQuestions
-        : topicSessionQuestions
+        : practiceMode === 'random-study'
+          ? randomStudySessionQuestions
+          : topicSessionQuestions
   const activeQuizTitle = isReviewingWrongAnswers
     ? 'Wrong Answer Review'
     : practiceMode === 'final'
       ? 'Final Test Simulation'
       : practiceMode === 'marked'
         ? 'Marked Question Review'
-      : currentTopic
+        : practiceMode === 'random-study'
+          ? 'Random Study'
+          : currentTopic
   const currentQuestion = activeQuizQuestions[questionIndex]
   const currentReviewResult = isReviewingWrongAnswers ? wrongResults[questionIndex] : null
   const currentAnswerOptions = normalizeQuizOptions(currentQuestion)
@@ -808,12 +811,15 @@ function App() {
       ? finalTestSessionQuestions.length
       : practiceMode === 'marked'
         ? markedReviewQuestions.length
-        : topicSessionQuestions.length
+        : practiceMode === 'random-study'
+          ? randomStudySessionQuestions.length
+          : topicSessionQuestions.length
   const totalAnswered = sessionResults.length
   const correctCount = sessionResults.filter((result) => result.isCorrect).length
   const wrongCount = wrongResults.length
   const scorePercent = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0
-  const activeQuestions = questions.filter((item) => item.status === 'active').length
+  const activeQuestionPool = questions.filter((item) => item.status === 'active')
+  const activeQuestions = activeQuestionPool.length
   const sourceDocuments = getUniqueReferenceValues(questions, 'sourceDocument')
   const referenceTopics = getUniqueReferenceValues(questions, 'topic')
   const memoryTopics = Array.from(new Set(MEMORY_ITEMS.map((item) => item.topic))).sort((first, second) =>
@@ -822,10 +828,6 @@ function App() {
   const memoryCategories = Array.from(new Set(MEMORY_ITEMS.map((item) => item.category))).sort((first, second) =>
     first.localeCompare(second, undefined, { numeric: true }),
   )
-  const memoryItemCountByTopic = MEMORY_ITEMS.reduce((counts, item) => ({
-    ...counts,
-    [item.topic]: (counts[item.topic] || 0) + 1,
-  }), {})
   const normalizedMemorySearch = memorySearch.trim().toLowerCase()
   const filteredMemoryItems = MEMORY_ITEMS.filter((item) => {
     const matchesTopic = !memoryTopicFilter || item.topic === memoryTopicFilter
@@ -836,13 +838,6 @@ function App() {
   })
   const memoryStatsSummary = getMemoryStatsSummary(MEMORY_ITEMS, memoryErrorStats)
   const filteredMemoryStatsSummary = getMemoryStatsSummary(filteredMemoryItems, memoryErrorStats)
-  const memoryTopicStats = memoryTopics.reduce((statsByTopic, topic) => {
-    const topicItems = MEMORY_ITEMS.filter((item) => item.topic === topic)
-    return {
-      ...statsByTopic,
-      [topic]: getMemoryStatsSummary(topicItems, memoryErrorStats),
-    }
-  }, {})
   const referencedQuestions = questions.filter(hasReferenceMetadata)
   const questionsWithManualReference = questions.filter(
     (item) => displayReferenceValue(item.manualReference) !== '—',
@@ -965,6 +960,49 @@ function App() {
     saveStoredInProgressTopicSessions(next)
   }
 
+  const getSafeRandomStudyCount = (value = randomStudyCount) => {
+    const fallbackCount = Math.min(20, activeQuestionPool.length)
+    const numericValue = Number(value)
+
+    if (!Number.isFinite(numericValue) || numericValue < 1) {
+      return Math.max(fallbackCount, 1)
+    }
+
+    return Math.min(Math.max(Math.round(numericValue), 1), activeQuestionPool.length)
+  }
+
+  const handleRandomStudyCountChange = (value) => {
+    setRandomStudyCount(value)
+  }
+
+  const handleRandomStudyPreset = (count) => {
+    setRandomStudyCount(Math.min(count, activeQuestionPool.length || count))
+  }
+
+  const startRandomStudySession = (requestedCount = randomStudyCount) => {
+    const safeCount = getSafeRandomStudyCount(requestedCount)
+    const selectedQuestions = shuffleArray(activeQuestionPool).slice(0, safeCount)
+
+    setPracticeMode('random-study')
+    setIsReviewingWrongAnswers(false)
+    setIsSessionComplete(false)
+    setSessionResults([])
+    setFinalTestSessionQuestions([])
+    setMarkedReviewQuestions([])
+    setTopicSessionQuestions([])
+    setRandomStudySessionQuestions(selectedQuestions)
+    setRandomStudyCount(safeCount)
+    setQuestionIndex(0)
+    setAnswered(false)
+    setSelectedAnswer(null)
+    setCorrect(false)
+    setView('quiz')
+  }
+
+  const handleOpenStudySetup = () => {
+    setView('study-setup')
+  }
+
   const startNewTopicSession = (topic = currentTopic) => {
     const randomizedQuestions = shuffleArray(questions.filter((item) => item.topic === topic))
 
@@ -974,6 +1012,7 @@ function App() {
     setSessionResults([])
     setFinalTestSessionQuestions([])
     setMarkedReviewQuestions([])
+    setRandomStudySessionQuestions([])
     setTopicSessionQuestions(randomizedQuestions)
     setSelectedTopic(topic)
     setQuestionIndex(0)
@@ -993,6 +1032,7 @@ function App() {
     setSessionResults(storedSession.sessionResults)
     setFinalTestSessionQuestions([])
     setMarkedReviewQuestions([])
+    setRandomStudySessionQuestions([])
     setTopicSessionQuestions(storedSession.questions)
     setSelectedTopic(topic)
     setQuestionIndex(safeIndex)
@@ -1020,7 +1060,7 @@ function App() {
       return
     }
 
-    handleStartQuiz(currentTopic)
+    handleOpenStudySetup()
   }
 
   const handleStartFinalTest = () => {
@@ -1037,6 +1077,7 @@ function App() {
     setSessionResults([])
     setFinalTestSessionQuestions(selectedQuestions)
     setTopicSessionQuestions([])
+    setRandomStudySessionQuestions([])
     setMarkedReviewQuestions([])
     setFinalTestSessionConfig({
       scope: finalTestScope,
@@ -1060,6 +1101,9 @@ function App() {
       })
 
       setFinalTestSessionQuestions(selectedQuestions)
+    } else if (practiceMode === 'random-study') {
+      startRandomStudySession(randomStudyCount)
+      return
     } else if (practiceMode === 'topic') {
       startNewTopicSession(currentTopic)
       return
@@ -1269,6 +1313,7 @@ function App() {
     setSessionResults([])
     setFinalTestSessionQuestions([])
     setTopicSessionQuestions([])
+    setRandomStudySessionQuestions([])
     setMarkedReviewQuestions(reviewQuestions)
     setSelectedTopic(topic)
     setQuestionIndex(0)
@@ -2215,7 +2260,7 @@ function App() {
         <aside className="sidebar-nav" aria-label="Primary navigation">
           {[
             ['dashboard', 'Dashboard'],
-            ['quiz', 'Study'],
+            ['study-setup', 'Study'],
             ['topics', 'Topics'],
             ['memory-items', 'Memory Items'],
             ['stats', 'Stats'],
@@ -2223,10 +2268,15 @@ function App() {
           ].map(([targetView, label]) => (
             <button
               key={targetView}
-              className={view === targetView || (targetView === 'quiz' && view === 'quiz') ? 'sidebar-link sidebar-link-active' : 'sidebar-link'}
+              className={
+                view === targetView ||
+                (targetView === 'study-setup' && view === 'quiz' && practiceMode === 'random-study')
+                  ? 'sidebar-link sidebar-link-active'
+                  : 'sidebar-link'
+              }
               onClick={() => {
-                if (targetView === 'quiz') {
-                  handleContinueStudy()
+                if (targetView === 'study-setup') {
+                  handleOpenStudySetup()
                 } else {
                   setView(targetView)
                 }
@@ -2256,15 +2306,15 @@ function App() {
               </article>
 
               <article className="action-card">
-                <h3>Practice by Topic</h3>
-                <p>Choose a topic.</p>
+                <h3>Study</h3>
+                <p>Random questions from the full database.</p>
                 <div className="card-actions">
                   <button
                     className="button button-secondary"
-                    onClick={() => setView('topics')}
+                    onClick={handleOpenStudySetup}
                     disabled={isLoading}
                   >
-                    Topics
+                    Start Study
                   </button>
                 </div>
               </article>
@@ -2385,6 +2435,71 @@ function App() {
           </section>
         )}
 
+        {view === 'study-setup' && (
+          <section className="study-setup-view">
+            <div className="section-header">
+              <div>
+                <p className="eyebrow">Study</p>
+                <h2>Study</h2>
+                <p className="subtitle">Random questions from the full database.</p>
+              </div>
+              <button className="button button-ghost" onClick={handleBackToDashboard}>
+                Back to dashboard
+              </button>
+            </div>
+
+            <article className="study-setup-panel">
+              <div>
+                <p className="eyebrow">Random Study</p>
+                <h3>Random Study</h3>
+                <p>Choose how many questions to practice.</p>
+              </div>
+
+              <div className="setup-group">
+                <span>Question count</span>
+                <div className="segmented-control segmented-control-compact study-count-presets">
+                  {[10, 20, 30, 50, 100].map((count) => (
+                    <button
+                      key={count}
+                      className={Number(randomStudyCount) === Math.min(count, activeQuestionPool.length || count) ? 'segmented-option segmented-option-active' : 'segmented-option'}
+                      onClick={() => handleRandomStudyPreset(count)}
+                      disabled={activeQuestionPool.length === 0}
+                    >
+                      {count}
+                    </button>
+                  ))}
+                </div>
+                <label className="field-label study-custom-count">
+                  Custom
+                  <input
+                    type="number"
+                    min="1"
+                    max={activeQuestionPool.length || 1}
+                    value={randomStudyCount}
+                    onChange={(event) => handleRandomStudyCountChange(event.target.value)}
+                    onBlur={() => setRandomStudyCount(getSafeRandomStudyCount())}
+                  />
+                </label>
+              </div>
+
+              <p className="setup-note">Available questions: {activeQuestionPool.length}</p>
+
+              <div className="card-actions">
+                <button
+                  className="button button-primary"
+                  onClick={() => startRandomStudySession()}
+                  disabled={activeQuestionPool.length === 0}
+                >
+                  Start Random Study
+                </button>
+                <button className="button button-ghost" onClick={handleBackToDashboard}>
+                  Back to dashboard
+                </button>
+              </div>
+            </article>
+          </section>
+        )}
+
         {view === 'topics' && (
           <section className="topics-view">
             <div className="section-header">
@@ -2398,25 +2513,13 @@ function App() {
               </button>
             </div>
             <div className="topic-grid topic-grid-full">
-              {topicCards.map((topic) => {
+              {topics.map((topic) => {
                 const count = questions.filter((item) => item.topic === topic).length
                 const markedCount = getMarkedQuestionsForTopic(topic).length
-                const memoryCount = memoryItemCountByTopic[topic] || 0
-                const topicMemoryStats = memoryTopicStats[topic]
                 return (
                   <article className="topic-card" key={topic}>
                     <h3>{topic}</h3>
                     <p>{count} questions</p>
-                    {memoryCount > 0 && (
-                      <>
-                        <p>{memoryCount} memory item{memoryCount === 1 ? '' : 's'}</p>
-                        <p>
-                          {topicMemoryStats?.testedCount > 0
-                            ? `Average error: ${topicMemoryStats.averageErrorRate}%`
-                            : 'No memory tests yet'}
-                        </p>
-                      </>
-                    )}
                     <button
                       className="button button-secondary"
                       onClick={() => handleStartQuiz(topic)}
@@ -2424,11 +2527,6 @@ function App() {
                     >
                       Start practice
                     </button>
-                    {memoryCount > 0 && (
-                      <button className="button button-secondary button-small" onClick={() => handleOpenMemoryItems(topic)}>
-                        Memory Items
-                      </button>
-                    )}
                     <button
                       className="button button-ghost button-small"
                       onClick={() => handleStartMarkedReview(topic)}
@@ -2692,7 +2790,9 @@ function App() {
                       ? 'Final test simulation'
                       : practiceMode === 'marked'
                         ? 'Marked review'
-                        : 'Topic practice'}
+                        : practiceMode === 'random-study'
+                          ? 'Random study'
+                          : 'Topic practice'}
                 </p>
                 <h2>{activeQuizTitle}</h2>
                 <p className="subtitle">
@@ -2716,13 +2816,21 @@ function App() {
             {isSessionComplete ? (
               <article className="question-card session-complete-card">
                 <p className="eyebrow">Session Complete</p>
-                <h3>{practiceMode === 'marked' ? 'Marked Review Complete' : 'Session Complete'}</h3>
+                <h3>
+                  {practiceMode === 'marked'
+                    ? 'Marked Review Complete'
+                    : practiceMode === 'random-study'
+                      ? 'Random Study Complete'
+                      : 'Session Complete'}
+                </h3>
                 <p>
                   {practiceMode === 'final'
                     ? `Final Test Simulation · ${activeFinalTestScopeLabel}`
                     : practiceMode === 'marked'
                       ? `${currentTopic} · Marked Review Complete`
-                      : currentTopic}
+                      : practiceMode === 'random-study'
+                        ? 'Random Study'
+                        : currentTopic}
                 </p>
                 <div className="result-summary-grid">
                   <div>
@@ -2752,9 +2860,20 @@ function App() {
                     </button>
                   )}
                   <button className="button button-secondary" onClick={handleRetrySession}>
-                    {practiceMode === 'final' ? 'Retry Final Test' : practiceMode === 'marked' ? 'Review Again' : 'Retry Topic'}
+                    {practiceMode === 'final'
+                      ? 'Retry Final Test'
+                      : practiceMode === 'marked'
+                        ? 'Review Again'
+                        : practiceMode === 'random-study'
+                          ? 'Retry Random Study'
+                          : 'Retry Topic'}
                   </button>
-                  {practiceMode !== 'final' && practiceMode !== 'marked' && (
+                  {practiceMode === 'random-study' && (
+                    <button className="button button-ghost" onClick={handleOpenStudySetup}>
+                      Back to Study
+                    </button>
+                  )}
+                  {practiceMode !== 'final' && practiceMode !== 'marked' && practiceMode !== 'random-study' && (
                     <button className="button button-ghost" onClick={() => setView('topics')}>
                       Choose Another Topic
                     </button>
