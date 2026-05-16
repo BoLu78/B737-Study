@@ -23,17 +23,36 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.4'
+const APP_VERSION = 'v8.5'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
 const MARKED_QUESTIONS_STORAGE_KEY = 'b737StudyMarkedQuestions_v8_2'
-const MEMORY_REVIEWS_STORAGE_KEY = 'b737StudyMemoryReviews_v8_4'
-const MEMORY_REVIEW_LABELS = {
-  known: 'Lo so',
-  uncertain: 'Incerto',
-  forgotten: 'Non lo so',
+const MEMORY_ERROR_STATS_STORAGE_KEY = 'b737StudyMemoryErrorStats_v8_5'
+const MEMORY_MODES = {
+  STUDY: 'study',
+  BLIND_RECALL: 'blind-recall',
+  ACTION_DRILL: 'action-drill',
+  ORDER_DRILL: 'order-drill',
+  MIXED_TEST: 'mixed-test',
 }
+const COMMON_MEMORY_ACTION_OPTIONS = [
+  'CUTOFF',
+  'OFF',
+  'ON',
+  'MAN',
+  'CONT',
+  'FLT',
+  'CUTOUT',
+  'Disengage',
+  'Confirm, close',
+  'Confirm, CUTOFF',
+  'Confirm, pull',
+  'IDLE detent',
+  'FLIGHT DETENT',
+  '10° and 80% N1',
+  '4° and 75% N1',
+]
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_GENERATED = 'CSV question bank'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
@@ -328,20 +347,20 @@ function saveStoredMarkedQuestions(markedQuestions) {
   window.localStorage.setItem(MARKED_QUESTIONS_STORAGE_KEY, JSON.stringify(markedQuestions))
 }
 
-function loadStoredMemoryReviews() {
+function loadStoredMemoryErrorStats() {
   if (typeof window === 'undefined') return {}
 
   try {
-    const parsedReviews = JSON.parse(window.localStorage.getItem(MEMORY_REVIEWS_STORAGE_KEY) || '{}')
-    return parsedReviews && typeof parsedReviews === 'object' && !Array.isArray(parsedReviews) ? parsedReviews : {}
+    const parsedStats = JSON.parse(window.localStorage.getItem(MEMORY_ERROR_STATS_STORAGE_KEY) || '{}')
+    return parsedStats && typeof parsedStats === 'object' && !Array.isArray(parsedStats) ? parsedStats : {}
   } catch {
     return {}
   }
 }
 
-function saveStoredMemoryReviews(reviews) {
+function saveStoredMemoryErrorStats(stats) {
   if (typeof window === 'undefined') return
-  window.localStorage.setItem(MEMORY_REVIEWS_STORAGE_KEY, JSON.stringify(reviews))
+  window.localStorage.setItem(MEMORY_ERROR_STATS_STORAGE_KEY, JSON.stringify(stats))
 }
 
 function clearStoredStudyProgress() {
@@ -423,6 +442,106 @@ function getMemoryItemSearchText(item) {
     .toLowerCase()
 }
 
+function calculateMemoryErrorRate(errors, checks) {
+  return checks > 0 ? Math.round((errors / checks) * 100) : 0
+}
+
+function getMemoryAssessableLines(item) {
+  return item.steps.flatMap((step) => [
+    {
+      id: `${item.id}-step-${step.number}`,
+      left: step.left,
+      right: step.right || '',
+    },
+    ...(step.substeps || []).map((substep, index) => ({
+      id: `${item.id}-step-${step.number}-substep-${index}`,
+      left: substep.left,
+      right: substep.right || '',
+    })),
+  ])
+}
+
+function getMemoryActionLines(item) {
+  return getMemoryAssessableLines(item).filter((line) => line.right)
+}
+
+function getMemoryRightSideValues() {
+  const dataValues = MEMORY_ITEMS.flatMap((item) => getMemoryActionLines(item).map((line) => line.right))
+  return Array.from(new Set([...dataValues, ...COMMON_MEMORY_ACTION_OPTIONS].filter(Boolean)))
+}
+
+function hashString(value) {
+  return String(value).split('').reduce((hash, character) => {
+    const nextHash = (hash << 5) - hash + character.charCodeAt(0)
+    return nextHash >>> 0
+  }, 0)
+}
+
+function deterministicShuffle(items, seed) {
+  return [...items]
+    .map((item) => ({
+      item,
+      sortKey: hashString(`${seed}-${item.id || item}`),
+    }))
+    .sort((first, second) => first.sortKey - second.sortKey)
+    .map(({ item }) => item)
+}
+
+function getMemoryActionOptions(line) {
+  const values = getMemoryRightSideValues().filter((value) => value !== line.right)
+  const distractors = deterministicShuffle(values, line.id).slice(0, 3)
+  return deterministicShuffle([line.right, ...distractors], `${line.id}-options`).slice(0, 4)
+}
+
+function getMemoryOrderSteps(item) {
+  return item.steps.map((step) => ({
+    id: `${item.id}-order-${step.number}`,
+    left: step.left,
+    right: step.right || '',
+  }))
+}
+
+function getMemoryResultFromMarks(lines, marks) {
+  const checks = lines.length
+  const errors = lines.filter((line) => marks[line.id] === false).length
+  return {
+    checks,
+    errors,
+    errorRate: calculateMemoryErrorRate(errors, checks),
+  }
+}
+
+function getMemoryStatsSummary(items, statsById) {
+  const testedItems = items.filter((item) => Number(statsById[item.id]?.totalChecks) > 0)
+  const totalChecks = testedItems.reduce((sum, item) => sum + (Number(statsById[item.id]?.totalChecks) || 0), 0)
+  const totalErrors = testedItems.reduce((sum, item) => sum + (Number(statsById[item.id]?.totalErrors) || 0), 0)
+  const averageErrorRate = calculateMemoryErrorRate(totalErrors, totalChecks)
+  const highestErrorItem = testedItems
+    .map((item) => ({
+      item,
+      averageErrorRate: Number(statsById[item.id]?.averageErrorRate) || 0,
+    }))
+    .sort((first, second) => second.averageErrorRate - first.averageErrorRate)[0] || null
+
+  return {
+    testedCount: testedItems.length,
+    totalChecks,
+    totalErrors,
+    averageErrorRate,
+    highestErrorItem,
+  }
+}
+
+function getMemoryStatusText(stats) {
+  if (!stats || Number(stats.totalChecks) === 0) return ['Never tested']
+
+  return [
+    `Last error: ${Number(stats.lastErrorRate) || 0}%`,
+    `Average error: ${Number(stats.averageErrorRate) || 0}%`,
+    `Attempts: ${Number(stats.attempts) || 0}`,
+  ]
+}
+
 function App() {
   const [questions] = useState(GENERATED_QUESTIONS)
   const [isLoading] = useState(false)
@@ -459,13 +578,18 @@ function App() {
   const [referenceSourceFilter, setReferenceSourceFilter] = useState('')
   const [referenceTopicFilter, setReferenceTopicFilter] = useState('')
   const [referenceSearch, setReferenceSearch] = useState('')
-  const [memoryMode, setMemoryMode] = useState('study')
+  const [memoryMode, setMemoryMode] = useState(MEMORY_MODES.STUDY)
   const [memoryTopicFilter, setMemoryTopicFilter] = useState('')
   const [memoryCategoryFilter, setMemoryCategoryFilter] = useState('')
   const [memorySearch, setMemorySearch] = useState('')
-  const [memoryVisibleItems, setMemoryVisibleItems] = useState({})
-  const [memoryVisibleAnswers, setMemoryVisibleAnswers] = useState({})
-  const [memoryReviews, setMemoryReviews] = useState(loadStoredMemoryReviews)
+  const [memoryRevealedItems, setMemoryRevealedItems] = useState({})
+  const [memoryBlindMarks, setMemoryBlindMarks] = useState({})
+  const [memoryActionSelections, setMemoryActionSelections] = useState({})
+  const [memoryOrderSelections, setMemoryOrderSelections] = useState({})
+  const [memoryOrderReveals, setMemoryOrderReveals] = useState({})
+  const [memorySavedResults, setMemorySavedResults] = useState({})
+  const [memoryErrorStats, setMemoryErrorStats] = useState(loadStoredMemoryErrorStats)
+  const [mixedSession, setMixedSession] = useState(null)
   const [manualDocuments, setManualDocuments] = useState([])
   const [isManualCatalogLoading, setIsManualCatalogLoading] = useState(true)
   const [manualSession, setManualSession] = useState(null)
@@ -639,6 +763,15 @@ function App() {
 
     return matchesTopic && matchesCategory && matchesSearch
   })
+  const memoryStatsSummary = getMemoryStatsSummary(MEMORY_ITEMS, memoryErrorStats)
+  const filteredMemoryStatsSummary = getMemoryStatsSummary(filteredMemoryItems, memoryErrorStats)
+  const memoryTopicStats = memoryTopics.reduce((statsByTopic, topic) => {
+    const topicItems = MEMORY_ITEMS.filter((item) => item.topic === topic)
+    return {
+      ...statsByTopic,
+      [topic]: getMemoryStatsSummary(topicItems, memoryErrorStats),
+    }
+  }, {})
   const referencedQuestions = questions.filter(hasReferenceMetadata)
   const questionsWithManualReference = questions.filter(
     (item) => displayReferenceValue(item.manualReference) !== '—',
@@ -1102,8 +1235,13 @@ function App() {
     setMemoryTopicFilter(topic)
     setMemoryCategoryFilter('')
     setMemorySearch('')
-    setMemoryVisibleItems({})
-    setMemoryVisibleAnswers({})
+    setMemoryRevealedItems({})
+    setMemoryBlindMarks({})
+    setMemoryActionSelections({})
+    setMemoryOrderSelections({})
+    setMemoryOrderReveals({})
+    setMemorySavedResults({})
+    setMixedSession(null)
     setView('memory-items')
   }
 
@@ -1113,26 +1251,431 @@ function App() {
     setMemorySearch('')
   }
 
-  const handleMemoryReview = (memoryItemId, result) => {
-    setMemoryReviews((current) => {
-      const previousReview = current[memoryItemId] || {}
-      const nextReview = {
-        lastResult: result,
-        reviewedAt: new Date().toISOString(),
-        reviewCount: (Number(previousReview.reviewCount) || 0) + 1,
-        knownCount: (Number(previousReview.knownCount) || 0) + (result === 'known' ? 1 : 0),
-        uncertainCount: (Number(previousReview.uncertainCount) || 0) + (result === 'uncertain' ? 1 : 0),
-        forgottenCount: (Number(previousReview.forgottenCount) || 0) + (result === 'forgotten' ? 1 : 0),
+  const saveMemoryErrorResult = (memoryItemId, result, mode) => {
+    setMemoryErrorStats((current) => {
+      const previousStats = current[memoryItemId] || {}
+      const totalChecks = (Number(previousStats.totalChecks) || 0) + result.checks
+      const totalErrors = (Number(previousStats.totalErrors) || 0) + result.errors
+      const nextStats = {
+        attempts: (Number(previousStats.attempts) || 0) + 1,
+        totalChecks,
+        totalErrors,
+        lastChecks: result.checks,
+        lastErrors: result.errors,
+        lastErrorRate: calculateMemoryErrorRate(result.errors, result.checks),
+        averageErrorRate: calculateMemoryErrorRate(totalErrors, totalChecks),
+        lastMode: mode,
+        lastTestedAt: new Date().toISOString(),
       }
-      const nextReviews = {
+      const nextAllStats = {
         ...current,
-        [memoryItemId]: nextReview,
+        [memoryItemId]: nextStats,
       }
 
-      saveStoredMemoryReviews(nextReviews)
-      return nextReviews
+      saveStoredMemoryErrorStats(nextAllStats)
+      return nextAllStats
     })
+
+    setMemorySavedResults((current) => ({
+      ...current,
+      [`${mode}-${memoryItemId}`]: true,
+    }))
   }
+
+  const handleBlindLineMark = (memoryItemId, lineId, isCorrect) => {
+    setMemoryBlindMarks((current) => ({
+      ...current,
+      [memoryItemId]: {
+        ...(current[memoryItemId] || {}),
+        [lineId]: isCorrect,
+      },
+    }))
+  }
+
+  const handleActionSelection = (memoryItemId, lineId, selectedValue) => {
+    setMemoryActionSelections((current) => ({
+      ...current,
+      [memoryItemId]: {
+        ...(current[memoryItemId] || {}),
+        [lineId]: selectedValue,
+      },
+    }))
+  }
+
+  const handleOrderSelect = (memoryItemId, stepId) => {
+    setMemoryOrderSelections((current) => ({
+      ...current,
+      [memoryItemId]: [...(current[memoryItemId] || []), stepId],
+    }))
+  }
+
+  const handleOrderReset = (memoryItemId) => {
+    setMemoryOrderSelections((current) => ({
+      ...current,
+      [memoryItemId]: [],
+    }))
+    setMemoryOrderReveals((current) => ({
+      ...current,
+      [memoryItemId]: false,
+    }))
+  }
+
+  const handleStartMixedTest = () => {
+    const selectedItems = deterministicShuffle(filteredMemoryItems, `${Date.now()}-mixed`).slice(0, Math.min(10, filteredMemoryItems.length))
+    const modes = [MEMORY_MODES.BLIND_RECALL, MEMORY_MODES.ACTION_DRILL, MEMORY_MODES.ORDER_DRILL]
+
+    setMixedSession({
+      items: selectedItems.map((item, index) => ({
+        item,
+        mode: modes[hashString(`${item.id}-${index}`) % modes.length],
+      })),
+      results: {},
+    })
+    setMemoryRevealedItems({})
+    setMemoryBlindMarks({})
+    setMemoryActionSelections({})
+    setMemoryOrderSelections({})
+    setMemoryOrderReveals({})
+    setMemorySavedResults({})
+  }
+
+  const handleSaveMixedResult = (memoryItemId, result, mode) => {
+    saveMemoryErrorResult(memoryItemId, result, mode)
+    setMixedSession((current) => ({
+      ...current,
+      results: {
+        ...(current?.results || {}),
+        [memoryItemId]: result,
+      },
+    }))
+  }
+
+  const renderMemorySteps = (item) => (
+    <ol className="memory-step-list">
+      {item.steps.map((step) => (
+        <li key={step.number}>
+          <div className="memory-step-line">
+            <span>{step.left}</span>
+            {step.right && (
+              <>
+                <span className="memory-separator">—</span>
+                <strong>{step.right}</strong>
+              </>
+            )}
+          </div>
+          {step.substeps?.length > 0 && (
+            <div className="memory-substep-list">
+              {step.substeps.map((substep) => (
+                <div className="memory-substep-line" key={`${step.number}-${substep.left}`}>
+                  <span>{substep.left}</span>
+                  {substep.right && (
+                    <>
+                      <span className="memory-separator">—</span>
+                      <strong>{substep.right}</strong>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </li>
+      ))}
+    </ol>
+  )
+
+  const renderMemoryItemHeader = (item) => {
+    const statusText = getMemoryStatusText(memoryErrorStats[item.id])
+
+    return (
+      <div className="memory-item-header">
+        <div>
+          <h3>{item.title}</h3>
+          {item.subtitle && <p>{item.subtitle}</p>}
+        </div>
+        <div className="memory-status-list">
+          {statusText.map((text) => (
+            <span className="memory-status-chip" key={text}>{text}</span>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const renderBlindRecall = (item, saveHandler = saveMemoryErrorResult) => {
+    const lines = getMemoryAssessableLines(item)
+    const marks = memoryBlindMarks[item.id] || {}
+    const result = getMemoryResultFromMarks(lines, marks)
+    const allMarked = lines.length > 0 && lines.every((line) => marks[line.id] !== undefined)
+    const revealed = Boolean(memoryRevealedItems[item.id])
+    const saved = Boolean(memorySavedResults[`${MEMORY_MODES.BLIND_RECALL}-${item.id}`])
+
+    if (!revealed) {
+      return (
+        <div className="memory-drill-panel">
+          <p>Recall the memory items.</p>
+          <button
+            className="button button-primary"
+            onClick={() => setMemoryRevealedItems((current) => ({ ...current, [item.id]: true }))}
+          >
+            Reveal items
+          </button>
+        </div>
+      )
+    }
+
+    return (
+      <>
+        <ol className="memory-step-list">
+          {item.steps.map((step) => {
+            const parentLineId = `${item.id}-step-${step.number}`
+
+            return (
+              <li key={step.number}>
+                <div className="memory-assessment-row">
+                  <div className="memory-step-line">
+                    <span>{step.left}</span>
+                    {step.right && (
+                      <>
+                        <span className="memory-separator">—</span>
+                        <strong>{step.right}</strong>
+                      </>
+                    )}
+                  </div>
+                  <div className="memory-line-actions">
+                    <button
+                      className={marks[parentLineId] === true ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
+                      onClick={() => handleBlindLineMark(item.id, parentLineId, true)}
+                    >
+                      Correct
+                    </button>
+                    <button
+                      className={marks[parentLineId] === false ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
+                      onClick={() => handleBlindLineMark(item.id, parentLineId, false)}
+                    >
+                      Wrong / Missed
+                    </button>
+                  </div>
+                </div>
+                {step.substeps?.length > 0 && (
+                  <div className="memory-substep-list">
+                    {step.substeps.map((substep, index) => {
+                      const substepLineId = `${item.id}-step-${step.number}-substep-${index}`
+
+                      return (
+                        <div className="memory-assessment-row memory-substep-assessment-row" key={substepLineId}>
+                          <div className="memory-substep-line">
+                            <span>{substep.left}</span>
+                            {substep.right && (
+                              <>
+                                <span className="memory-separator">—</span>
+                                <strong>{substep.right}</strong>
+                              </>
+                            )}
+                          </div>
+                          <div className="memory-line-actions">
+                            <button
+                              className={marks[substepLineId] === true ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
+                              onClick={() => handleBlindLineMark(item.id, substepLineId, true)}
+                            >
+                              Correct
+                            </button>
+                            <button
+                              className={marks[substepLineId] === false ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
+                              onClick={() => handleBlindLineMark(item.id, substepLineId, false)}
+                            >
+                              Wrong / Missed
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </li>
+            )
+          })}
+        </ol>
+        {allMarked && (
+          <div className="memory-result-panel">
+            <span>Errors: {result.errors} / {result.checks}</span>
+            <span>Error rate: {result.errorRate}%</span>
+            <button
+              className="button button-primary"
+              onClick={() => saveHandler(item.id, result, MEMORY_MODES.BLIND_RECALL)}
+              disabled={saved}
+            >
+              {saved ? 'Saved' : 'Save result'}
+            </button>
+          </div>
+        )}
+      </>
+    )
+  }
+
+  const renderActionDrill = (item, saveHandler = saveMemoryErrorResult) => {
+    const lines = getMemoryActionLines(item)
+    const selections = memoryActionSelections[item.id] || {}
+    const checks = lines.length
+    const errors = lines.filter((line) => selections[line.id] && selections[line.id] !== line.right).length
+    const allAnswered = checks > 0 && lines.every((line) => selections[line.id])
+    const result = {
+      checks,
+      errors,
+      errorRate: calculateMemoryErrorRate(errors, checks),
+    }
+    const saved = Boolean(memorySavedResults[`${MEMORY_MODES.ACTION_DRILL}-${item.id}`])
+
+    if (lines.length === 0) {
+      return <p className="memory-drill-empty">No right-side values to drill for this item.</p>
+    }
+
+    return (
+      <div className="memory-question-list">
+        {lines.map((line) => (
+          <div className="memory-drill-question" key={line.id}>
+            <div className="memory-step-line">
+              <span>{line.left}</span>
+              <span className="memory-separator">—</span>
+              <strong>?</strong>
+            </div>
+            <div className="memory-answer-options">
+              {getMemoryActionOptions(line).map((option) => {
+                const selected = selections[line.id] === option
+                const hasSelection = Boolean(selections[line.id])
+                const isCorrectOption = option === line.right
+                const optionClass = hasSelection
+                  ? isCorrectOption
+                    ? 'answer-button answer-correct'
+                    : selected
+                    ? 'answer-button answer-wrong'
+                    : 'answer-button answer-disabled'
+                  : 'answer-button'
+
+                return (
+                  <button
+                    className={optionClass}
+                    key={option}
+                    onClick={() => handleActionSelection(item.id, line.id, option)}
+                    disabled={hasSelection}
+                  >
+                    {option}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+        {allAnswered && (
+          <div className="memory-result-panel">
+            <span>Errors: {result.errors} / {result.checks}</span>
+            <span>Error rate: {result.errorRate}%</span>
+            <button
+              className="button button-primary"
+              onClick={() => saveHandler(item.id, result, MEMORY_MODES.ACTION_DRILL)}
+              disabled={saved}
+            >
+              {saved ? 'Saved' : 'Save result'}
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const renderOrderDrill = (item, saveHandler = saveMemoryErrorResult) => {
+    const steps = getMemoryOrderSteps(item)
+    const selectedIds = memoryOrderSelections[item.id] || []
+    const selectedSet = new Set(selectedIds)
+    const availableSteps = deterministicShuffle(steps, `${item.id}-order`).filter((step) => !selectedSet.has(step.id))
+    const selectedSteps = selectedIds.map((stepId) => steps.find((step) => step.id === stepId)).filter(Boolean)
+    const complete = steps.length > 0 && selectedIds.length === steps.length
+    const errors = complete ? selectedIds.filter((stepId, index) => stepId !== steps[index].id).length : 0
+    const result = {
+      checks: steps.length,
+      errors,
+      errorRate: calculateMemoryErrorRate(errors, steps.length),
+    }
+    const saved = Boolean(memorySavedResults[`${MEMORY_MODES.ORDER_DRILL}-${item.id}`])
+
+    return (
+      <div className="memory-order-layout">
+        <div className="memory-order-column">
+          <h4>Available items</h4>
+          {availableSteps.map((step) => (
+            <button className="memory-order-item" key={step.id} onClick={() => handleOrderSelect(item.id, step.id)}>
+              <span>{step.left}</span>
+              {step.right && <strong>{step.right}</strong>}
+            </button>
+          ))}
+        </div>
+        <div className="memory-order-column">
+          <h4>Your order</h4>
+          {selectedSteps.length === 0 ? (
+            <p className="memory-drill-empty">Tap items in sequence.</p>
+          ) : (
+            selectedSteps.map((step, index) => (
+              <div className="memory-order-item memory-order-item-selected" key={step.id}>
+                <span>{index + 1}. {step.left}</span>
+                {step.right && <strong>{step.right}</strong>}
+              </div>
+            ))
+          )}
+          <div className="memory-review-actions">
+            <button className="button button-ghost button-small" onClick={() => handleOrderReset(item.id)}>
+              Reset order
+            </button>
+            {complete && (
+              <button
+                className="button button-secondary button-small"
+                onClick={() => setMemoryOrderReveals((current) => ({ ...current, [item.id]: true }))}
+              >
+                Show correct order
+              </button>
+            )}
+          </div>
+        </div>
+        {complete && (
+          <div className="memory-result-panel memory-order-result">
+            <span>Order errors: {result.errors} / {result.checks}</span>
+            <span>Error rate: {result.errorRate}%</span>
+            <button
+              className="button button-primary"
+              onClick={() => saveHandler(item.id, result, MEMORY_MODES.ORDER_DRILL)}
+              disabled={saved}
+            >
+              {saved ? 'Saved' : 'Save result'}
+            </button>
+          </div>
+        )}
+        {memoryOrderReveals[item.id] && (
+          <div className="memory-correct-order">
+            <h4>Correct order</h4>
+            {steps.map((step, index) => (
+              <div className="memory-step-line" key={step.id}>
+                <span>{index + 1}. {step.left}</span>
+                {step.right && (
+                  <>
+                    <span className="memory-separator">—</span>
+                    <strong>{step.right}</strong>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  const renderMemoryPracticeCard = (item, mode, saveHandler = saveMemoryErrorResult) => (
+    <article className="memory-item-card" key={`${mode}-${item.id}`}>
+      {renderMemoryItemHeader(item)}
+      {mode === MEMORY_MODES.STUDY && renderMemorySteps(item)}
+      {mode === MEMORY_MODES.BLIND_RECALL && renderBlindRecall(item, saveHandler)}
+      {mode === MEMORY_MODES.ACTION_DRILL && renderActionDrill(item, saveHandler)}
+      {mode === MEMORY_MODES.ORDER_DRILL && renderOrderDrill(item, saveHandler)}
+    </article>
+  )
 
   const handleManualSignIn = async (event) => {
     event.preventDefault()
@@ -1452,7 +1995,20 @@ function App() {
 
               <article className="action-card">
                 <h3>Memory Items</h3>
-                <p>Review QRH memory recall items.</p>
+                <p>{MEMORY_ITEMS.length} total</p>
+                {memoryStatsSummary.testedCount > 0 ? (
+                  <p>
+                    Average error: {memoryStatsSummary.averageErrorRate}%
+                    {memoryStatsSummary.highestErrorItem && (
+                      <>
+                        <br />
+                        Worst: {memoryStatsSummary.highestErrorItem.item.title} — {memoryStatsSummary.highestErrorItem.averageErrorRate}%
+                      </>
+                    )}
+                  </p>
+                ) : (
+                  <p>No tests yet</p>
+                )}
                 <div className="card-actions">
                   <button
                     className="button button-secondary"
@@ -1551,11 +2107,21 @@ function App() {
                 const count = questions.filter((item) => item.topic === topic).length
                 const markedCount = getMarkedQuestionsForTopic(topic).length
                 const memoryCount = memoryItemCountByTopic[topic] || 0
+                const topicMemoryStats = memoryTopicStats[topic]
                 return (
                   <article className="topic-card" key={topic}>
                     <h3>{topic}</h3>
                     <p>{count} questions</p>
-                    {memoryCount > 0 && <p>{memoryCount} memory item{memoryCount === 1 ? '' : 's'}</p>}
+                    {memoryCount > 0 && (
+                      <>
+                        <p>{memoryCount} memory item{memoryCount === 1 ? '' : 's'}</p>
+                        <p>
+                          {topicMemoryStats?.testedCount > 0
+                            ? `Average error: ${topicMemoryStats.averageErrorRate}%`
+                            : 'No memory tests yet'}
+                        </p>
+                      </>
+                    )}
                     <button
                       className="button button-secondary"
                       onClick={() => handleStartQuiz(topic)}
@@ -1588,7 +2154,7 @@ function App() {
               <div>
                 <p className="eyebrow">Memory Items</p>
                 <h2>Memory Items</h2>
-                <p className="subtitle">QRH-style recall items. Title, subtitle, and numbered items only.</p>
+                <p className="subtitle">QRH-style recall items with error-rate practice.</p>
               </div>
               <button className="button button-ghost" onClick={handleBackToDashboard}>
                 Back to dashboard
@@ -1598,14 +2164,19 @@ function App() {
             <div className="memory-mode-row">
               <div className="segmented-control">
                 {[
-                  ['study', 'Study'],
-                  ['recall', 'Recall'],
-                  ['fill', 'Fill the Blank'],
+                  [MEMORY_MODES.STUDY, 'Study'],
+                  [MEMORY_MODES.BLIND_RECALL, 'Blind Recall'],
+                  [MEMORY_MODES.ACTION_DRILL, 'Action Drill'],
+                  [MEMORY_MODES.ORDER_DRILL, 'Order Drill'],
+                  [MEMORY_MODES.MIXED_TEST, 'Mixed Test'],
                 ].map(([mode, label]) => (
                   <button
                     key={mode}
                     className={memoryMode === mode ? 'segmented-option segmented-option-active' : 'segmented-option'}
-                    onClick={() => setMemoryMode(mode)}
+                    onClick={() => {
+                      setMemoryMode(mode)
+                      setMixedSession(null)
+                    }}
                   >
                     {label}
                   </button>
@@ -1652,101 +2223,68 @@ function App() {
 
             <div className="reference-result-count">
               Showing {filteredMemoryItems.length} of {MEMORY_ITEMS.length} memory items
+              {filteredMemoryStatsSummary.testedCount > 0 && ` · Average error: ${filteredMemoryStatsSummary.averageErrorRate}%`}
             </div>
 
-            <div className="memory-item-list">
-              {filteredMemoryItems.map((item) => {
-                const review = memoryReviews[item.id]
-                const isRecallVisible = Boolean(memoryVisibleItems[item.id])
-                const isAnswerVisible = Boolean(memoryVisibleAnswers[item.id])
-                const shouldShowItems = memoryMode === 'study' || isRecallVisible || memoryMode === 'fill'
-
-                return (
-                  <article className="memory-item-card" key={item.id}>
+            {memoryMode === MEMORY_MODES.MIXED_TEST ? (
+              <div className="memory-item-list">
+                {!mixedSession && (
+                  <article className="memory-item-card">
                     <div className="memory-item-header">
                       <div>
-                        <h3>{item.title}</h3>
-                        {item.subtitle && <p>{item.subtitle}</p>}
+                        <h3>Mixed Test</h3>
+                        <p>{Math.min(10, filteredMemoryItems.length)} memory items from the current filters.</p>
                       </div>
-                      {review && (
-                        <span className="memory-status-chip">
-                          Last: {MEMORY_REVIEW_LABELS[review.lastResult] || review.lastResult}
-                        </span>
-                      )}
                     </div>
-
-                    {memoryMode === 'recall' && !isRecallVisible && (
-                      <div className="card-actions">
-                        <button
-                          className="button button-primary"
-                          onClick={() => setMemoryVisibleItems((current) => ({ ...current, [item.id]: true }))}
-                        >
-                          Show items
-                        </button>
-                      </div>
-                    )}
-
-                    {shouldShowItems && (
-                      <ol className="memory-step-list">
-                        {item.steps.map((step) => (
-                          <li key={step.number}>
-                            <div className="memory-step-line">
-                              <span>{step.left}</span>
-                              {step.right && (
-                                <>
-                                  <span className="memory-separator">—</span>
-                                  <strong>{memoryMode === 'fill' && !isAnswerVisible ? '________' : step.right}</strong>
-                                </>
-                              )}
-                            </div>
-                            {step.substeps?.length > 0 && (
-                              <div className="memory-substep-list">
-                                {step.substeps.map((substep) => (
-                                  <div className="memory-substep-line" key={`${step.number}-${substep.left}`}>
-                                    <span>{substep.left}</span>
-                                    {substep.right && (
-                                      <>
-                                        <span className="memory-separator">—</span>
-                                        <strong>{memoryMode === 'fill' && !isAnswerVisible ? '________' : substep.right}</strong>
-                                      </>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                      </ol>
-                    )}
-
-                    {memoryMode === 'recall' && isRecallVisible && (
-                      <div className="memory-review-actions">
-                        <button className="button button-secondary button-small" onClick={() => handleMemoryReview(item.id, 'known')}>
-                          Lo so
-                        </button>
-                        <button className="button button-secondary button-small" onClick={() => handleMemoryReview(item.id, 'uncertain')}>
-                          Incerto
-                        </button>
-                        <button className="button button-secondary button-small" onClick={() => handleMemoryReview(item.id, 'forgotten')}>
-                          Non lo so
-                        </button>
-                      </div>
-                    )}
-
-                    {memoryMode === 'fill' && !isAnswerVisible && (
-                      <div className="card-actions">
-                        <button
-                          className="button button-primary"
-                          onClick={() => setMemoryVisibleAnswers((current) => ({ ...current, [item.id]: true }))}
-                        >
-                          Show answers
-                        </button>
-                      </div>
-                    )}
+                    <div className="card-actions">
+                      <button
+                        className="button button-primary"
+                        onClick={handleStartMixedTest}
+                        disabled={filteredMemoryItems.length === 0}
+                      >
+                        Start Mixed Test
+                      </button>
+                    </div>
                   </article>
-                )
-              })}
-            </div>
+                )}
+
+                {mixedSession && (
+                  <>
+                    <div className="reference-result-count">
+                      Mixed Test: {Object.keys(mixedSession.results).length} of {mixedSession.items.length} saved
+                    </div>
+                    {mixedSession.items.map(({ item, mode }) => (
+                      <div key={`mixed-${item.id}`}>
+                        <p className="memory-mixed-mode-label">
+                          {mode === MEMORY_MODES.BLIND_RECALL ? 'Blind Recall' : mode === MEMORY_MODES.ACTION_DRILL ? 'Action Drill' : 'Order Drill'}
+                        </p>
+                        {renderMemoryPracticeCard(item, mode, handleSaveMixedResult)}
+                      </div>
+                    ))}
+                    {mixedSession.items.length > 0 && Object.keys(mixedSession.results).length === mixedSession.items.length && (
+                      <article className="memory-item-card">
+                        <div className="memory-result-panel">
+                          <span>Memory Items tested: {mixedSession.items.length}</span>
+                          <span>
+                            Total errors: {Object.values(mixedSession.results).reduce((sum, result) => sum + result.errors, 0)} / {Object.values(mixedSession.results).reduce((sum, result) => sum + result.checks, 0)}
+                          </span>
+                          <span>
+                            Error rate: {calculateMemoryErrorRate(
+                              Object.values(mixedSession.results).reduce((sum, result) => sum + result.errors, 0),
+                              Object.values(mixedSession.results).reduce((sum, result) => sum + result.checks, 0),
+                            )}%
+                          </span>
+                        </div>
+                      </article>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="memory-item-list">
+                {filteredMemoryItems.map((item) => renderMemoryPracticeCard(item, memoryMode))}
+              </div>
+            )}
           </section>
         )}
 
@@ -2621,6 +3159,23 @@ function App() {
               <div className="stat-card">
                 <span>Questions with source page</span>
                 <strong>{questionsWithSourcePage}</strong>
+              </div>
+              <div className="stat-card">
+                <span>Total Memory Items</span>
+                <strong>{MEMORY_ITEMS.length}</strong>
+              </div>
+              <div className="stat-card">
+                <span>Tested Memory Items</span>
+                <strong>{memoryStatsSummary.testedCount}</strong>
+              </div>
+              <div className="stat-card">
+                <span>Memory Items average error</span>
+                <strong>{memoryStatsSummary.testedCount > 0 ? `${memoryStatsSummary.averageErrorRate}%` : '—'}</strong>
+              </div>
+              <div className="stat-card">
+                <span>Highest error item</span>
+                <strong>{memoryStatsSummary.highestErrorItem ? `${memoryStatsSummary.highestErrorItem.averageErrorRate}%` : '—'}</strong>
+                <small>{memoryStatsSummary.highestErrorItem?.item.title || 'No memory tests yet'}</small>
               </div>
             </div>
           </section>
