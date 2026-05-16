@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.10'
+const APP_VERSION = 'v8.11'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -587,6 +587,29 @@ function getMemoryStatusClass(text) {
   if (!errorRateMatch) return 'memory-status-neutral'
 
   return `memory-error-${getMemoryErrorSeverity(Number(errorRateMatch[1]))}`
+}
+
+function formatMemoryActionText(value) {
+  const text = String(value || '').trim()
+  if (!text) return ''
+
+  return text.charAt(0).toUpperCase() + text.slice(1)
+}
+
+function formatMemoryResponse(value) {
+  const text = String(value || '').trim()
+  const confirmMatch = text.match(/^Confirm,\s*(.+)$/)
+
+  if (!confirmMatch) {
+    return <span className="memory-response-action">{text}</span>
+  }
+
+  return (
+    <>
+      <span className="memory-confirm-label">(Confirm)</span>
+      <span className="memory-response-action">{formatMemoryActionText(confirmMatch[1])}</span>
+    </>
+  )
 }
 
 function App() {
@@ -1433,7 +1456,7 @@ function App() {
             {step.right && (
               <>
                 <span className="memory-separator">—</span>
-                <strong>{step.right}</strong>
+                <strong>{formatMemoryResponse(step.right)}</strong>
               </>
             )}
           </div>
@@ -1445,7 +1468,7 @@ function App() {
                   {substep.right && (
                     <>
                       <span className="memory-separator">—</span>
-                      <strong>{substep.right}</strong>
+                      <strong>{formatMemoryResponse(substep.right)}</strong>
                     </>
                   )}
                 </div>
@@ -1539,7 +1562,7 @@ function App() {
                     {step.right && (
                       <>
                         <span className="memory-separator">—</span>
-                        <strong>{step.right}</strong>
+                        <strong>{formatMemoryResponse(step.right)}</strong>
                       </>
                     )}
                   </div>
@@ -1570,7 +1593,7 @@ function App() {
                             {substep.right && (
                               <>
                                 <span className="memory-separator">—</span>
-                                <strong>{substep.right}</strong>
+                                <strong>{formatMemoryResponse(substep.right)}</strong>
                               </>
                             )}
                           </div>
@@ -1660,7 +1683,7 @@ function App() {
                     onClick={() => handleActionSelection(item.id, line.id, option)}
                     disabled={hasSelection}
                   >
-                    {option}
+                    {formatMemoryResponse(option)}
                   </button>
                 )
               })}
@@ -1713,7 +1736,7 @@ function App() {
                 onClick={() => handleActionSelection(item.id, line.id, option)}
                 disabled={hasSelection}
               >
-                {option}
+                {formatMemoryResponse(option)}
               </button>
             )
           })}
@@ -1860,7 +1883,7 @@ function App() {
           {availableSteps.map((step) => (
             <button className="memory-order-item" key={step.id} onClick={() => handleOrderSelect(item.id, step.id)}>
               <span>{step.left}</span>
-              {step.right && <strong>{step.right}</strong>}
+              {step.right && <strong>{formatMemoryResponse(step.right)}</strong>}
             </button>
           ))}
         </div>
@@ -1872,7 +1895,7 @@ function App() {
             selectedSteps.map((step, index) => (
               <div className="memory-order-item memory-order-item-selected" key={step.id}>
                 <span>{index + 1}. {step.left}</span>
-                {step.right && <strong>{step.right}</strong>}
+                {step.right && <strong>{formatMemoryResponse(step.right)}</strong>}
               </div>
             ))
           )}
@@ -1912,7 +1935,7 @@ function App() {
                 {step.right && (
                   <>
                     <span className="memory-separator">—</span>
-                    <strong>{step.right}</strong>
+                    <strong>{formatMemoryResponse(step.right)}</strong>
                   </>
                 )}
               </div>

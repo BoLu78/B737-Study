@@ -843,6 +843,19 @@ code {
   font-weight: 700;
 }
 
+.memory-confirm-label {
+  display: inline-block;
+  margin-right: 6px;
+  color: var(--text-muted);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.memory-response-action {
+  color: #f8fafc;
+  font-weight: 700;
+}
+
 .memory-separator {
   color: var(--text-muted);
 }
