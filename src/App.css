@@ -15,6 +15,13 @@
   --accent-strong: #38bdf8;
   --success: #2dd4bf;
   --danger: #f97316;
+  --memory-low: #2dd4bf;
+  --memory-medium: #f59e0b;
+  --memory-high: #fb7185;
+  --memory-warning-bg: rgba(248, 113, 113, 0.1);
+  --memory-warning-border: rgba(251, 113, 133, 0.42);
+  --memory-caution-bg: rgba(245, 158, 11, 0.1);
+  --memory-caution-border: rgba(245, 158, 11, 0.38);
   --shadow: 0 20px 45px rgba(1, 9, 29, 0.28);
 }
 
@@ -360,6 +367,54 @@ code {
   border-color: rgba(96, 165, 250, 0.28);
 }
 
+.memory-card {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(249, 115, 22, 0.26);
+}
+
+.memory-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: rgba(249, 115, 22, 0.66);
+}
+
+.memory-card-low {
+  border-color: rgba(45, 212, 191, 0.28);
+}
+
+.memory-card-low::before {
+  background: var(--memory-low);
+}
+
+.memory-card-medium {
+  background: linear-gradient(90deg, var(--memory-caution-bg), transparent 44%), var(--surface);
+  border-color: var(--memory-caution-border);
+}
+
+.memory-card-medium::before {
+  background: var(--memory-medium);
+}
+
+.memory-card-high {
+  background: linear-gradient(90deg, var(--memory-warning-bg), transparent 46%), var(--surface);
+  border-color: var(--memory-warning-border);
+  box-shadow: 0 20px 45px rgba(127, 29, 29, 0.18);
+}
+
+.memory-card-high::before {
+  background: var(--memory-high);
+}
+
+.memory-title-critical {
+  color: #fed7aa !important;
+  font-size: 1.36rem !important;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
 .action-card h3,
 .topic-card h3,
 .final-test-panel h2 {
@@ -636,6 +691,20 @@ code {
   color: var(--text-muted);
 }
 
+.memory-critical-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin: 0 0 8px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: #fed7aa;
+  background: rgba(249, 115, 22, 0.14);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
 .memory-status-list {
   display: flex;
   flex-wrap: wrap;
@@ -652,6 +721,35 @@ code {
   border: 1px solid rgba(96, 165, 250, 0.22);
   font-size: 0.8rem;
   font-weight: 700;
+}
+
+.memory-error-value {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 850;
+}
+
+.memory-error-low {
+  color: var(--memory-low);
+  background: rgba(45, 212, 191, 0.12);
+  border-color: rgba(45, 212, 191, 0.28);
+}
+
+.memory-error-medium {
+  color: #fbbf24;
+  background: var(--memory-caution-bg);
+  border-color: var(--memory-caution-border);
+}
+
+.memory-error-high {
+  color: var(--memory-high);
+  background: var(--memory-warning-bg);
+  border-color: var(--memory-warning-border);
+}
+
+.memory-status-neutral {
+  color: #bae6fd;
 }
 
 .memory-step-list {

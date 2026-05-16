@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.5'
+const APP_VERSION = 'v8.6'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -540,6 +540,22 @@ function getMemoryStatusText(stats) {
     `Average error: ${Number(stats.averageErrorRate) || 0}%`,
     `Attempts: ${Number(stats.attempts) || 0}`,
   ]
+}
+
+function getMemoryErrorSeverity(errorRate) {
+  const rate = Number(errorRate) || 0
+
+  if (rate >= 51) return 'high'
+  if (rate >= 21) return 'medium'
+  return 'low'
+}
+
+function getMemoryStatusClass(text) {
+  const errorRateMatch = String(text).match(/(\d+)%/)
+
+  if (!errorRateMatch) return 'memory-status-neutral'
+
+  return `memory-error-${getMemoryErrorSeverity(Number(errorRateMatch[1]))}`
 }
 
 function App() {
@@ -1394,7 +1410,7 @@ function App() {
         </div>
         <div className="memory-status-list">
           {statusText.map((text) => (
-            <span className="memory-status-chip" key={text}>{text}</span>
+            <span className={`memory-status-chip ${getMemoryStatusClass(text)}`} key={text}>{text}</span>
           ))}
         </div>
       </div>
@@ -1993,16 +2009,20 @@ function App() {
                 </div>
               </article>
 
-              <article className="action-card">
-                <h3>Memory Items</h3>
+              <article className={`action-card memory-card ${
+                memoryStatsSummary.testedCount > 0
+                  ? `memory-card-${getMemoryErrorSeverity(memoryStatsSummary.averageErrorRate)}`
+                  : 'memory-card-neutral'
+              }`}>
+                <h3 className="memory-title-critical">MEMORY ITEMS</h3>
                 <p>{MEMORY_ITEMS.length} total</p>
                 {memoryStatsSummary.testedCount > 0 ? (
                   <p>
-                    Average error: {memoryStatsSummary.averageErrorRate}%
+                    Average error: <strong className={`memory-error-value memory-error-${getMemoryErrorSeverity(memoryStatsSummary.averageErrorRate)}`}>{memoryStatsSummary.averageErrorRate}%</strong>
                     {memoryStatsSummary.highestErrorItem && (
                       <>
                         <br />
-                        Worst: {memoryStatsSummary.highestErrorItem.item.title} — {memoryStatsSummary.highestErrorItem.averageErrorRate}%
+                        Worst: {memoryStatsSummary.highestErrorItem.item.title} — <strong className={`memory-error-value memory-error-${getMemoryErrorSeverity(memoryStatsSummary.highestErrorItem.averageErrorRate)}`}>{memoryStatsSummary.highestErrorItem.averageErrorRate}%</strong>
                       </>
                     )}
                   </p>
@@ -2153,6 +2173,7 @@ function App() {
             <div className="section-header">
               <div>
                 <p className="eyebrow">Memory Items</p>
+                <span className="memory-critical-badge">CRITICAL RECALL ITEMS</span>
                 <h2>Memory Items</h2>
                 <p className="subtitle">QRH-style recall items with error-rate practice.</p>
               </div>
