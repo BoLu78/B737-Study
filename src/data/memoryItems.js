@@ -75,65 +75,9 @@ export const MEMORY_ITEMS = [
     ],
   },
   {
-    id: 'cabin-altitude-warning',
-    title: 'Cabin Altitude Warning',
-    subtitle: '',
-    category: 'Non-Normal Checklist',
-    topic: 'Pressurization',
-    priority: 'critical',
-    visualCues: [
-      {
-        type: 'warning-light',
-        color: 'red',
-        lines: ['CABIN', 'ALTITUDE'],
-      },
-    ],
-    steps: [
-      {
-        number: '1',
-        left: 'Don oxygen masks and set regulators to 100%',
-        right: '',
-      },
-      {
-        number: '2',
-        left: 'Establish crew communications',
-        right: '',
-      },
-      {
-        number: '3',
-        left: 'Pressurization mode selector',
-        right: 'MAN',
-      },
-      {
-        number: '4',
-        left: 'Outflow VALVE switch',
-        right: 'Hold in CLOSE until the outflow VALVE indication shows fully closed',
-      },
-      {
-        number: '5',
-        left: 'If cabin altitude is uncontrollable',
-        right: '',
-        substeps: [
-          {
-            left: 'Passenger signs',
-            right: 'ON',
-          },
-          {
-            left: 'PASS OXYGEN switch',
-            right: 'ON',
-          },
-          {
-            left: 'Go to the Emergency Descent checklist on page 0.1',
-            right: '',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'rapid-depressurization',
-    title: 'Rapid Depressurization',
-    subtitle: '',
+    id: 'cabin-altitude-warning-or-rapid-depressurization',
+    title: 'CABIN ALTITUDE WARNING',
+    subtitle: 'or Rapid Depressurization',
     category: 'Non-Normal Checklist',
     topic: 'Pressurization',
     priority: 'critical',
@@ -232,9 +176,9 @@ export const MEMORY_ITEMS = [
     ],
   },
   {
-    id: 'engine-fire',
-    title: 'Engine Fire',
-    subtitle: '',
+    id: 'engine-fire-or-engine-severe-damage-or-separation',
+    title: 'ENGINE FIRE',
+    subtitle: 'or Engine Severe Damage or Separation',
     category: 'Non-Normal Checklist',
     topic: 'Fire Protection',
     priority: 'critical',
@@ -273,130 +217,8 @@ export const MEMORY_ITEMS = [
     ],
   },
   {
-    id: 'engine-severe-damage',
-    title: 'Engine Severe Damage',
-    subtitle: '',
-    category: 'Non-Normal Checklist',
-    topic: 'Engines',
-    priority: 'critical',
-    steps: [
-      {
-        number: '1',
-        left: 'Autothrottle (if engaged)',
-        right: 'Disengage',
-      },
-      {
-        number: '2',
-        left: 'Thrust lever (affected engine)',
-        right: 'Confirm, close',
-      },
-      {
-        number: '3',
-        left: 'Engine start lever (affected engine)',
-        right: 'Confirm, CUTOFF',
-      },
-      {
-        number: '4',
-        left: 'Engine fire switch (affected engine)',
-        right: 'Confirm, pull',
-      },
-      {
-        number: '5',
-        left: 'If the engine fire switch or ENG OVERHEAT light is illuminated',
-        right: '',
-        substeps: [
-          {
-            left: 'Engine fire switch (affected engine)',
-            right: 'Rotate to the stop and hold for 1 second',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'engine-separation',
-    title: 'Engine Separation',
-    subtitle: '',
-    category: 'Non-Normal Checklist',
-    topic: 'Engines',
-    priority: 'critical',
-    steps: [
-      {
-        number: '1',
-        left: 'Autothrottle (if engaged)',
-        right: 'Disengage',
-      },
-      {
-        number: '2',
-        left: 'Thrust lever (affected engine)',
-        right: 'Confirm, close',
-      },
-      {
-        number: '3',
-        left: 'Engine start lever (affected engine)',
-        right: 'Confirm, CUTOFF',
-      },
-      {
-        number: '4',
-        left: 'Engine fire switch (affected engine)',
-        right: 'Confirm, pull',
-      },
-      {
-        number: '5',
-        left: 'If the engine fire switch or ENG OVERHEAT light is illuminated',
-        right: '',
-        substeps: [
-          {
-            left: 'Engine fire switch (affected engine)',
-            right: 'Rotate to the stop and hold for 1 second',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'engine-limit',
-    title: 'Engine Limit',
-    subtitle: '',
-    category: 'Non-Normal Checklist',
-    topic: 'Engines',
-    priority: 'critical',
-    steps: [
-      {
-        number: '1',
-        left: 'Autothrottle (if engaged)',
-        right: 'Disengage',
-      },
-      {
-        number: '2',
-        left: 'Thrust lever (affected engine)',
-        right: 'Confirm, retard until engine indications stay within limits or the thrust lever is closed',
-      },
-    ],
-  },
-  {
-    id: 'engine-surge',
-    title: 'Engine Surge',
-    subtitle: '',
-    category: 'Non-Normal Checklist',
-    topic: 'Engines',
-    priority: 'critical',
-    steps: [
-      {
-        number: '1',
-        left: 'Autothrottle (if engaged)',
-        right: 'Disengage',
-      },
-      {
-        number: '2',
-        left: 'Thrust lever (affected engine)',
-        right: 'Confirm, retard until engine indications stay within limits or the thrust lever is closed',
-      },
-    ],
-  },
-  {
-    id: 'engine-stall',
-    title: 'Engine Stall',
+    id: 'engine-limit-or-surge-or-stall',
+    title: 'Engine Limit or Surge or Stall',
     subtitle: '',
     category: 'Non-Normal Checklist',
     topic: 'Engines',

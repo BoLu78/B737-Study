@@ -23,12 +23,22 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.13'
+const APP_VERSION = 'v8.14'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
 const MARKED_QUESTIONS_STORAGE_KEY = 'b737StudyMarkedQuestions_v8_2'
 const MEMORY_ERROR_STATS_STORAGE_KEY = 'b737StudyMemoryErrorStats_v8_5'
+const MEMORY_ERROR_STATS_MIGRATIONS = {
+  'cabin-altitude-warning': 'cabin-altitude-warning-or-rapid-depressurization',
+  'rapid-depressurization': 'cabin-altitude-warning-or-rapid-depressurization',
+  'engine-fire': 'engine-fire-or-engine-severe-damage-or-separation',
+  'engine-severe-damage': 'engine-fire-or-engine-severe-damage-or-separation',
+  'engine-separation': 'engine-fire-or-engine-severe-damage-or-separation',
+  'engine-limit': 'engine-limit-or-surge-or-stall',
+  'engine-surge': 'engine-limit-or-surge-or-stall',
+  'engine-stall': 'engine-limit-or-surge-or-stall',
+}
 const MEMORY_MODES = {
   STUDY: 'study',
   BLIND_RECALL: 'blind-recall',
@@ -347,12 +357,54 @@ function saveStoredMarkedQuestions(markedQuestions) {
   window.localStorage.setItem(MARKED_QUESTIONS_STORAGE_KEY, JSON.stringify(markedQuestions))
 }
 
+function getMostRecentMemoryStats(firstStats = {}, secondStats = {}) {
+  const firstTime = Date.parse(firstStats.lastTestedAt || '')
+  const secondTime = Date.parse(secondStats.lastTestedAt || '')
+
+  return (Number.isFinite(secondTime) ? secondTime : 0) > (Number.isFinite(firstTime) ? firstTime : 0)
+    ? secondStats
+    : firstStats
+}
+
+function mergeMemoryErrorStats(firstStats = {}, secondStats = {}) {
+  const mostRecentStats = getMostRecentMemoryStats(firstStats, secondStats)
+  const totalChecks = (Number(firstStats.totalChecks) || 0) + (Number(secondStats.totalChecks) || 0)
+  const totalErrors = (Number(firstStats.totalErrors) || 0) + (Number(secondStats.totalErrors) || 0)
+
+  return {
+    attempts: (Number(firstStats.attempts) || 0) + (Number(secondStats.attempts) || 0),
+    totalChecks,
+    totalErrors,
+    lastChecks: Number(mostRecentStats.lastChecks) || 0,
+    lastErrors: Number(mostRecentStats.lastErrors) || 0,
+    lastErrorRate: Number(mostRecentStats.lastErrorRate) || 0,
+    averageErrorRate: calculateMemoryErrorRate(totalErrors, totalChecks),
+    lastMode: mostRecentStats.lastMode || '',
+    lastTestedAt: mostRecentStats.lastTestedAt || '',
+  }
+}
+
+function migrateMemoryErrorStats(stats) {
+  return Object.entries(stats).reduce((migratedStats, [memoryItemId, itemStats]) => {
+    const targetId = MEMORY_ERROR_STATS_MIGRATIONS[memoryItemId] || memoryItemId
+
+    return {
+      ...migratedStats,
+      [targetId]: migratedStats[targetId]
+        ? mergeMemoryErrorStats(migratedStats[targetId], itemStats)
+        : itemStats,
+    }
+  }, {})
+}
+
 function loadStoredMemoryErrorStats() {
   if (typeof window === 'undefined') return {}
 
   try {
     const parsedStats = JSON.parse(window.localStorage.getItem(MEMORY_ERROR_STATS_STORAGE_KEY) || '{}')
-    return parsedStats && typeof parsedStats === 'object' && !Array.isArray(parsedStats) ? parsedStats : {}
+    return parsedStats && typeof parsedStats === 'object' && !Array.isArray(parsedStats)
+      ? migrateMemoryErrorStats(parsedStats)
+      : {}
   } catch {
     return {}
   }
