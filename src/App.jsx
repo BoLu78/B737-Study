@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import generatedQuestionBank from '../data/generated/questions.json'
+import { MEMORY_ITEMS } from './data/memoryItems'
 import {
   countManualChunks,
   createSignedManualUrl,
@@ -22,11 +23,17 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.2'
+const APP_VERSION = 'v8.3'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
 const MARKED_QUESTIONS_STORAGE_KEY = 'b737StudyMarkedQuestions_v8_2'
+const MEMORY_REVIEWS_STORAGE_KEY = 'b737StudyMemoryReviews_v8_3'
+const MEMORY_REVIEW_LABELS = {
+  known: 'Lo so',
+  uncertain: 'Incerto',
+  forgotten: 'Non lo so',
+}
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_GENERATED = 'CSV question bank'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
@@ -321,6 +328,22 @@ function saveStoredMarkedQuestions(markedQuestions) {
   window.localStorage.setItem(MARKED_QUESTIONS_STORAGE_KEY, JSON.stringify(markedQuestions))
 }
 
+function loadStoredMemoryReviews() {
+  if (typeof window === 'undefined') return {}
+
+  try {
+    const parsedReviews = JSON.parse(window.localStorage.getItem(MEMORY_REVIEWS_STORAGE_KEY) || '{}')
+    return parsedReviews && typeof parsedReviews === 'object' && !Array.isArray(parsedReviews) ? parsedReviews : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveStoredMemoryReviews(reviews) {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(MEMORY_REVIEWS_STORAGE_KEY, JSON.stringify(reviews))
+}
+
 function clearStoredStudyProgress() {
   if (typeof window === 'undefined') return
   window.localStorage.removeItem(STUDY_PROGRESS_STORAGE_KEY)
@@ -381,6 +404,25 @@ function createManualChunkExcerpt(text, query) {
   )
 }
 
+function getMemoryItemSearchText(item) {
+  const stepTexts = item.steps.flatMap((step) => [
+    step.left,
+    step.right,
+    ...(step.substeps || []).flatMap((substep) => [substep.left, substep.right]),
+  ])
+
+  return [
+    item.title,
+    item.subtitle,
+    item.topic,
+    item.category,
+    ...stepTexts,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+}
+
 function App() {
   const [questions] = useState(GENERATED_QUESTIONS)
   const [isLoading] = useState(false)
@@ -417,6 +459,13 @@ function App() {
   const [referenceSourceFilter, setReferenceSourceFilter] = useState('')
   const [referenceTopicFilter, setReferenceTopicFilter] = useState('')
   const [referenceSearch, setReferenceSearch] = useState('')
+  const [memoryMode, setMemoryMode] = useState('study')
+  const [memoryTopicFilter, setMemoryTopicFilter] = useState('')
+  const [memoryCategoryFilter, setMemoryCategoryFilter] = useState('')
+  const [memorySearch, setMemorySearch] = useState('')
+  const [memoryVisibleItems, setMemoryVisibleItems] = useState({})
+  const [memoryVisibleAnswers, setMemoryVisibleAnswers] = useState({})
+  const [memoryReviews, setMemoryReviews] = useState(loadStoredMemoryReviews)
   const [manualDocuments, setManualDocuments] = useState([])
   const [isManualCatalogLoading, setIsManualCatalogLoading] = useState(true)
   const [manualSession, setManualSession] = useState(null)
@@ -529,6 +578,9 @@ function App() {
   }, [])
 
   const topics = Array.from(new Set(questions.map((item) => item.topic)))
+  const topicCards = Array.from(new Set([...topics, ...MEMORY_ITEMS.map((item) => item.topic)])).sort((first, second) =>
+    first.localeCompare(second, undefined, { numeric: true }),
+  )
   const questionLookup = createQuestionLookup(questions)
   const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
   const finalTestEligibleQuestions = getEligibleFinalTestQuestions(questions, finalTestScope, finalTestSelectedTopics)
@@ -569,6 +621,24 @@ function App() {
   const activeQuestions = questions.filter((item) => item.status === 'active').length
   const sourceDocuments = getUniqueReferenceValues(questions, 'sourceDocument')
   const referenceTopics = getUniqueReferenceValues(questions, 'topic')
+  const memoryTopics = Array.from(new Set(MEMORY_ITEMS.map((item) => item.topic))).sort((first, second) =>
+    first.localeCompare(second, undefined, { numeric: true }),
+  )
+  const memoryCategories = Array.from(new Set(MEMORY_ITEMS.map((item) => item.category))).sort((first, second) =>
+    first.localeCompare(second, undefined, { numeric: true }),
+  )
+  const memoryItemCountByTopic = MEMORY_ITEMS.reduce((counts, item) => ({
+    ...counts,
+    [item.topic]: (counts[item.topic] || 0) + 1,
+  }), {})
+  const normalizedMemorySearch = memorySearch.trim().toLowerCase()
+  const filteredMemoryItems = MEMORY_ITEMS.filter((item) => {
+    const matchesTopic = !memoryTopicFilter || item.topic === memoryTopicFilter
+    const matchesCategory = !memoryCategoryFilter || item.category === memoryCategoryFilter
+    const matchesSearch = !normalizedMemorySearch || getMemoryItemSearchText(item).includes(normalizedMemorySearch)
+
+    return matchesTopic && matchesCategory && matchesSearch
+  })
   const referencedQuestions = questions.filter(hasReferenceMetadata)
   const questionsWithManualReference = questions.filter(
     (item) => displayReferenceValue(item.manualReference) !== '—',
@@ -1028,6 +1098,42 @@ function App() {
     setReferenceSearch('')
   }
 
+  const handleOpenMemoryItems = (topic = '') => {
+    setMemoryTopicFilter(topic)
+    setMemoryCategoryFilter('')
+    setMemorySearch('')
+    setMemoryVisibleItems({})
+    setMemoryVisibleAnswers({})
+    setView('memory-items')
+  }
+
+  const handleResetMemoryFilters = () => {
+    setMemoryTopicFilter('')
+    setMemoryCategoryFilter('')
+    setMemorySearch('')
+  }
+
+  const handleMemoryReview = (memoryItemId, result) => {
+    setMemoryReviews((current) => {
+      const previousReview = current[memoryItemId] || {}
+      const nextReview = {
+        lastResult: result,
+        reviewedAt: new Date().toISOString(),
+        reviewCount: (Number(previousReview.reviewCount) || 0) + 1,
+        knownCount: (Number(previousReview.knownCount) || 0) + (result === 'known' ? 1 : 0),
+        uncertainCount: (Number(previousReview.uncertainCount) || 0) + (result === 'uncertain' ? 1 : 0),
+        forgottenCount: (Number(previousReview.forgottenCount) || 0) + (result === 'forgotten' ? 1 : 0),
+      }
+      const nextReviews = {
+        ...current,
+        [memoryItemId]: nextReview,
+      }
+
+      saveStoredMemoryReviews(nextReviews)
+      return nextReviews
+    })
+  }
+
   const handleManualSignIn = async (event) => {
     event.preventDefault()
     setManualAuthError('')
@@ -1278,6 +1384,7 @@ function App() {
             ['dashboard', 'Dashboard'],
             ['quiz', 'Study'],
             ['topics', 'Topics'],
+            ['memory-items', 'Memory Items'],
             ['stats', 'Stats'],
             ['final-test', 'Final Test'],
           ].map(([targetView, label]) => (
@@ -1342,6 +1449,19 @@ function App() {
                   </button>
                 </div>
               </article>
+
+              <article className="action-card">
+                <h3>Memory Items</h3>
+                <p>Review QRH memory recall items.</p>
+                <div className="card-actions">
+                  <button
+                    className="button button-secondary"
+                    onClick={() => handleOpenMemoryItems()}
+                  >
+                    Memory Items
+                  </button>
+                </div>
+              </article>
             </div>
 
             <div className="metrics-strip">
@@ -1360,6 +1480,10 @@ function App() {
               <div>
                 <span>Weak Topics</span>
                 <strong>{weakTopicsLabel}</strong>
+              </div>
+              <div>
+                <span>Memory Items</span>
+                <strong>{MEMORY_ITEMS.length}</strong>
               </div>
             </div>
 
@@ -1423,16 +1547,27 @@ function App() {
               </button>
             </div>
             <div className="topic-grid topic-grid-full">
-              {topics.map((topic) => {
+              {topicCards.map((topic) => {
                 const count = questions.filter((item) => item.topic === topic).length
                 const markedCount = getMarkedQuestionsForTopic(topic).length
+                const memoryCount = memoryItemCountByTopic[topic] || 0
                 return (
                   <article className="topic-card" key={topic}>
                     <h3>{topic}</h3>
                     <p>{count} questions</p>
-                    <button className="button button-secondary" onClick={() => handleStartQuiz(topic)}>
+                    {memoryCount > 0 && <p>{memoryCount} memory item{memoryCount === 1 ? '' : 's'}</p>}
+                    <button
+                      className="button button-secondary"
+                      onClick={() => handleStartQuiz(topic)}
+                      disabled={count === 0}
+                    >
                       Start practice
                     </button>
+                    {memoryCount > 0 && (
+                      <button className="button button-secondary button-small" onClick={() => handleOpenMemoryItems(topic)}>
+                        Memory Items
+                      </button>
+                    )}
                     <button
                       className="button button-ghost button-small"
                       onClick={() => handleStartMarkedReview(topic)}
@@ -1440,6 +1575,174 @@ function App() {
                     >
                       {markedCount > 0 ? `Marked (${markedCount})` : 'No marked questions'}
                     </button>
+                  </article>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {view === 'memory-items' && (
+          <section className="memory-items-view">
+            <div className="section-header">
+              <div>
+                <p className="eyebrow">Memory Items</p>
+                <h2>Memory Items</h2>
+                <p className="subtitle">QRH-style recall items. Title, subtitle, and numbered items only.</p>
+              </div>
+              <button className="button button-ghost" onClick={handleBackToDashboard}>
+                Back to dashboard
+              </button>
+            </div>
+
+            <div className="memory-mode-row">
+              <div className="segmented-control">
+                {[
+                  ['study', 'Study'],
+                  ['recall', 'Recall'],
+                  ['fill', 'Fill the Blank'],
+                ].map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    className={memoryMode === mode ? 'segmented-option segmented-option-active' : 'segmented-option'}
+                    onClick={() => setMemoryMode(mode)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="memory-filters">
+              <button className="button button-secondary" onClick={handleResetMemoryFilters}>
+                All topics
+              </button>
+              <label className="field-label">
+                Topic
+                <select value={memoryTopicFilter} onChange={(event) => setMemoryTopicFilter(event.target.value)}>
+                  <option value="">All topics</option>
+                  {memoryTopics.map((topic) => (
+                    <option key={topic} value={topic}>
+                      {topic}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field-label">
+                Category
+                <select value={memoryCategoryFilter} onChange={(event) => setMemoryCategoryFilter(event.target.value)}>
+                  <option value="">All categories</option>
+                  {memoryCategories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field-label">
+                Search
+                <input
+                  type="search"
+                  value={memorySearch}
+                  onChange={(event) => setMemorySearch(event.target.value)}
+                  placeholder="Search memory items"
+                />
+              </label>
+            </div>
+
+            <div className="reference-result-count">
+              Showing {filteredMemoryItems.length} of {MEMORY_ITEMS.length} memory items
+            </div>
+
+            <div className="memory-item-list">
+              {filteredMemoryItems.map((item) => {
+                const review = memoryReviews[item.id]
+                const isRecallVisible = Boolean(memoryVisibleItems[item.id])
+                const isAnswerVisible = Boolean(memoryVisibleAnswers[item.id])
+                const shouldShowItems = memoryMode === 'study' || isRecallVisible || memoryMode === 'fill'
+
+                return (
+                  <article className="memory-item-card" key={item.id}>
+                    <div className="memory-item-header">
+                      <div>
+                        <h3>{item.title}</h3>
+                        {item.subtitle && <p>{item.subtitle}</p>}
+                      </div>
+                      {review && (
+                        <span className="memory-status-chip">
+                          Last: {MEMORY_REVIEW_LABELS[review.lastResult] || review.lastResult}
+                        </span>
+                      )}
+                    </div>
+
+                    {memoryMode === 'recall' && !isRecallVisible && (
+                      <div className="card-actions">
+                        <button
+                          className="button button-primary"
+                          onClick={() => setMemoryVisibleItems((current) => ({ ...current, [item.id]: true }))}
+                        >
+                          Show items
+                        </button>
+                      </div>
+                    )}
+
+                    {shouldShowItems && (
+                      <ol className="memory-step-list">
+                        {item.steps.map((step) => (
+                          <li key={step.number}>
+                            <div className="memory-step-line">
+                              <span>{step.left}</span>
+                              {step.right && (
+                                <>
+                                  <span className="memory-separator">—</span>
+                                  <strong>{memoryMode === 'fill' && !isAnswerVisible ? '________' : step.right}</strong>
+                                </>
+                              )}
+                            </div>
+                            {step.substeps?.length > 0 && (
+                              <div className="memory-substep-list">
+                                {step.substeps.map((substep) => (
+                                  <div className="memory-substep-line" key={`${step.number}-${substep.left}`}>
+                                    <span>{substep.left}</span>
+                                    {substep.right && (
+                                      <>
+                                        <span className="memory-separator">—</span>
+                                        <strong>{memoryMode === 'fill' && !isAnswerVisible ? '________' : substep.right}</strong>
+                                      </>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+
+                    {memoryMode === 'recall' && isRecallVisible && (
+                      <div className="memory-review-actions">
+                        <button className="button button-secondary button-small" onClick={() => handleMemoryReview(item.id, 'known')}>
+                          Lo so
+                        </button>
+                        <button className="button button-secondary button-small" onClick={() => handleMemoryReview(item.id, 'uncertain')}>
+                          Incerto
+                        </button>
+                        <button className="button button-secondary button-small" onClick={() => handleMemoryReview(item.id, 'forgotten')}>
+                          Non lo so
+                        </button>
+                      </div>
+                    )}
+
+                    {memoryMode === 'fill' && !isAnswerVisible && (
+                      <div className="card-actions">
+                        <button
+                          className="button button-primary"
+                          onClick={() => setMemoryVisibleAnswers((current) => ({ ...current, [item.id]: true }))}
+                        >
+                          Show answers
+                        </button>
+                      </div>
+                    )}
                   </article>
                 )
               })}
