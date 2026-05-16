@@ -23,12 +23,12 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.3'
+const APP_VERSION = 'v8.4'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
 const MARKED_QUESTIONS_STORAGE_KEY = 'b737StudyMarkedQuestions_v8_2'
-const MEMORY_REVIEWS_STORAGE_KEY = 'b737StudyMemoryReviews_v8_3'
+const MEMORY_REVIEWS_STORAGE_KEY = 'b737StudyMemoryReviews_v8_4'
 const MEMORY_REVIEW_LABELS = {
   known: 'Lo so',
   uncertain: 'Incerto',
