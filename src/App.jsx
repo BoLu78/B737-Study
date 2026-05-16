@@ -1514,6 +1514,7 @@ function App() {
       <div className="memory-item-header">
         <div>
           <h3>{item.title}</h3>
+          <span className="memory-aircraft-badge">737NG</span>
           {item.subtitle && <p>{item.subtitle}</p>}
         </div>
         <div className="memory-status-list">
@@ -2288,6 +2289,7 @@ function App() {
                   : 'memory-card-neutral'
               }`}>
                 <h3 className="memory-title-critical">MEMORY ITEMS</h3>
+                <span className="memory-aircraft-badge">737NG</span>
                 <p>{MEMORY_ITEMS.length} total</p>
                 {memoryStatsSummary.testedCount > 0 ? (
                   <p>
@@ -2446,8 +2448,11 @@ function App() {
             <div className="section-header">
               <div>
                 <p className="eyebrow">Memory Items</p>
-                <span className="memory-critical-badge">CRITICAL RECALL ITEMS</span>
                 <h2>Memory Items</h2>
+                <div className="memory-header-badges">
+                  <span className="memory-aircraft-badge">737NG</span>
+                  <span className="memory-critical-badge">CRITICAL RECALL ITEMS</span>
+                </div>
                 <p className="subtitle">QRH-style recall items with error-rate practice.</p>
               </div>
               <button className="button button-ghost" onClick={handleBackToDashboard}>
