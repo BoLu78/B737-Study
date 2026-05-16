@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.6'
+const APP_VERSION = 'v8.7'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -487,6 +487,37 @@ function deterministicShuffle(items, seed) {
     .map(({ item }) => item)
 }
 
+function fisherYatesShuffle(items) {
+  const shuffledItems = [...items]
+
+  for (let index = shuffledItems.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    ;[shuffledItems[index], shuffledItems[swapIndex]] = [shuffledItems[swapIndex], shuffledItems[index]]
+  }
+
+  return shuffledItems
+}
+
+function hasSameOrder(firstItems, secondItems) {
+  return firstItems.length === secondItems.length && firstItems.every((item, index) => item.id === secondItems[index]?.id)
+}
+
+function shuffleMemoryOrderSteps(steps) {
+  if (steps.length <= 1) return [...steps]
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const shuffledSteps = fisherYatesShuffle(steps)
+
+    if (!hasSameOrder(shuffledSteps, steps)) {
+      return shuffledSteps
+    }
+  }
+
+  const fallbackSteps = [...steps]
+  ;[fallbackSteps[0], fallbackSteps[1]] = [fallbackSteps[1], fallbackSteps[0]]
+  return fallbackSteps
+}
+
 function getMemoryActionOptions(line) {
   const values = getMemoryRightSideValues().filter((value) => value !== line.right)
   const distractors = deterministicShuffle(values, line.id).slice(0, 3)
@@ -602,6 +633,7 @@ function App() {
   const [memoryBlindMarks, setMemoryBlindMarks] = useState({})
   const [memoryActionSelections, setMemoryActionSelections] = useState({})
   const [memoryOrderSelections, setMemoryOrderSelections] = useState({})
+  const [memoryOrderShuffles, setMemoryOrderShuffles] = useState({})
   const [memoryOrderReveals, setMemoryOrderReveals] = useState({})
   const [memorySavedResults, setMemorySavedResults] = useState({})
   const [memoryErrorStats, setMemoryErrorStats] = useState(loadStoredMemoryErrorStats)
@@ -1247,6 +1279,25 @@ function App() {
     setReferenceSearch('')
   }
 
+  const createMemoryOrderShuffle = (item) => shuffleMemoryOrderSteps(getMemoryOrderSteps(item)).map((step) => step.id)
+
+  const createMemoryOrderShuffleMap = (items) => items.reduce((shuffles, item) => ({
+    ...shuffles,
+    [item.id]: createMemoryOrderShuffle(item),
+  }), {})
+
+  const handleMemoryModeChange = (mode) => {
+    setMemoryMode(mode)
+    setMixedSession(null)
+
+    if (mode === MEMORY_MODES.ORDER_DRILL) {
+      setMemoryOrderSelections({})
+      setMemoryOrderReveals({})
+      setMemorySavedResults({})
+      setMemoryOrderShuffles(createMemoryOrderShuffleMap(filteredMemoryItems))
+    }
+  }
+
   const handleOpenMemoryItems = (topic = '') => {
     setMemoryTopicFilter(topic)
     setMemoryCategoryFilter('')
@@ -1255,6 +1306,7 @@ function App() {
     setMemoryBlindMarks({})
     setMemoryActionSelections({})
     setMemoryOrderSelections({})
+    setMemoryOrderShuffles({})
     setMemoryOrderReveals({})
     setMemorySavedResults({})
     setMixedSession(null)
@@ -1330,6 +1382,13 @@ function App() {
       ...current,
       [memoryItemId]: [],
     }))
+    const memoryItem = MEMORY_ITEMS.find((item) => item.id === memoryItemId)
+    if (memoryItem) {
+      setMemoryOrderShuffles((current) => ({
+        ...current,
+        [memoryItemId]: createMemoryOrderShuffle(memoryItem),
+      }))
+    }
     setMemoryOrderReveals((current) => ({
       ...current,
       [memoryItemId]: false,
@@ -1339,18 +1398,22 @@ function App() {
   const handleStartMixedTest = () => {
     const selectedItems = deterministicShuffle(filteredMemoryItems, `${Date.now()}-mixed`).slice(0, Math.min(10, filteredMemoryItems.length))
     const modes = [MEMORY_MODES.BLIND_RECALL, MEMORY_MODES.ACTION_DRILL, MEMORY_MODES.ORDER_DRILL]
+    const mixedItems = selectedItems.map((item, index) => ({
+      item,
+      mode: modes[hashString(`${item.id}-${index}`) % modes.length],
+    }))
 
     setMixedSession({
-      items: selectedItems.map((item, index) => ({
-        item,
-        mode: modes[hashString(`${item.id}-${index}`) % modes.length],
-      })),
+      items: mixedItems,
       results: {},
     })
     setMemoryRevealedItems({})
     setMemoryBlindMarks({})
     setMemoryActionSelections({})
     setMemoryOrderSelections({})
+    setMemoryOrderShuffles(createMemoryOrderShuffleMap(
+      mixedItems.filter(({ mode }) => mode === MEMORY_MODES.ORDER_DRILL).map(({ item }) => item),
+    ))
     setMemoryOrderReveals({})
     setMemorySavedResults({})
   }
@@ -1602,7 +1665,10 @@ function App() {
     const steps = getMemoryOrderSteps(item)
     const selectedIds = memoryOrderSelections[item.id] || []
     const selectedSet = new Set(selectedIds)
-    const availableSteps = deterministicShuffle(steps, `${item.id}-order`).filter((step) => !selectedSet.has(step.id))
+    const shuffledStepIds = memoryOrderShuffles[item.id] || createMemoryOrderShuffle(item)
+    const availableSteps = shuffledStepIds
+      .map((stepId) => steps.find((step) => step.id === stepId))
+      .filter((step) => step && !selectedSet.has(step.id))
     const selectedSteps = selectedIds.map((stepId) => steps.find((step) => step.id === stepId)).filter(Boolean)
     const complete = steps.length > 0 && selectedIds.length === steps.length
     const errors = complete ? selectedIds.filter((stepId, index) => stepId !== steps[index].id).length : 0
@@ -1892,6 +1958,15 @@ function App() {
     topicSessionQuestions,
     view,
   ])
+
+  useEffect(() => {
+    if (view !== 'memory-items' || memoryMode !== MEMORY_MODES.ORDER_DRILL) return
+
+    setMemoryOrderSelections({})
+    setMemoryOrderReveals({})
+    setMemorySavedResults({})
+    setMemoryOrderShuffles(createMemoryOrderShuffleMap(filteredMemoryItems))
+  }, [memoryCategoryFilter, memoryMode, memorySearch, memoryTopicFilter, view])
 
   return (
     <div className="app-shell">
@@ -2194,10 +2269,7 @@ function App() {
                   <button
                     key={mode}
                     className={memoryMode === mode ? 'segmented-option segmented-option-active' : 'segmented-option'}
-                    onClick={() => {
-                      setMemoryMode(mode)
-                      setMixedSession(null)
-                    }}
+                    onClick={() => handleMemoryModeChange(mode)}
                   >
                     {label}
                   </button>
