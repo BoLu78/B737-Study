@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.7'
+const APP_VERSION = 'v8.8'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -1462,6 +1462,33 @@ function App() {
     </ol>
   )
 
+  const renderMemoryVisualCues = (item) => {
+    if (!item.visualCues?.length) return null
+
+    return (
+      <div className="memory-visual-cues" aria-label={`${item.title} visual cues`}>
+        {item.visualCues.map((cue, index) => (
+          <div
+            className={`memory-visual-cue memory-visual-cue-${cue.type}`}
+            key={`${cue.type}-${index}-${cue.lines.join('-')}`}
+          >
+            {cue.lines.map((line) => (
+              <span key={line}>{line}</span>
+            ))}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  const renderFullMemoryItemReference = (item) => (
+    <div className="memory-full-reference">
+      <h4>Full memory item</h4>
+      {renderMemoryVisualCues(item)}
+      {renderMemorySteps(item)}
+    </div>
+  )
+
   const renderMemoryItemHeader = (item) => {
     const statusText = getMemoryStatusText(memoryErrorStats[item.id])
 
@@ -1504,6 +1531,7 @@ function App() {
 
     return (
       <>
+        {renderMemoryVisualCues(item)}
         <ol className="memory-step-list">
           {item.steps.map((step) => {
             const parentLineId = `${item.id}-step-${step.number}`
@@ -1645,17 +1673,20 @@ function App() {
           </div>
         ))}
         {allAnswered && (
-          <div className="memory-result-panel">
-            <span>Errors: {result.errors} / {result.checks}</span>
-            <span>Error rate: {result.errorRate}%</span>
-            <button
-              className="button button-primary"
-              onClick={() => saveHandler(item.id, result, MEMORY_MODES.ACTION_DRILL)}
-              disabled={saved}
-            >
-              {saved ? 'Saved' : 'Save result'}
-            </button>
-          </div>
+          <>
+            <div className="memory-result-panel">
+              <span>Errors: {result.errors} / {result.checks}</span>
+              <span>Error rate: {result.errorRate}%</span>
+              <button
+                className="button button-primary"
+                onClick={() => saveHandler(item.id, result, MEMORY_MODES.ACTION_DRILL)}
+                disabled={saved}
+              >
+                {saved ? 'Saved' : 'Save result'}
+              </button>
+            </div>
+            {renderFullMemoryItemReference(item)}
+          </>
         )}
       </div>
     )
@@ -1752,6 +1783,7 @@ function App() {
   const renderMemoryPracticeCard = (item, mode, saveHandler = saveMemoryErrorResult) => (
     <article className="memory-item-card" key={`${mode}-${item.id}`}>
       {renderMemoryItemHeader(item)}
+      {mode !== MEMORY_MODES.BLIND_RECALL && renderMemoryVisualCues(item)}
       {mode === MEMORY_MODES.STUDY && renderMemorySteps(item)}
       {mode === MEMORY_MODES.BLIND_RECALL && renderBlindRecall(item, saveHandler)}
       {mode === MEMORY_MODES.ACTION_DRILL && renderActionDrill(item, saveHandler)}

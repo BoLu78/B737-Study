@@ -407,6 +407,16 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Fire Protection',
     priority: 'critical',
+    visualCues: [
+      {
+        type: 'warning-light',
+        lines: ['ENG 1', 'OVERHEAT'],
+      },
+      {
+        type: 'warning-light',
+        lines: ['ENG 2', 'OVERHEAT'],
+      },
+    ],
     steps: [
       {
         number: '1',
