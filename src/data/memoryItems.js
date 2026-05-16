@@ -81,6 +81,13 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Pressurization',
     priority: 'critical',
+    visualCues: [
+      {
+        type: 'warning-light',
+        color: 'red',
+        lines: ['CABIN', 'ALTITUDE'],
+      },
+    ],
     steps: [
       {
         number: '1',
@@ -130,6 +137,13 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Pressurization',
     priority: 'critical',
+    visualCues: [
+      {
+        type: 'warning-light',
+        color: 'red',
+        lines: ['CABIN', 'ALTITUDE'],
+      },
+    ],
     steps: [
       {
         number: '1',
@@ -410,10 +424,12 @@ export const MEMORY_ITEMS = [
     visualCues: [
       {
         type: 'warning-light',
+        color: 'amber',
         lines: ['ENG 1', 'OVERHEAT'],
       },
       {
         type: 'warning-light',
+        color: 'amber',
         lines: ['ENG 2', 'OVERHEAT'],
       },
     ],
@@ -463,6 +479,13 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Warning Systems',
     priority: 'critical',
+    visualCues: [
+      {
+        type: 'warning-light',
+        color: 'red',
+        lines: ['TAKEOFF', 'CONFIG'],
+      },
+    ],
     steps: [
       {
         number: '1',

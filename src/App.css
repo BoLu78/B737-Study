@@ -780,8 +780,19 @@ code {
 }
 
 .memory-visual-cue-warning-light {
+  border-color: rgba(245, 158, 11, 0.36);
+}
+
+.memory-visual-cue-amber {
   color: #f59e0b;
   text-shadow: 0 0 8px rgba(245, 158, 11, 0.34);
+}
+
+.memory-visual-cue-red {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.42);
+  box-shadow: inset 0 0 12px rgba(248, 113, 113, 0.12);
+  text-shadow: 0 0 8px rgba(248, 113, 113, 0.32);
 }
 
 .memory-full-reference {

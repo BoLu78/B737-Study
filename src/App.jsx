@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.9'
+const APP_VERSION = 'v8.10'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -1464,7 +1464,7 @@ function App() {
       <div className="memory-visual-cues" aria-label={`${item.title} visual cues`}>
         {item.visualCues.map((cue, index) => (
           <div
-            className={`memory-visual-cue memory-visual-cue-${cue.type}`}
+            className={`memory-visual-cue memory-visual-cue-${cue.type} memory-visual-cue-${cue.color || 'amber'}`}
             key={`${cue.type}-${index}-${cue.lines.join('-')}`}
           >
             {cue.lines.map((line) => (
