@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.20'
+const APP_VERSION = 'v8.21'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -45,6 +45,21 @@ const MEMORY_MODES = {
   ACTION_DRILL: 'action-drill',
   ORDER_DRILL: 'order-drill',
   MIXED_TEST: 'mixed-test',
+}
+const MEMORY_AIRCRAFT = {
+  NG: '737NG',
+  MAX: '737MAX',
+}
+const MEMORY_AIRCRAFT_LABELS = {
+  [MEMORY_AIRCRAFT.NG]: '737-800 NG',
+  [MEMORY_AIRCRAFT.MAX]: '737-8 MAX',
+}
+const MEMORY_AIRCRAFT_OPTIONS = [MEMORY_AIRCRAFT.NG, MEMORY_AIRCRAFT.MAX]
+const DEFAULT_MEMORY_AIRCRAFT = MEMORY_AIRCRAFT.NG
+const MEMORY_DIFFERENCE_FILTERS = {
+  ALL: 'all',
+  COMMON: 'common',
+  DIFFERENCES: 'differences',
 }
 const COMMON_MEMORY_ACTION_OPTIONS = [
   'CUTOFF',
@@ -388,16 +403,40 @@ function mergeMemoryErrorStats(firstStats = {}, secondStats = {}) {
   }
 }
 
-function migrateMemoryErrorStats(stats) {
-  return Object.entries(stats).reduce((migratedStats, [memoryItemId, itemStats]) => {
-    const targetId = MEMORY_ERROR_STATS_MIGRATIONS[memoryItemId] || memoryItemId
+function getMemoryStatsKey(memoryItemId, aircraft = DEFAULT_MEMORY_AIRCRAFT) {
+  return `${memoryItemId}::${aircraft}`
+}
 
-    return {
-      ...migratedStats,
-      [targetId]: migratedStats[targetId]
-        ? mergeMemoryErrorStats(migratedStats[targetId], itemStats)
-        : itemStats,
+function parseMemoryStatsKey(memoryStatsKey) {
+  const [memoryItemId, aircraft] = String(memoryStatsKey).split('::')
+  return {
+    memoryItemId,
+    aircraft: MEMORY_AIRCRAFT_OPTIONS.includes(aircraft) ? aircraft : '',
+  }
+}
+
+function migrateMemoryErrorStats(stats) {
+  return Object.entries(stats).reduce((migratedStats, [memoryStatsKey, itemStats]) => {
+    const { memoryItemId, aircraft } = parseMemoryStatsKey(memoryStatsKey)
+    const targetId = MEMORY_ERROR_STATS_MIGRATIONS[memoryItemId] || memoryItemId
+    const targetStatsKey = aircraft ? getMemoryStatsKey(targetId, aircraft) : targetId
+    const ngStatsKey = getMemoryStatsKey(targetId, MEMORY_AIRCRAFT.NG)
+
+    migratedStats[memoryStatsKey] = migratedStats[memoryStatsKey]
+      ? mergeMemoryErrorStats(migratedStats[memoryStatsKey], itemStats)
+      : itemStats
+
+    if (targetStatsKey !== memoryStatsKey) {
+      migratedStats[targetStatsKey] = migratedStats[targetStatsKey]
+        ? mergeMemoryErrorStats(migratedStats[targetStatsKey], itemStats)
+        : itemStats
     }
+
+    if (!aircraft && !migratedStats[ngStatsKey]) {
+      migratedStats[ngStatsKey] = itemStats
+    }
+
+    return migratedStats
   }, {})
 }
 
@@ -479,6 +518,74 @@ function createManualChunkExcerpt(text, query) {
   )
 }
 
+function getMemoryItemAircraft(item) {
+  return Array.isArray(item.aircraft) && item.aircraft.length > 0 ? item.aircraft : MEMORY_AIRCRAFT_OPTIONS
+}
+
+function isMemoryItemApplicableToAircraft(item, aircraft) {
+  return getMemoryItemAircraft(item).includes(aircraft)
+}
+
+function hasMemoryAircraftVariant(item, aircraft) {
+  return Boolean(item.variants?.[aircraft])
+}
+
+function hasAnyMemoryAircraftVariant(item) {
+  return Boolean(item.variants && Object.keys(item.variants).length > 0)
+}
+
+function resolveMemoryItemForAircraft(item, aircraft) {
+  const variant = item.variants?.[aircraft] || {}
+
+  return {
+    ...item,
+    ...variant,
+    id: item.id,
+    aircraft: getMemoryItemAircraft(item),
+    variants: item.variants,
+    selectedAircraft: aircraft,
+    hasSelectedAircraftVariant: hasMemoryAircraftVariant(item, aircraft),
+  }
+}
+
+function isCommonMemoryItem(item) {
+  const aircraft = getMemoryItemAircraft(item)
+  return MEMORY_AIRCRAFT_OPTIONS.every((aircraftId) => aircraft.includes(aircraftId)) && !hasAnyMemoryAircraftVariant(item)
+}
+
+function isDifferentMemoryItem(item) {
+  return !isCommonMemoryItem(item)
+}
+
+function getMemoryAircraftBadgeLabel(item) {
+  const aircraft = getMemoryItemAircraft(item)
+
+  if (item.hasSelectedAircraftVariant) {
+    return `${MEMORY_AIRCRAFT_LABELS[item.selectedAircraft]} VARIANT`
+  }
+
+  if (MEMORY_AIRCRAFT_OPTIONS.every((aircraftId) => aircraft.includes(aircraftId))) {
+    return 'COMMON'
+  }
+
+  if (aircraft.includes(MEMORY_AIRCRAFT.NG)) return '737-800 NG ONLY'
+  if (aircraft.includes(MEMORY_AIRCRAFT.MAX)) return '737-8 MAX ONLY'
+  return 'VARIANT'
+}
+
+function getMemoryVisualCueSearchText(item) {
+  const groups = item.visualCueGroups?.length
+    ? item.visualCueGroups
+    : item.visualCues?.length
+      ? [{ label: '', cues: item.visualCues }]
+      : []
+
+  return groups.flatMap((group) => [
+    group.label,
+    ...(group.cues || []).flatMap((cue) => cue.lines || []),
+  ])
+}
+
 function getMemoryItemSearchText(item) {
   const stepTexts = item.steps.flatMap((step) => [
     step.text,
@@ -495,6 +602,7 @@ function getMemoryItemSearchText(item) {
     item.subtitle,
     item.topic,
     item.category,
+    ...getMemoryVisualCueSearchText(item),
     ...stepTexts,
   ]
     .filter(Boolean)
@@ -525,8 +633,8 @@ function getMemoryActionLines(item) {
   return getMemoryAssessableLines(item).filter((line) => line.right)
 }
 
-function getMemoryRightSideValues() {
-  const dataValues = MEMORY_ITEMS.flatMap((item) => getMemoryActionLines(item).map((line) => line.right))
+function getMemoryRightSideValues(items = MEMORY_ITEMS) {
+  const dataValues = items.flatMap((item) => getMemoryActionLines(item).map((line) => line.right))
   return Array.from(new Set([...dataValues, ...COMMON_MEMORY_ACTION_OPTIONS].filter(Boolean)))
 }
 
@@ -578,8 +686,8 @@ function shuffleMemoryOrderSteps(steps) {
   return fallbackSteps
 }
 
-function getMemoryActionOptions(line) {
-  const values = getMemoryRightSideValues().filter((value) => value !== line.right)
+function getMemoryActionOptions(line, items) {
+  const values = getMemoryRightSideValues(items).filter((value) => value !== line.right)
   const distractors = deterministicShuffle(values, line.id).slice(0, 3)
   return deterministicShuffle([line.right, ...distractors], `${line.id}-options`).slice(0, 4)
 }
@@ -602,15 +710,19 @@ function getMemoryResultFromMarks(lines, marks) {
   }
 }
 
-function getMemoryStatsSummary(items, statsById) {
-  const testedItems = items.filter((item) => Number(statsById[item.id]?.totalChecks) > 0)
-  const totalChecks = testedItems.reduce((sum, item) => sum + (Number(statsById[item.id]?.totalChecks) || 0), 0)
-  const totalErrors = testedItems.reduce((sum, item) => sum + (Number(statsById[item.id]?.totalErrors) || 0), 0)
+function getMemoryStatsForItem(statsById, memoryItemId, aircraft = DEFAULT_MEMORY_AIRCRAFT) {
+  return statsById[getMemoryStatsKey(memoryItemId, aircraft)] || {}
+}
+
+function getMemoryStatsSummary(items, statsById, aircraft = DEFAULT_MEMORY_AIRCRAFT) {
+  const testedItems = items.filter((item) => Number(getMemoryStatsForItem(statsById, item.id, aircraft).totalChecks) > 0)
+  const totalChecks = testedItems.reduce((sum, item) => sum + (Number(getMemoryStatsForItem(statsById, item.id, aircraft).totalChecks) || 0), 0)
+  const totalErrors = testedItems.reduce((sum, item) => sum + (Number(getMemoryStatsForItem(statsById, item.id, aircraft).totalErrors) || 0), 0)
   const averageErrorRate = calculateMemoryErrorRate(totalErrors, totalChecks)
   const highestErrorItem = testedItems
     .map((item) => ({
       item,
-      averageErrorRate: Number(statsById[item.id]?.averageErrorRate) || 0,
+      averageErrorRate: Number(getMemoryStatsForItem(statsById, item.id, aircraft).averageErrorRate) || 0,
     }))
     .sort((first, second) => second.averageErrorRate - first.averageErrorRate)[0] || null
 
@@ -737,6 +849,8 @@ function App() {
   const [referenceTopicFilter, setReferenceTopicFilter] = useState('')
   const [referenceSearch, setReferenceSearch] = useState('')
   const [memoryMode, setMemoryMode] = useState(MEMORY_MODES.STUDY)
+  const [selectedMemoryAircraft, setSelectedMemoryAircraft] = useState(DEFAULT_MEMORY_AIRCRAFT)
+  const [memoryDifferenceFilter, setMemoryDifferenceFilter] = useState(MEMORY_DIFFERENCE_FILTERS.ALL)
   const [memoryTopicFilter, setMemoryTopicFilter] = useState('')
   const [memoryCategoryFilter, setMemoryCategoryFilter] = useState('')
   const [memorySearch, setMemorySearch] = useState('')
@@ -905,22 +1019,35 @@ function App() {
   const activeQuestions = questions.filter((item) => item.status === 'active').length
   const sourceDocuments = getUniqueReferenceValues(questions, 'sourceDocument')
   const referenceTopics = getUniqueReferenceValues(questions, 'topic')
-  const memoryTopics = Array.from(new Set(MEMORY_ITEMS.map((item) => item.topic))).sort((first, second) =>
+  const selectedMemoryAircraftLabel = MEMORY_AIRCRAFT_LABELS[selectedMemoryAircraft]
+  const defaultMemoryAircraftLabel = MEMORY_AIRCRAFT_LABELS[DEFAULT_MEMORY_AIRCRAFT]
+  const applicableMemoryItems = MEMORY_ITEMS
+    .filter((item) => isMemoryItemApplicableToAircraft(item, selectedMemoryAircraft))
+    .map((item) => resolveMemoryItemForAircraft(item, selectedMemoryAircraft))
+  const defaultAircraftMemoryItems = MEMORY_ITEMS
+    .filter((item) => isMemoryItemApplicableToAircraft(item, DEFAULT_MEMORY_AIRCRAFT))
+    .map((item) => resolveMemoryItemForAircraft(item, DEFAULT_MEMORY_AIRCRAFT))
+  const commonMemoryItemCount = MEMORY_ITEMS.filter((item) => isCommonMemoryItem(item)).length
+  const memoryTopics = Array.from(new Set(applicableMemoryItems.map((item) => item.topic))).sort((first, second) =>
     first.localeCompare(second, undefined, { numeric: true }),
   )
-  const memoryCategories = Array.from(new Set(MEMORY_ITEMS.map((item) => item.category))).sort((first, second) =>
+  const memoryCategories = Array.from(new Set(applicableMemoryItems.map((item) => item.category))).sort((first, second) =>
     first.localeCompare(second, undefined, { numeric: true }),
   )
   const normalizedMemorySearch = memorySearch.trim().toLowerCase()
-  const filteredMemoryItems = MEMORY_ITEMS.filter((item) => {
+  const filteredMemoryItems = applicableMemoryItems.filter((item) => {
+    const matchesDifferenceFilter =
+      memoryDifferenceFilter === MEMORY_DIFFERENCE_FILTERS.ALL ||
+      (memoryDifferenceFilter === MEMORY_DIFFERENCE_FILTERS.COMMON && isCommonMemoryItem(item)) ||
+      (memoryDifferenceFilter === MEMORY_DIFFERENCE_FILTERS.DIFFERENCES && isDifferentMemoryItem(item))
     const matchesTopic = !memoryTopicFilter || item.topic === memoryTopicFilter
     const matchesCategory = !memoryCategoryFilter || item.category === memoryCategoryFilter
     const matchesSearch = !normalizedMemorySearch || getMemoryItemSearchText(item).includes(normalizedMemorySearch)
 
-    return matchesTopic && matchesCategory && matchesSearch
+    return matchesDifferenceFilter && matchesTopic && matchesCategory && matchesSearch
   })
-  const memoryStatsSummary = getMemoryStatsSummary(MEMORY_ITEMS, memoryErrorStats)
-  const filteredMemoryStatsSummary = getMemoryStatsSummary(filteredMemoryItems, memoryErrorStats)
+  const memoryStatsSummary = getMemoryStatsSummary(defaultAircraftMemoryItems, memoryErrorStats, DEFAULT_MEMORY_AIRCRAFT)
+  const filteredMemoryStatsSummary = getMemoryStatsSummary(filteredMemoryItems, memoryErrorStats, selectedMemoryAircraft)
   const referencedQuestions = questions.filter(hasReferenceMetadata)
   const questionsWithManualReference = questions.filter(
     (item) => displayReferenceValue(item.manualReference) !== '—',
@@ -1389,10 +1516,7 @@ function App() {
     }
   }
 
-  const handleOpenMemoryItems = (topic = '') => {
-    setMemoryTopicFilter(topic)
-    setMemoryCategoryFilter('')
-    setMemorySearch('')
+  const resetMemoryDrillState = () => {
     setMemoryRevealedItems({})
     setMemoryBlindMarks({})
     setMemoryActionSelections({})
@@ -1401,6 +1525,27 @@ function App() {
     setMemoryOrderReveals({})
     setMemorySavedResults({})
     setMixedSession(null)
+  }
+
+  const handleMemoryAircraftChange = (aircraft) => {
+    setSelectedMemoryAircraft(aircraft)
+    setMemoryTopicFilter('')
+    setMemoryCategoryFilter('')
+    setMemorySearch('')
+    setMemoryDifferenceFilter(MEMORY_DIFFERENCE_FILTERS.ALL)
+    resetMemoryDrillState()
+  }
+
+  const handleMemoryDifferenceFilterChange = (filter) => {
+    setMemoryDifferenceFilter(filter)
+    resetMemoryDrillState()
+  }
+
+  const handleOpenMemoryItems = (topic = '') => {
+    setMemoryTopicFilter(topic)
+    setMemoryCategoryFilter('')
+    setMemorySearch('')
+    resetMemoryDrillState()
     setView('memory-items')
   }
 
@@ -1408,11 +1553,14 @@ function App() {
     setMemoryTopicFilter('')
     setMemoryCategoryFilter('')
     setMemorySearch('')
+    setMemoryDifferenceFilter(MEMORY_DIFFERENCE_FILTERS.ALL)
   }
 
   const saveMemoryErrorResult = (memoryItemId, result, mode) => {
+    const memoryStatsKey = getMemoryStatsKey(memoryItemId, selectedMemoryAircraft)
+
     setMemoryErrorStats((current) => {
-      const previousStats = current[memoryItemId] || {}
+      const previousStats = current[memoryStatsKey] || {}
       const totalChecks = (Number(previousStats.totalChecks) || 0) + result.checks
       const totalErrors = (Number(previousStats.totalErrors) || 0) + result.errors
       const nextStats = {
@@ -1428,7 +1576,7 @@ function App() {
       }
       const nextAllStats = {
         ...current,
-        [memoryItemId]: nextStats,
+        [memoryStatsKey]: nextStats,
       }
 
       saveStoredMemoryErrorStats(nextAllStats)
@@ -1437,7 +1585,7 @@ function App() {
 
     setMemorySavedResults((current) => ({
       ...current,
-      [`${mode}-${memoryItemId}`]: true,
+      [`${mode}-${memoryStatsKey}`]: true,
     }))
   }
 
@@ -1473,7 +1621,7 @@ function App() {
       ...current,
       [memoryItemId]: [],
     }))
-    const memoryItem = MEMORY_ITEMS.find((item) => item.id === memoryItemId)
+    const memoryItem = applicableMemoryItems.find((item) => item.id === memoryItemId)
     if (memoryItem) {
       setMemoryOrderShuffles((current) => ({
         ...current,
@@ -1638,6 +1786,8 @@ function App() {
     )
   )
 
+  const getMemorySavedResultKey = (mode, item) => `${mode}-${getMemoryStatsKey(item.id, item.selectedAircraft || selectedMemoryAircraft)}`
+
   const renderFullMemoryItemReference = (item) => (
     <div className="memory-full-reference">
       <h4>Full memory item</h4>
@@ -1647,13 +1797,14 @@ function App() {
   )
 
   const renderMemoryItemHeader = (item) => {
-    const statusText = getMemoryStatusText(memoryErrorStats[item.id])
+    const statusText = getMemoryStatusText(getMemoryStatsForItem(memoryErrorStats, item.id, item.selectedAircraft || selectedMemoryAircraft))
 
     return (
       <div className="memory-item-header">
         <div>
           {renderMemoryTitle(item)}
-          <span className="memory-aircraft-badge">737NG</span>
+          <span className="memory-aircraft-badge">{selectedMemoryAircraftLabel}</span>
+          <span className="memory-applicability-badge">{getMemoryAircraftBadgeLabel(item)}</span>
         </div>
         <div className="memory-status-list">
           {statusText.map((text) => (
@@ -1670,7 +1821,7 @@ function App() {
     const result = getMemoryResultFromMarks(lines, marks)
     const allMarked = lines.length > 0 && lines.every((line) => marks[line.id] !== undefined)
     const revealed = Boolean(memoryRevealedItems[item.id])
-    const saved = Boolean(memorySavedResults[`${MEMORY_MODES.BLIND_RECALL}-${item.id}`])
+    const saved = Boolean(memorySavedResults[getMemorySavedResultKey(MEMORY_MODES.BLIND_RECALL, item)])
 
     if (!revealed) {
       return (
@@ -1767,7 +1918,7 @@ function App() {
       errors,
       errorRate: calculateMemoryErrorRate(errors, checks),
     }
-    const saved = Boolean(memorySavedResults[`${MEMORY_MODES.ACTION_DRILL}-${item.id}`])
+    const saved = Boolean(memorySavedResults[getMemorySavedResultKey(MEMORY_MODES.ACTION_DRILL, item)])
 
     if (lines.length === 0) {
       return <p className="memory-drill-empty">No right-side values to drill for this item.</p>
@@ -1783,7 +1934,7 @@ function App() {
               <strong>?</strong>
             </div>
             <div className="memory-answer-options">
-              {getMemoryActionOptions(line).map((option) => {
+              {getMemoryActionOptions(line, applicableMemoryItems).map((option) => {
                 const selected = selections[line.id] === option
                 const hasSelection = Boolean(selections[line.id])
                 const isCorrectOption = option === line.right
@@ -1836,7 +1987,7 @@ function App() {
 
       return (
         <div className="memory-answer-options">
-          {getMemoryActionOptions(line).map((option) => {
+          {getMemoryActionOptions(line, applicableMemoryItems).map((option) => {
             const selected = selectedValue === option
             const hasSelection = Boolean(selectedValue)
             const isCorrectOption = option === line.right
@@ -1989,7 +2140,7 @@ function App() {
       errors,
       errorRate: calculateMemoryErrorRate(errors, steps.length),
     }
-    const saved = Boolean(memorySavedResults[`${MEMORY_MODES.ORDER_DRILL}-${item.id}`])
+    const saved = Boolean(memorySavedResults[getMemorySavedResultKey(MEMORY_MODES.ORDER_DRILL, item)])
 
     return (
       <div className="memory-order-layout">
@@ -2279,7 +2430,7 @@ function App() {
     setMemoryOrderReveals({})
     setMemorySavedResults({})
     setMemoryOrderShuffles(createMemoryOrderShuffleMap(filteredMemoryItems))
-  }, [memoryCategoryFilter, memoryMode, memorySearch, memoryTopicFilter, view])
+  }, [memoryCategoryFilter, memoryDifferenceFilter, memoryMode, memorySearch, memoryTopicFilter, selectedMemoryAircraft, view])
 
   return (
     <div className="app-shell">
@@ -2382,12 +2533,12 @@ function App() {
                   : 'memory-card-neutral'
               }`}>
                 <h3 className="memory-title-critical">MEMORY ITEMS</h3>
-                <span className="memory-aircraft-badge">737NG</span>
-                <p>737NG critical recall items.</p>
-                <p>{MEMORY_ITEMS.length} total</p>
+                <span className="memory-aircraft-badge">{`${MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.NG]} / ${MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.MAX]}`}</span>
+                <p>Critical recall items.</p>
+                <p>{commonMemoryItemCount} common · {defaultAircraftMemoryItems.length} {defaultMemoryAircraftLabel}</p>
                 {memoryStatsSummary.testedCount > 0 ? (
                   <p>
-                    Average error: <strong className={`memory-error-value memory-error-${getMemoryErrorSeverity(memoryStatsSummary.averageErrorRate)}`}>{memoryStatsSummary.averageErrorRate}%</strong>
+                    {defaultMemoryAircraftLabel} average error: <strong className={`memory-error-value memory-error-${getMemoryErrorSeverity(memoryStatsSummary.averageErrorRate)}`}>{memoryStatsSummary.averageErrorRate}%</strong>
                     {memoryStatsSummary.highestErrorItem && (
                       <>
                         <br />
@@ -2527,7 +2678,7 @@ function App() {
                 <p className="eyebrow">Memory Items</p>
                 <h2>Memory Items</h2>
                 <div className="memory-header-badges">
-                  <span className="memory-aircraft-badge">737NG</span>
+                  <span className="memory-aircraft-badge">{selectedMemoryAircraftLabel}</span>
                   <span className="memory-critical-badge">CRITICAL RECALL ITEMS</span>
                 </div>
                 <p className="subtitle">QRH-style recall items with error-rate practice.</p>
@@ -2535,6 +2686,21 @@ function App() {
               <button className="button button-ghost" onClick={handleBackToDashboard}>
                 Back to dashboard
               </button>
+            </div>
+
+            <div className="memory-aircraft-selector">
+              <span>Aircraft:</span>
+              <div className="segmented-control">
+                {MEMORY_AIRCRAFT_OPTIONS.map((aircraft) => (
+                  <button
+                    key={aircraft}
+                    className={selectedMemoryAircraft === aircraft ? 'segmented-option segmented-option-active' : 'segmented-option'}
+                    onClick={() => handleMemoryAircraftChange(aircraft)}
+                  >
+                    {MEMORY_AIRCRAFT_LABELS[aircraft]}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="memory-mode-row">
@@ -2561,6 +2727,21 @@ function App() {
               <button className="button button-secondary" onClick={handleResetMemoryFilters}>
                 All topics
               </button>
+              <div className="segmented-control memory-difference-filter">
+                {[
+                  [MEMORY_DIFFERENCE_FILTERS.ALL, 'All'],
+                  [MEMORY_DIFFERENCE_FILTERS.COMMON, 'Common'],
+                  [MEMORY_DIFFERENCE_FILTERS.DIFFERENCES, 'Differences'],
+                ].map(([filter, label]) => (
+                  <button
+                    key={filter}
+                    className={memoryDifferenceFilter === filter ? 'segmented-option segmented-option-active' : 'segmented-option'}
+                    onClick={() => handleMemoryDifferenceFilterChange(filter)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <label className="field-label">
                 Topic
                 <select value={memoryTopicFilter} onChange={(event) => setMemoryTopicFilter(event.target.value)}>
@@ -2595,7 +2776,7 @@ function App() {
             </div>
 
             <div className="reference-result-count">
-              Showing {filteredMemoryItems.length} of {MEMORY_ITEMS.length} memory items
+              Showing {filteredMemoryItems.length} of {applicableMemoryItems.length} {selectedMemoryAircraftLabel} memory items
               {filteredMemoryStatsSummary.testedCount > 0 && ` · Average error: ${filteredMemoryStatsSummary.averageErrorRate}%`}
             </div>
 
@@ -2606,7 +2787,15 @@ function App() {
                     <div className="memory-item-header">
                       <div>
                         <h3>Mixed Test</h3>
-                        <p>{Math.min(10, filteredMemoryItems.length)} memory items from the current filters.</p>
+                        <p>
+                          {filteredMemoryItems.length === 0
+                            ? applicableMemoryItems.length === 0
+                              ? 'No Memory Items available for this aircraft.'
+                              : memoryDifferenceFilter === MEMORY_DIFFERENCE_FILTERS.DIFFERENCES
+                                ? 'No aircraft-specific Memory Item differences yet.'
+                                : 'No Memory Items match the current filters.'
+                            : `${Math.min(10, filteredMemoryItems.length)} ${selectedMemoryAircraftLabel} memory items from the current filters.`}
+                        </p>
                       </div>
                     </div>
                     <div className="card-actions">
@@ -2655,7 +2844,19 @@ function App() {
               </div>
             ) : (
               <div className="memory-item-list">
-                {filteredMemoryItems.map((item) => renderMemoryPracticeCard(item, memoryMode))}
+                {filteredMemoryItems.length === 0 ? (
+                  <article className="memory-item-card">
+                    <p className="memory-drill-empty">
+                      {applicableMemoryItems.length === 0
+                        ? 'No Memory Items available for this aircraft.'
+                        : memoryDifferenceFilter === MEMORY_DIFFERENCE_FILTERS.DIFFERENCES
+                          ? 'No aircraft-specific Memory Item differences yet.'
+                          : 'No Memory Items match the current filters.'}
+                    </p>
+                  </article>
+                ) : (
+                  filteredMemoryItems.map((item) => renderMemoryPracticeCard(item, memoryMode))
+                )}
               </div>
             )}
           </section>

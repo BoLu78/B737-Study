@@ -708,7 +708,7 @@ code {
   display: grid;
   align-items: end;
   gap: 16px;
-  grid-template-columns: auto minmax(170px, 1fr) minmax(180px, 1fr) minmax(220px, 1.4fr);
+  grid-template-columns: auto auto minmax(170px, 1fr) minmax(180px, 1fr) minmax(220px, 1.4fr);
 }
 
 .memory-item-list {
@@ -802,8 +802,45 @@ code {
   letter-spacing: 0.08em;
 }
 
+.memory-applicability-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 22px;
+  margin: 7px 0 0 8px;
+  padding: 3px 8px;
+  border-radius: 7px;
+  color: #d1fae5;
+  background: rgba(20, 83, 45, 0.34);
+  border: 1px solid rgba(52, 211, 153, 0.24);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
 .memory-header-badges .memory-aircraft-badge {
   margin-top: 0;
+}
+
+.memory-aircraft-selector {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(15, 24, 42, 0.62);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.memory-aircraft-selector > span {
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.memory-difference-filter {
+  align-self: end;
 }
 
 .memory-status-list {

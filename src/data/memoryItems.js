@@ -1,6 +1,7 @@
 export const MEMORY_ITEMS = [
   {
     id: 'aborted-engine-start',
+    aircraft: ['737NG', '737MAX'],
     title: 'Aborted Engine Start',
     subtitle: '',
     category: 'Non-Normal Checklist',
@@ -16,6 +17,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'airspeed-unreliable-stick-shaker-cb',
+    aircraft: ['737NG', '737MAX'],
     title: 'Airspeed Unreliable',
     subtitle: 'Stick Shaker Deactivation by Pulling Circuit Breaker',
     category: 'Non-Normal Checklist',
@@ -56,6 +58,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'apu-fire',
+    aircraft: ['737NG', '737MAX'],
     title: 'APU FIRE',
     subtitle: '',
     category: 'Non-Normal Checklist',
@@ -76,6 +79,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'cabin-altitude-warning-or-rapid-depressurization',
+    aircraft: ['737NG', '737MAX'],
     title: 'CABIN ALTITUDE WARNING',
     titlePrimary: 'CABIN ALTITUDE WARNING',
     titleSecondary: 'Rapid Depressurization',
@@ -138,6 +142,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'emergency-descent',
+    aircraft: ['737NG', '737MAX'],
     title: 'Emergency Descent ( )',
     subtitle: '',
     category: 'Non-Normal Checklist',
@@ -187,6 +192,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'engine-fire-or-engine-severe-damage-or-separation',
+    aircraft: ['737NG', '737MAX'],
     title: 'ENGINE FIRE',
     titlePrimary: 'ENGINE FIRE',
     titleSecondary: 'Engine Severe Damage or Separation',
@@ -231,6 +237,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'engine-limit-or-surge-or-stall',
+    aircraft: ['737NG', '737MAX'],
     title: 'Engine Limit or Surge or Stall',
     subtitle: '',
     category: 'Non-Normal Checklist',
@@ -251,6 +258,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'engine-overheat',
+    aircraft: ['737NG', '737MAX'],
     title: 'ENGINE OVERHEAT',
     subtitle: '',
     category: 'Non-Normal Checklist',
@@ -297,6 +305,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'landing-configuration',
+    aircraft: ['737NG', '737MAX'],
     title: 'Landing Configuration',
     subtitle: '',
     category: 'Non-Normal Checklist',
@@ -312,6 +321,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'takeoff-configuration',
+    aircraft: ['737NG', '737MAX'],
     title: 'Takeoff Configuration',
     subtitle: '',
     category: 'Non-Normal Checklist',
@@ -334,6 +344,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'warning-horn-intermittent-or-warning-light-cabin-altitude-or-takeoff-configuration',
+    aircraft: ['737NG', '737MAX'],
     title: 'WARNING HORN (INTERMITTENT)',
     titlePrimary: 'WARNING HORN (INTERMITTENT)',
     titleSecondary: 'WARNING LIGHT - CABIN ALTITUDE OR TAKEOFF CONFIGURATION',
@@ -414,6 +425,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'loss-of-thrust-on-both-engines',
+    aircraft: ['737NG', '737MAX'],
     title: 'Loss Of Thrust On Both Engines',
     subtitle: '',
     category: 'Non-Normal Checklist',
@@ -460,6 +472,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'runaway-stabilizer',
+    aircraft: ['737NG', '737MAX'],
     title: 'Runaway Stabilizer',
     subtitle: '',
     category: 'Non-Normal Checklist',
