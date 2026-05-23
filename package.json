@@ -1,7 +1,7 @@
 {
   "name": "b737-study",
   "private": true,
-  "version": "8.15.0",
+  "version": "8.16.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -23,7 +23,8 @@
     "questions:test-cleaner": "node scripts/test-question-text-cleaner.js",
     "questions:audit-source-ids": "node scripts/audit-question-source-ids.js",
     "finaltest:test-selection": "node scripts/test-final-test-selection.js",
-    "manuals:search:check": "node scripts/check-manual-search.js"
+    "manuals:search:check": "node scripts/check-manual-search.js",
+    "questions:audit": "node scripts/audit-question-bank.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",
@@ -40,6 +41,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "pdf-parse": "^1.1.1",
-    "vite": "^8.0.10"
+    "vite": "^8.0.10",
+    "xlsx": "^0.18.5"
   }
 }

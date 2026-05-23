@@ -1,16 +1,19 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import xlsx from 'xlsx'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..')
-const inputPath = path.join(repoRoot, 'data/import/questions.csv')
+const inputPath = path.join(repoRoot, 'data/import/T73 R01 TEST 737_R01..xlsx')
+const overridePath = path.join(repoRoot, 'data/import/question-overrides.json')
 const outputPath = path.join(repoRoot, 'data/generated/questions.json')
 
 const REQUIRED_HEADERS = ['ID', 'Question', 'AnswerOne', 'AnswerTwo', 'AnswerThree', 'AnswerFour', 'Correct', 'Argument']
 const ANSWER_COLUMNS = ['AnswerOne', 'AnswerTwo', 'AnswerThree', 'AnswerFour']
 const ANSWER_KEYS = ['A', 'B', 'C', 'D']
+const SHEET_NAME = 'Table 1'
 const SHORT_ANSWER_WHITELIST = new Set([
   'true',
   'false',
@@ -52,56 +55,65 @@ function normalizeCell(value) {
     .trim()
 }
 
-function parseCsv(text, delimiter = ';') {
-  const rows = []
-  let row = []
-  let cell = ''
-  let inQuotes = false
-
-  for (let index = 0; index < text.length; index += 1) {
-    const char = text[index]
-    const nextChar = text[index + 1]
-
-    if (char === '"') {
-      if (inQuotes && nextChar === '"') {
-        cell += '"'
-        index += 1
-      } else {
-        inQuotes = !inQuotes
-      }
-      continue
-    }
-
-    if (char === delimiter && !inQuotes) {
-      row.push(cell)
-      cell = ''
-      continue
-    }
-
-    if ((char === '\n' || char === '\r') && !inQuotes) {
-      if (char === '\r' && nextChar === '\n') {
-        index += 1
-      }
-      row.push(cell)
-      rows.push(row)
-      row = []
-      cell = ''
-      continue
-    }
-
-    cell += char
-  }
-
-  if (cell || row.length > 0) {
-    row.push(cell)
-    rows.push(row)
-  }
-
-  return rows.filter((candidate) => candidate.some((value) => normalizeCell(value)))
-}
-
 function rowToRecord(headers, row) {
   return Object.fromEntries(headers.map((header, index) => [header, normalizeCell(row[index])]))
+}
+
+async function loadExcelRecords() {
+  try {
+    await fs.access(inputPath)
+  } catch {
+    throw new Error(`Required Excel question source is missing: ${path.relative(repoRoot, inputPath)}`)
+  }
+
+  const workbook = xlsx.readFile(inputPath)
+  const sheet = workbook.Sheets[SHEET_NAME]
+
+  if (!sheet) {
+    throw new Error(`Missing Excel sheet: ${SHEET_NAME}`)
+  }
+
+  const rows = xlsx.utils
+    .sheet_to_json(sheet, { header: 1, defval: '', blankrows: false, raw: false })
+    .filter((candidate) => candidate.some((value) => normalizeCell(value)))
+  const headers = rows[0].map(normalizeCell)
+  const missingHeaders = REQUIRED_HEADERS.filter((header) => !headers.includes(header))
+
+  if (missingHeaders.length > 0) {
+    throw new Error(`Missing Excel headers: ${missingHeaders.join(', ')}`)
+  }
+
+  return rows.slice(1).map((row) => rowToRecord(headers, row))
+}
+
+async function loadOverrides() {
+  try {
+    const overrideText = await fs.readFile(overridePath, 'utf8')
+    const overrides = JSON.parse(overrideText)
+
+    if (!Array.isArray(overrides)) {
+      throw new Error('Question overrides must be an array')
+    }
+
+    return overrides
+  } catch (error) {
+    if (error.code === 'ENOENT') return []
+    throw error
+  }
+}
+
+function applyOverrides(records, overrides) {
+  const overrideById = new Map(overrides.map((override) => [normalizeCell(override.ID), override]))
+
+  return records.map((record) => {
+    const override = overrideById.get(normalizeCell(record.ID))
+    if (!override) return record
+
+    return {
+      ...record,
+      ...Object.fromEntries(REQUIRED_HEADERS.map((header) => [header, normalizeCell(override[header] ?? record[header])])),
+    }
+  })
 }
 
 function isNumericValue(value) {
@@ -201,16 +213,9 @@ function buildQuestion(record) {
 }
 
 async function main() {
-  const csvText = await fs.readFile(inputPath, 'utf8')
-  const rows = parseCsv(csvText)
-  const headers = rows[0].map(normalizeCell)
-  const missingHeaders = REQUIRED_HEADERS.filter((header) => !headers.includes(header))
-
-  if (missingHeaders.length > 0) {
-    throw new Error(`Missing CSV headers: ${missingHeaders.join(', ')}`)
-  }
-
-  const records = rows.slice(1).map((row) => rowToRecord(headers, row))
+  const sourceRecords = await loadExcelRecords()
+  const overrides = await loadOverrides()
+  const records = applyOverrides(sourceRecords, overrides)
   const questions = records.map(buildQuestion)
   const validation = validateQuestionBank(questions)
   const generatedQuestions = validation.validQuestions
@@ -231,6 +236,8 @@ async function main() {
   console.log('Question bank build report')
   console.log('--------------------------')
   console.log(`source: ${path.relative(repoRoot, inputPath)}`)
+  console.log(`sheet: ${SHEET_NAME}`)
+  console.log(`overrides: ${path.relative(repoRoot, overridePath)} (${overrides.length})`)
   console.log(`output: ${path.relative(repoRoot, outputPath)}`)
   console.log(`total imported rows: ${records.length}`)
   console.log(`total generated questions: ${generatedQuestions.length}`)

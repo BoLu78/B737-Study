@@ -1,0 +1,12 @@
+[
+  {
+    "ID": 450,
+    "Question": "Alternate fuel must be sufficient for:",
+    "AnswerOne": "Full missed approach procedure from DH, DA, MDA, MDH at destination aerodrome to missed approach altitude; climb from missed approach altitude to cruising level/altitude; descent from TOD to the point where the approach is initiate",
+    "AnswerTwo": "Climb from missed approach altitude to cruising level/altitude; cruise from TOC to TOD; descent from TOD to the point where the approach is initiate",
+    "AnswerThree": "Full missed approach procedure from DH, DA, MDA, MDH at destination aerodrome to missed approach altitude; climb from missed approach altitude to cruising level/altitude; cruise from TOC to TOD; descent from TOD to the point where the approach is initiate",
+    "AnswerFour": "Full missed approach procedure from DH, DA, MDA, MDH at destination aerodrome to missed approach altitude; climb from missed approach altitude to cruising level/altitude; cruise from TOC to TOD",
+    "Correct": 3,
+    "Argument": "General basic"
+  }
+]
