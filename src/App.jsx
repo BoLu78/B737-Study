@@ -23,28 +23,13 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.22'
+const APP_VERSION = 'v8.23'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
 const MARKED_QUESTIONS_STORAGE_KEY = 'b737StudyMarkedQuestions_v8_2'
-const MEMORY_ERROR_STATS_STORAGE_KEY = 'b737StudyMemoryErrorStats_v8_5'
-const MEMORY_ERROR_STATS_MIGRATIONS = {
-  'cabin-altitude-warning': 'cabin-altitude-warning-or-rapid-depressurization',
-  'rapid-depressurization': 'cabin-altitude-warning-or-rapid-depressurization',
-  'engine-fire': 'engine-fire-or-engine-severe-damage-or-separation',
-  'engine-severe-damage': 'engine-fire-or-engine-severe-damage-or-separation',
-  'engine-separation': 'engine-fire-or-engine-severe-damage-or-separation',
-  'engine-limit': 'engine-limit-or-surge-or-stall',
-  'engine-surge': 'engine-limit-or-surge-or-stall',
-  'engine-stall': 'engine-limit-or-surge-or-stall',
-}
 const MEMORY_MODES = {
   STUDY: 'study',
-  BLIND_RECALL: 'blind-recall',
-  ACTION_DRILL: 'action-drill',
-  ORDER_DRILL: 'order-drill',
-  MIXED_TEST: 'mixed-test',
   COMPARE: 'compare',
 }
 const MEMORY_AIRCRAFT = {
@@ -57,28 +42,6 @@ const MEMORY_AIRCRAFT_LABELS = {
 }
 const MEMORY_AIRCRAFT_OPTIONS = [MEMORY_AIRCRAFT.NG, MEMORY_AIRCRAFT.MAX]
 const DEFAULT_MEMORY_AIRCRAFT = MEMORY_AIRCRAFT.NG
-const MEMORY_DIFFERENCE_FILTERS = {
-  ALL: 'all',
-  COMMON: 'common',
-  DIFFERENCES: 'differences',
-}
-const COMMON_MEMORY_ACTION_OPTIONS = [
-  'CUTOFF',
-  'OFF',
-  'ON',
-  'MAN',
-  'CONT',
-  'FLT',
-  'CUTOUT',
-  'Disengage',
-  'Confirm, close',
-  'Confirm, CUTOFF',
-  'Confirm, pull',
-  'IDLE detent',
-  'FLIGHT DETENT',
-  '10° and 80% N1',
-  '4° and 75% N1',
-]
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
 const DATA_SOURCE_GENERATED = 'T73 R01 Excel question bank'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
@@ -377,88 +340,6 @@ function saveStoredMarkedQuestions(markedQuestions) {
   window.localStorage.setItem(MARKED_QUESTIONS_STORAGE_KEY, JSON.stringify(markedQuestions))
 }
 
-function getMostRecentMemoryStats(firstStats = {}, secondStats = {}) {
-  const firstTime = Date.parse(firstStats.lastTestedAt || '')
-  const secondTime = Date.parse(secondStats.lastTestedAt || '')
-
-  return (Number.isFinite(secondTime) ? secondTime : 0) > (Number.isFinite(firstTime) ? firstTime : 0)
-    ? secondStats
-    : firstStats
-}
-
-function mergeMemoryErrorStats(firstStats = {}, secondStats = {}) {
-  const mostRecentStats = getMostRecentMemoryStats(firstStats, secondStats)
-  const totalChecks = (Number(firstStats.totalChecks) || 0) + (Number(secondStats.totalChecks) || 0)
-  const totalErrors = (Number(firstStats.totalErrors) || 0) + (Number(secondStats.totalErrors) || 0)
-
-  return {
-    attempts: (Number(firstStats.attempts) || 0) + (Number(secondStats.attempts) || 0),
-    totalChecks,
-    totalErrors,
-    lastChecks: Number(mostRecentStats.lastChecks) || 0,
-    lastErrors: Number(mostRecentStats.lastErrors) || 0,
-    lastErrorRate: Number(mostRecentStats.lastErrorRate) || 0,
-    averageErrorRate: calculateMemoryErrorRate(totalErrors, totalChecks),
-    lastMode: mostRecentStats.lastMode || '',
-    lastTestedAt: mostRecentStats.lastTestedAt || '',
-  }
-}
-
-function getMemoryStatsKey(memoryItemId, aircraft = DEFAULT_MEMORY_AIRCRAFT) {
-  return `${memoryItemId}::${aircraft}`
-}
-
-function parseMemoryStatsKey(memoryStatsKey) {
-  const [memoryItemId, aircraft] = String(memoryStatsKey).split('::')
-  return {
-    memoryItemId,
-    aircraft: MEMORY_AIRCRAFT_OPTIONS.includes(aircraft) ? aircraft : '',
-  }
-}
-
-function migrateMemoryErrorStats(stats) {
-  return Object.entries(stats).reduce((migratedStats, [memoryStatsKey, itemStats]) => {
-    const { memoryItemId, aircraft } = parseMemoryStatsKey(memoryStatsKey)
-    const targetId = MEMORY_ERROR_STATS_MIGRATIONS[memoryItemId] || memoryItemId
-    const targetStatsKey = aircraft ? getMemoryStatsKey(targetId, aircraft) : targetId
-    const ngStatsKey = getMemoryStatsKey(targetId, MEMORY_AIRCRAFT.NG)
-
-    migratedStats[memoryStatsKey] = migratedStats[memoryStatsKey]
-      ? mergeMemoryErrorStats(migratedStats[memoryStatsKey], itemStats)
-      : itemStats
-
-    if (targetStatsKey !== memoryStatsKey) {
-      migratedStats[targetStatsKey] = migratedStats[targetStatsKey]
-        ? mergeMemoryErrorStats(migratedStats[targetStatsKey], itemStats)
-        : itemStats
-    }
-
-    if (!aircraft && !migratedStats[ngStatsKey]) {
-      migratedStats[ngStatsKey] = itemStats
-    }
-
-    return migratedStats
-  }, {})
-}
-
-function loadStoredMemoryErrorStats() {
-  if (typeof window === 'undefined') return {}
-
-  try {
-    const parsedStats = JSON.parse(window.localStorage.getItem(MEMORY_ERROR_STATS_STORAGE_KEY) || '{}')
-    return parsedStats && typeof parsedStats === 'object' && !Array.isArray(parsedStats)
-      ? migrateMemoryErrorStats(parsedStats)
-      : {}
-  } catch {
-    return {}
-  }
-}
-
-function saveStoredMemoryErrorStats(stats) {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(MEMORY_ERROR_STATS_STORAGE_KEY, JSON.stringify(stats))
-}
-
 function clearStoredStudyProgress() {
   if (typeof window === 'undefined') return
   window.localStorage.removeItem(STUDY_PROGRESS_STORAGE_KEY)
@@ -531,10 +412,6 @@ function hasMemoryAircraftVariant(item, aircraft) {
   return Boolean(item.variants?.[aircraft])
 }
 
-function hasAnyMemoryAircraftVariant(item) {
-  return Boolean(item.variants && Object.keys(item.variants).length > 0)
-}
-
 function resolveMemoryItemForAircraft(item, aircraft) {
   const variant = item.variants?.[aircraft] || {}
 
@@ -547,15 +424,6 @@ function resolveMemoryItemForAircraft(item, aircraft) {
     selectedAircraft: aircraft,
     hasSelectedAircraftVariant: hasMemoryAircraftVariant(item, aircraft),
   }
-}
-
-function isCommonMemoryItem(item) {
-  const aircraft = getMemoryItemAircraft(item)
-  return MEMORY_AIRCRAFT_OPTIONS.every((aircraftId) => aircraft.includes(aircraftId)) && !hasAnyMemoryAircraftVariant(item)
-}
-
-function isDifferentMemoryItem(item) {
-  return !isCommonMemoryItem(item)
 }
 
 function getMemoryAircraftBadgeLabel(item) {
@@ -642,157 +510,6 @@ function getMemoryItemSearchText(item) {
     .filter(Boolean)
     .join(' ')
     .toLowerCase()
-}
-
-function calculateMemoryErrorRate(errors, checks) {
-  return checks > 0 ? Math.round((errors / checks) * 100) : 0
-}
-
-function getMemoryAssessableLines(item) {
-  return item.steps.filter((step) => !step.type).flatMap((step) => [
-    {
-      id: `${item.id}-step-${step.number}`,
-      left: step.left,
-      right: step.right || '',
-    },
-    ...(step.substeps || []).map((substep, index) => ({
-      id: `${item.id}-step-${step.number}-substep-${index}`,
-      left: substep.left,
-      right: substep.right || '',
-    })),
-  ])
-}
-
-function getMemoryActionLines(item) {
-  return getMemoryAssessableLines(item).filter((line) => line.right)
-}
-
-function getMemoryRightSideValues(items = MEMORY_ITEMS) {
-  const dataValues = items.flatMap((item) => getMemoryActionLines(item).map((line) => line.right))
-  return Array.from(new Set([...dataValues, ...COMMON_MEMORY_ACTION_OPTIONS].filter(Boolean)))
-}
-
-function hashString(value) {
-  return String(value).split('').reduce((hash, character) => {
-    const nextHash = (hash << 5) - hash + character.charCodeAt(0)
-    return nextHash >>> 0
-  }, 0)
-}
-
-function deterministicShuffle(items, seed) {
-  return [...items]
-    .map((item) => ({
-      item,
-      sortKey: hashString(`${seed}-${item.id || item}`),
-    }))
-    .sort((first, second) => first.sortKey - second.sortKey)
-    .map(({ item }) => item)
-}
-
-function fisherYatesShuffle(items) {
-  const shuffledItems = [...items]
-
-  for (let index = shuffledItems.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1))
-    ;[shuffledItems[index], shuffledItems[swapIndex]] = [shuffledItems[swapIndex], shuffledItems[index]]
-  }
-
-  return shuffledItems
-}
-
-function hasSameOrder(firstItems, secondItems) {
-  return firstItems.length === secondItems.length && firstItems.every((item, index) => item.id === secondItems[index]?.id)
-}
-
-function shuffleMemoryOrderSteps(steps) {
-  if (steps.length <= 1) return [...steps]
-
-  for (let attempt = 0; attempt < 5; attempt += 1) {
-    const shuffledSteps = fisherYatesShuffle(steps)
-
-    if (!hasSameOrder(shuffledSteps, steps)) {
-      return shuffledSteps
-    }
-  }
-
-  const fallbackSteps = [...steps]
-  ;[fallbackSteps[0], fallbackSteps[1]] = [fallbackSteps[1], fallbackSteps[0]]
-  return fallbackSteps
-}
-
-function getMemoryActionOptions(line, items) {
-  const values = getMemoryRightSideValues(items).filter((value) => value !== line.right)
-  const distractors = deterministicShuffle(values, line.id).slice(0, 3)
-  return deterministicShuffle([line.right, ...distractors], `${line.id}-options`).slice(0, 4)
-}
-
-function getMemoryOrderSteps(item) {
-  return item.steps.filter((step) => !step.type).map((step) => ({
-    id: `${item.id}-order-${step.number}`,
-    left: step.left,
-    right: step.right || '',
-  }))
-}
-
-function getMemoryResultFromMarks(lines, marks) {
-  const checks = lines.length
-  const errors = lines.filter((line) => marks[line.id] === false).length
-  return {
-    checks,
-    errors,
-    errorRate: calculateMemoryErrorRate(errors, checks),
-  }
-}
-
-function getMemoryStatsForItem(statsById, memoryItemId, aircraft = DEFAULT_MEMORY_AIRCRAFT) {
-  return statsById[getMemoryStatsKey(memoryItemId, aircraft)] || {}
-}
-
-function getMemoryStatsSummary(items, statsById, aircraft = DEFAULT_MEMORY_AIRCRAFT) {
-  const testedItems = items.filter((item) => Number(getMemoryStatsForItem(statsById, item.id, aircraft).totalChecks) > 0)
-  const totalChecks = testedItems.reduce((sum, item) => sum + (Number(getMemoryStatsForItem(statsById, item.id, aircraft).totalChecks) || 0), 0)
-  const totalErrors = testedItems.reduce((sum, item) => sum + (Number(getMemoryStatsForItem(statsById, item.id, aircraft).totalErrors) || 0), 0)
-  const averageErrorRate = calculateMemoryErrorRate(totalErrors, totalChecks)
-  const highestErrorItem = testedItems
-    .map((item) => ({
-      item,
-      averageErrorRate: Number(getMemoryStatsForItem(statsById, item.id, aircraft).averageErrorRate) || 0,
-    }))
-    .sort((first, second) => second.averageErrorRate - first.averageErrorRate)[0] || null
-
-  return {
-    testedCount: testedItems.length,
-    totalChecks,
-    totalErrors,
-    averageErrorRate,
-    highestErrorItem,
-  }
-}
-
-function getMemoryStatusText(stats) {
-  if (!stats || Number(stats.totalChecks) === 0) return ['Never tested']
-
-  return [
-    `Last error: ${Number(stats.lastErrorRate) || 0}%`,
-    `Average error: ${Number(stats.averageErrorRate) || 0}%`,
-    `Attempts: ${Number(stats.attempts) || 0}`,
-  ]
-}
-
-function getMemoryErrorSeverity(errorRate) {
-  const rate = Number(errorRate) || 0
-
-  if (rate >= 51) return 'high'
-  if (rate >= 21) return 'medium'
-  return 'low'
-}
-
-function getMemoryStatusClass(text) {
-  const errorRateMatch = String(text).match(/(\d+)%/)
-
-  if (!errorRateMatch) return 'memory-status-neutral'
-
-  return `memory-error-${getMemoryErrorSeverity(Number(errorRateMatch[1]))}`
 }
 
 function formatMemoryActionText(value) {
@@ -884,20 +601,10 @@ function App() {
   const [referenceSearch, setReferenceSearch] = useState('')
   const [memoryMode, setMemoryMode] = useState(MEMORY_MODES.STUDY)
   const [selectedMemoryAircraft, setSelectedMemoryAircraft] = useState(DEFAULT_MEMORY_AIRCRAFT)
-  const [memoryDifferenceFilter, setMemoryDifferenceFilter] = useState(MEMORY_DIFFERENCE_FILTERS.ALL)
   const [compareMemoryItemId, setCompareMemoryItemId] = useState('')
   const [memoryTopicFilter, setMemoryTopicFilter] = useState('')
   const [memoryCategoryFilter, setMemoryCategoryFilter] = useState('')
   const [memorySearch, setMemorySearch] = useState('')
-  const [memoryRevealedItems, setMemoryRevealedItems] = useState({})
-  const [memoryBlindMarks, setMemoryBlindMarks] = useState({})
-  const [memoryActionSelections, setMemoryActionSelections] = useState({})
-  const [memoryOrderSelections, setMemoryOrderSelections] = useState({})
-  const [memoryOrderShuffles, setMemoryOrderShuffles] = useState({})
-  const [memoryOrderReveals, setMemoryOrderReveals] = useState({})
-  const [memorySavedResults, setMemorySavedResults] = useState({})
-  const [memoryErrorStats, setMemoryErrorStats] = useState(loadStoredMemoryErrorStats)
-  const [mixedSession, setMixedSession] = useState(null)
   const [manualDocuments, setManualDocuments] = useState([])
   const [isManualCatalogLoading, setIsManualCatalogLoading] = useState(true)
   const [manualSession, setManualSession] = useState(null)
@@ -1055,14 +762,9 @@ function App() {
   const sourceDocuments = getUniqueReferenceValues(questions, 'sourceDocument')
   const referenceTopics = getUniqueReferenceValues(questions, 'topic')
   const selectedMemoryAircraftLabel = MEMORY_AIRCRAFT_LABELS[selectedMemoryAircraft]
-  const defaultMemoryAircraftLabel = MEMORY_AIRCRAFT_LABELS[DEFAULT_MEMORY_AIRCRAFT]
   const applicableMemoryItems = MEMORY_ITEMS
     .filter((item) => isMemoryItemApplicableToAircraft(item, selectedMemoryAircraft))
     .map((item) => resolveMemoryItemForAircraft(item, selectedMemoryAircraft))
-  const defaultAircraftMemoryItems = MEMORY_ITEMS
-    .filter((item) => isMemoryItemApplicableToAircraft(item, DEFAULT_MEMORY_AIRCRAFT))
-    .map((item) => resolveMemoryItemForAircraft(item, DEFAULT_MEMORY_AIRCRAFT))
-  const commonMemoryItemCount = MEMORY_ITEMS.filter((item) => isCommonMemoryItem(item)).length
   const comparableMemoryItems = MEMORY_ITEMS.filter((item) => (
     isMemoryItemApplicableToAircraft(item, MEMORY_AIRCRAFT.NG) &&
     isMemoryItemApplicableToAircraft(item, MEMORY_AIRCRAFT.MAX)
@@ -1077,18 +779,12 @@ function App() {
   )
   const normalizedMemorySearch = memorySearch.trim().toLowerCase()
   const filteredMemoryItems = applicableMemoryItems.filter((item) => {
-    const matchesDifferenceFilter =
-      memoryDifferenceFilter === MEMORY_DIFFERENCE_FILTERS.ALL ||
-      (memoryDifferenceFilter === MEMORY_DIFFERENCE_FILTERS.COMMON && isCommonMemoryItem(item)) ||
-      (memoryDifferenceFilter === MEMORY_DIFFERENCE_FILTERS.DIFFERENCES && isDifferentMemoryItem(item))
     const matchesTopic = !memoryTopicFilter || item.topic === memoryTopicFilter
     const matchesCategory = !memoryCategoryFilter || item.category === memoryCategoryFilter
     const matchesSearch = !normalizedMemorySearch || getMemoryItemSearchText(item).includes(normalizedMemorySearch)
 
-    return matchesDifferenceFilter && matchesTopic && matchesCategory && matchesSearch
+    return matchesTopic && matchesCategory && matchesSearch
   })
-  const memoryStatsSummary = getMemoryStatsSummary(defaultAircraftMemoryItems, memoryErrorStats, DEFAULT_MEMORY_AIRCRAFT)
-  const filteredMemoryStatsSummary = getMemoryStatsSummary(filteredMemoryItems, memoryErrorStats, selectedMemoryAircraft)
   const referencedQuestions = questions.filter(hasReferenceMetadata)
   const questionsWithManualReference = questions.filter(
     (item) => displayReferenceValue(item.manualReference) !== '—',
@@ -1538,34 +1234,8 @@ function App() {
     setReferenceSearch('')
   }
 
-  const createMemoryOrderShuffle = (item) => shuffleMemoryOrderSteps(getMemoryOrderSteps(item)).map((step) => step.id)
-
-  const createMemoryOrderShuffleMap = (items) => items.reduce((shuffles, item) => ({
-    ...shuffles,
-    [item.id]: createMemoryOrderShuffle(item),
-  }), {})
-
   const handleMemoryModeChange = (mode) => {
     setMemoryMode(mode)
-    setMixedSession(null)
-
-    if (mode === MEMORY_MODES.ORDER_DRILL) {
-      setMemoryOrderSelections({})
-      setMemoryOrderReveals({})
-      setMemorySavedResults({})
-      setMemoryOrderShuffles(createMemoryOrderShuffleMap(filteredMemoryItems))
-    }
-  }
-
-  const resetMemoryDrillState = () => {
-    setMemoryRevealedItems({})
-    setMemoryBlindMarks({})
-    setMemoryActionSelections({})
-    setMemoryOrderSelections({})
-    setMemoryOrderShuffles({})
-    setMemoryOrderReveals({})
-    setMemorySavedResults({})
-    setMixedSession(null)
   }
 
   const handleMemoryAircraftChange = (aircraft) => {
@@ -1573,20 +1243,12 @@ function App() {
     setMemoryTopicFilter('')
     setMemoryCategoryFilter('')
     setMemorySearch('')
-    setMemoryDifferenceFilter(MEMORY_DIFFERENCE_FILTERS.ALL)
-    resetMemoryDrillState()
-  }
-
-  const handleMemoryDifferenceFilterChange = (filter) => {
-    setMemoryDifferenceFilter(filter)
-    resetMemoryDrillState()
   }
 
   const handleOpenMemoryItems = (topic = '') => {
     setMemoryTopicFilter(topic)
     setMemoryCategoryFilter('')
     setMemorySearch('')
-    resetMemoryDrillState()
     setView('memory-items')
   }
 
@@ -1594,114 +1256,6 @@ function App() {
     setMemoryTopicFilter('')
     setMemoryCategoryFilter('')
     setMemorySearch('')
-    setMemoryDifferenceFilter(MEMORY_DIFFERENCE_FILTERS.ALL)
-  }
-
-  const saveMemoryErrorResult = (memoryItemId, result, mode) => {
-    const memoryStatsKey = getMemoryStatsKey(memoryItemId, selectedMemoryAircraft)
-
-    setMemoryErrorStats((current) => {
-      const previousStats = current[memoryStatsKey] || {}
-      const totalChecks = (Number(previousStats.totalChecks) || 0) + result.checks
-      const totalErrors = (Number(previousStats.totalErrors) || 0) + result.errors
-      const nextStats = {
-        attempts: (Number(previousStats.attempts) || 0) + 1,
-        totalChecks,
-        totalErrors,
-        lastChecks: result.checks,
-        lastErrors: result.errors,
-        lastErrorRate: calculateMemoryErrorRate(result.errors, result.checks),
-        averageErrorRate: calculateMemoryErrorRate(totalErrors, totalChecks),
-        lastMode: mode,
-        lastTestedAt: new Date().toISOString(),
-      }
-      const nextAllStats = {
-        ...current,
-        [memoryStatsKey]: nextStats,
-      }
-
-      saveStoredMemoryErrorStats(nextAllStats)
-      return nextAllStats
-    })
-
-    setMemorySavedResults((current) => ({
-      ...current,
-      [`${mode}-${memoryStatsKey}`]: true,
-    }))
-  }
-
-  const handleBlindLineMark = (memoryItemId, lineId, isCorrect) => {
-    setMemoryBlindMarks((current) => ({
-      ...current,
-      [memoryItemId]: {
-        ...(current[memoryItemId] || {}),
-        [lineId]: isCorrect,
-      },
-    }))
-  }
-
-  const handleActionSelection = (memoryItemId, lineId, selectedValue) => {
-    setMemoryActionSelections((current) => ({
-      ...current,
-      [memoryItemId]: {
-        ...(current[memoryItemId] || {}),
-        [lineId]: selectedValue,
-      },
-    }))
-  }
-
-  const handleOrderSelect = (memoryItemId, stepId) => {
-    setMemoryOrderSelections((current) => ({
-      ...current,
-      [memoryItemId]: [...(current[memoryItemId] || []), stepId],
-    }))
-  }
-
-  const handleOrderReset = (memoryItemId) => {
-    setMemoryOrderSelections((current) => ({
-      ...current,
-      [memoryItemId]: [],
-    }))
-    const memoryItem = applicableMemoryItems.find((item) => item.id === memoryItemId)
-    if (memoryItem) {
-      setMemoryOrderShuffles((current) => ({
-        ...current,
-        [memoryItemId]: createMemoryOrderShuffle(memoryItem),
-      }))
-    }
-    setMemoryOrderReveals((current) => ({
-      ...current,
-      [memoryItemId]: false,
-    }))
-  }
-
-  const handleStartMixedTest = () => {
-    const selectedItems = fisherYatesShuffle(filteredMemoryItems).slice(0, Math.min(10, filteredMemoryItems.length))
-
-    setMixedSession({
-      items: selectedItems,
-      currentIndex: 0,
-      results: {},
-    })
-    setMemoryRevealedItems({})
-    setMemoryBlindMarks({})
-    setMemoryActionSelections({})
-    setMemoryOrderSelections({})
-    setMemoryOrderShuffles({})
-    setMemoryOrderReveals({})
-    setMemorySavedResults({})
-  }
-
-  const handleSaveMixedResult = (memoryItemId, result) => {
-    saveMemoryErrorResult(memoryItemId, result, MEMORY_MODES.MIXED_TEST)
-    setMixedSession((current) => ({
-      ...current,
-      currentIndex: Math.min((Number(current?.currentIndex) || 0) + 1, current?.items?.length || 0),
-      results: {
-        ...(current?.results || {}),
-        [memoryItemId]: result,
-      },
-    }))
   }
 
   const renderMemoryDivider = (key) => (
@@ -1756,6 +1310,28 @@ function App() {
     </ol>
   )
 
+  const renderMemoryInfoPanel = (title, lines, className) => {
+    if (!lines?.length) return null
+
+    return (
+      <section className={className}>
+        <strong>{title}</strong>
+        <div>
+          {lines.map((line, index) => (
+            <p key={`${title}-${index}`}>{line}</p>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  const renderMemoryInfoPanels = (item, aircraft = selectedMemoryAircraft) => (
+    <>
+      {renderMemoryInfoPanel('Condition', getMemoryCompareLines(item, 'conditions', aircraft), 'memory-condition-panel')}
+      {renderMemoryInfoPanel('Objective', getMemoryCompareLines(item, 'objectives', aircraft), 'memory-objective-panel')}
+    </>
+  )
+
   const renderMemoryVisualCues = (item) => {
     const visualCueGroups = item.visualCueGroups?.length
       ? item.visualCueGroups
@@ -1788,28 +1364,36 @@ function App() {
     )
   }
 
-  const renderMemoryCueGroups = (groups, title) => {
+  const renderCompareCueGroups = (groups, otherGroups, title) => {
     if (!groups.length) return null
 
     return (
       <div className="memory-visual-cues" aria-label={`${title} visual cues`}>
-        {groups.map((group, groupIndex) => (
-          <div className="memory-visual-cue-group" key={`${group.label || 'cue-group'}-${groupIndex}`}>
-            {group.label && <span className="memory-visual-cue-group-label">{group.label}</span>}
-            <div className="memory-visual-cue-group-items">
-              {group.cues.map((cue, index) => (
-                <div
-                  className={`memory-visual-cue memory-visual-cue-${cue.type} memory-visual-cue-${cue.color || 'amber'}`}
-                  key={`${cue.type}-${index}-${cue.lines.join('-')}`}
-                >
-                  {cue.lines.map((line) => (
-                    <span key={line}>{line}</span>
-                  ))}
-                </div>
-              ))}
+        {groups.map((group, groupIndex) => {
+          const labelDiffers = normalizeMemoryCompareLine(group.label) !== normalizeMemoryCompareLine(otherGroups[groupIndex]?.label)
+
+          return (
+            <div className="memory-visual-cue-group" key={`${group.label || 'cue-group'}-${groupIndex}`}>
+              {group.label && (
+                <span className={labelDiffers ? 'memory-visual-cue-group-label memory-diff-highlight' : 'memory-visual-cue-group-label'}>
+                  {group.label}
+                </span>
+              )}
+              <div className="memory-visual-cue-group-items">
+                {group.cues.map((cue, index) => (
+                  <div
+                    className={`memory-visual-cue memory-visual-cue-${cue.type} memory-visual-cue-${cue.color || 'amber'}`}
+                    key={`${cue.type}-${index}-${cue.lines.join('-')}`}
+                  >
+                    {cue.lines.map((line) => (
+                      <span key={line}>{line}</span>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     )
   }
@@ -1834,62 +1418,53 @@ function App() {
     )
   }
 
-  const renderMemoryStepItemsForDrill = (item, renderStepContent) => (
-    item.steps.map((step, stepIndex) => (
-      step.type === 'note' ? renderMemoryNote(step, `${item.id}-drill-note-${stepIndex}`) : renderStepContent(step)
-    ))
-  )
-
-  const renderMemorySubstepsForDrill = (step, renderSubstepContent) => (
-    step.substeps?.length > 0 && (
-      <div className="memory-substep-list">
-        {step.substeps.map((substep, index) => (
-          <div key={`${step.number}-${index}-${substep.left}`}>
-            {renderSubstepContent(substep, index)}
-            {substep.dividerAfter && renderMemoryDivider(`${step.number}-${index}-drill-divider`)}
-          </div>
-        ))}
-      </div>
-    )
-  )
-
-  const renderCompareLinePair = (leftLine, rightLine, index) => {
-    const hasLeft = Boolean(leftLine)
-    const hasRight = Boolean(rightLine)
-    const normalizedLeft = normalizeMemoryCompareLine(leftLine)
-    const normalizedRight = normalizeMemoryCompareLine(rightLine)
-    const isDifferent = normalizedLeft !== normalizedRight
-    const leftClassName = !hasLeft
-      ? 'memory-compare-line memory-compare-line-missing'
-      : isDifferent
-        ? 'memory-compare-line memory-compare-line-different'
-        : 'memory-compare-line'
-    const rightClassName = !hasRight
-      ? 'memory-compare-line memory-compare-line-missing'
-      : isDifferent
-        ? 'memory-compare-line memory-compare-line-different'
-        : 'memory-compare-line'
-
-    return (
-      <div className="memory-compare-row" key={`compare-line-${index}`}>
-        <div className={leftClassName}>{hasLeft ? leftLine : 'Missing on NG'}</div>
-        <div className={rightClassName}>{hasRight ? rightLine : 'Missing on MAX'}</div>
-      </div>
-    )
+  const getCompareLineClassName = (line, otherLine) => {
+    if (!line) return 'memory-diff-line memory-diff-line-missing'
+    return normalizeMemoryCompareLine(line) === normalizeMemoryCompareLine(otherLine)
+      ? 'memory-diff-line'
+      : 'memory-diff-line memory-diff-highlight'
   }
 
-  const renderCompareLineSection = (title, leftLines, rightLines, emptyText = 'No data available.') => {
-    if (leftLines.length === 0 && rightLines.length === 0) return null
+  const renderCompareChecklistLines = (lines, otherLines) => (
+    <div className="memory-compare-lines">
+      {lines.map((line, index) => (
+        <div className={getCompareLineClassName(line, otherLines[index])} key={`${line}-${index}`}>
+          {line}
+        </div>
+      ))}
+    </div>
+  )
 
-    const maxLength = Math.max(leftLines.length, rightLines.length)
+  const renderCompareChecklistCard = (item, aircraft, otherAircraft, stepLines, otherStepLines) => {
+    const conditionLines = getMemoryCompareLines(activeCompareMemoryItem, 'conditions', aircraft)
+    const otherConditionLines = getMemoryCompareLines(activeCompareMemoryItem, 'conditions', otherAircraft)
+    const objectiveLines = getMemoryCompareLines(activeCompareMemoryItem, 'objectives', aircraft)
+    const otherObjectiveLines = getMemoryCompareLines(activeCompareMemoryItem, 'objectives', otherAircraft)
+    const cueGroups = getMemoryCompareCueGroups(activeCompareMemoryItem, aircraft)
+    const otherCueGroups = getMemoryCompareCueGroups(activeCompareMemoryItem, otherAircraft)
 
     return (
-      <section className="memory-compare-section">
-        <h4>{title}</h4>
-        <div className="memory-compare-lines">
-          {maxLength === 0 ? <p className="memory-drill-empty">{emptyText}</p> : Array.from({ length: maxLength }, (_, index) => renderCompareLinePair(leftLines[index], rightLines[index], index))}
-        </div>
-      </section>
+      <article className="memory-compare-card">
+        <h3 className="memory-compare-column-title">{MEMORY_AIRCRAFT_LABELS[aircraft]}</h3>
+        {renderMemoryTitle(item)}
+        {renderCompareCueGroups(cueGroups, otherCueGroups, `${item.title} ${aircraft}`)}
+        {conditionLines.length > 0 && (
+          <section className="memory-condition-panel">
+            <strong>Condition</strong>
+            {renderCompareChecklistLines(conditionLines, otherConditionLines)}
+          </section>
+        )}
+        {objectiveLines.length > 0 && (
+          <section className="memory-objective-panel">
+            <strong>Objective</strong>
+            {renderCompareChecklistLines(objectiveLines, otherObjectiveLines)}
+          </section>
+        )}
+        <section className="memory-compare-section">
+          <h4>Memory Items</h4>
+          {renderCompareChecklistLines(stepLines, otherStepLines)}
+        </section>
+      </article>
     )
   }
 
@@ -1911,7 +1486,14 @@ function App() {
       ngStepLines.every((line, index) => normalizeMemoryCompareLine(line) === normalizeMemoryCompareLine(maxStepLines[index]))
 
     return (
-      <div className="memory-compare-view">
+      <div className="memory-compare-page">
+        <div className="section-header section-header-compact">
+          <div>
+            <p className="eyebrow">Memory Items</p>
+            <h2>Compare NG / MAX</h2>
+            <p className="subtitle">Compare 737-800 NG and 737-8 MAX memory item checklists.</p>
+          </div>
+        </div>
         <label className="field-label memory-compare-selector">
           Select checklist
           <select value={activeCompareMemoryItemId} onChange={(event) => setCompareMemoryItemId(event.target.value)}>
@@ -1923,59 +1505,16 @@ function App() {
           </select>
         </label>
 
-        <article className="memory-item-card">
-          {renderMemoryTitle(ngItem)}
-          <div className="memory-compare-grid memory-compare-grid-head">
-            <div className="memory-compare-column">
-              <h3>{MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.NG]}</h3>
-              {renderMemoryCueGroups(getMemoryCompareCueGroups(activeCompareMemoryItem, MEMORY_AIRCRAFT.NG), `${ngItem.title} NG`)}
-            </div>
-            <div className="memory-compare-column">
-              <h3>{MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.MAX]}</h3>
-              {renderMemoryCueGroups(getMemoryCompareCueGroups(activeCompareMemoryItem, MEMORY_AIRCRAFT.MAX), `${maxItem.title} MAX`)}
-            </div>
-          </div>
-
-          {renderCompareLineSection(
-            'Condition',
-            getMemoryCompareLines(activeCompareMemoryItem, 'conditions', MEMORY_AIRCRAFT.NG),
-            getMemoryCompareLines(activeCompareMemoryItem, 'conditions', MEMORY_AIRCRAFT.MAX),
-          )}
-
-          {renderCompareLineSection(
-            'Objective',
-            getMemoryCompareLines(activeCompareMemoryItem, 'objectives', MEMORY_AIRCRAFT.NG),
-            getMemoryCompareLines(activeCompareMemoryItem, 'objectives', MEMORY_AIRCRAFT.MAX),
-          )}
-
-          <section className="memory-compare-section">
-            <h4>Memory Items</h4>
-            {memoryItemsIdentical ? (
-              <p className="memory-compare-identical">Memory items are identical.</p>
-            ) : (
-              <div className="memory-compare-lines">
-                {Array.from({ length: Math.max(ngStepLines.length, maxStepLines.length) }, (_, index) => renderCompareLinePair(ngStepLines[index], maxStepLines[index], index))}
-              </div>
-            )}
-          </section>
-        </article>
+        {memoryItemsIdentical && <p className="memory-identical-badge">Memory items identical</p>}
+        <div className="memory-compare-grid">
+          {renderCompareChecklistCard(ngItem, MEMORY_AIRCRAFT.NG, MEMORY_AIRCRAFT.MAX, ngStepLines, maxStepLines)}
+          {renderCompareChecklistCard(maxItem, MEMORY_AIRCRAFT.MAX, MEMORY_AIRCRAFT.NG, maxStepLines, ngStepLines)}
+        </div>
       </div>
     )
   }
 
-  const getMemorySavedResultKey = (mode, item) => `${mode}-${getMemoryStatsKey(item.id, item.selectedAircraft || selectedMemoryAircraft)}`
-
-  const renderFullMemoryItemReference = (item) => (
-    <div className="memory-full-reference">
-      <h4>Full memory item</h4>
-      {renderMemoryVisualCues(item)}
-      {renderMemorySteps(item)}
-    </div>
-  )
-
   const renderMemoryItemHeader = (item) => {
-    const statusText = getMemoryStatusText(getMemoryStatsForItem(memoryErrorStats, item.id, item.selectedAircraft || selectedMemoryAircraft))
-
     return (
       <div className="memory-item-header">
         <div>
@@ -1983,420 +1522,16 @@ function App() {
           <span className="memory-aircraft-badge">{selectedMemoryAircraftLabel}</span>
           <span className="memory-applicability-badge">{getMemoryAircraftBadgeLabel(item)}</span>
         </div>
-        <div className="memory-status-list">
-          {statusText.map((text) => (
-            <span className={`memory-status-chip ${getMemoryStatusClass(text)}`} key={text}>{text}</span>
-          ))}
-        </div>
       </div>
     )
   }
 
-  const renderBlindRecall = (item, saveHandler = saveMemoryErrorResult) => {
-    const lines = getMemoryAssessableLines(item)
-    const marks = memoryBlindMarks[item.id] || {}
-    const result = getMemoryResultFromMarks(lines, marks)
-    const allMarked = lines.length > 0 && lines.every((line) => marks[line.id] !== undefined)
-    const revealed = Boolean(memoryRevealedItems[item.id])
-    const saved = Boolean(memorySavedResults[getMemorySavedResultKey(MEMORY_MODES.BLIND_RECALL, item)])
-
-    if (!revealed) {
-      return (
-        <div className="memory-drill-panel">
-          <p>Recall the memory items.</p>
-          <button
-            className="button button-primary"
-            onClick={() => setMemoryRevealedItems((current) => ({ ...current, [item.id]: true }))}
-          >
-            Reveal items
-          </button>
-        </div>
-      )
-    }
-
-    return (
-      <>
-        {renderMemoryVisualCues(item)}
-        <ol className="memory-step-list">
-          {renderMemoryStepItemsForDrill(item, (step) => {
-            const parentLineId = `${item.id}-step-${step.number}`
-
-            return (
-              <li key={step.number}>
-                <div className="memory-assessment-row">
-                  {renderMemoryLine(step, 'memory-step-line')}
-                  <div className="memory-line-actions">
-                    <button
-                      className={marks[parentLineId] === true ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
-                      onClick={() => handleBlindLineMark(item.id, parentLineId, true)}
-                    >
-                      Correct
-                    </button>
-                    <button
-                      className={marks[parentLineId] === false ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
-                      onClick={() => handleBlindLineMark(item.id, parentLineId, false)}
-                    >
-                      Wrong / Missed
-                    </button>
-                  </div>
-                </div>
-                {renderMemorySubstepsForDrill(step, (substep, index) => {
-                      const substepLineId = `${item.id}-step-${step.number}-substep-${index}`
-
-                      return (
-                        <div className="memory-assessment-row memory-substep-assessment-row" key={substepLineId}>
-                          {renderMemoryLine(substep, 'memory-substep-line')}
-                          <div className="memory-line-actions">
-                            <button
-                              className={marks[substepLineId] === true ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
-                              onClick={() => handleBlindLineMark(item.id, substepLineId, true)}
-                            >
-                              Correct
-                            </button>
-                            <button
-                              className={marks[substepLineId] === false ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
-                              onClick={() => handleBlindLineMark(item.id, substepLineId, false)}
-                            >
-                              Wrong / Missed
-                            </button>
-                          </div>
-                        </div>
-                      )
-                    })}
-              </li>
-            )
-          })}
-        </ol>
-        {allMarked && (
-          <div className="memory-result-panel">
-            <span>Errors: {result.errors} / {result.checks}</span>
-            <span>Error rate: {result.errorRate}%</span>
-            <button
-              className="button button-primary"
-              onClick={() => saveHandler(item.id, result, MEMORY_MODES.BLIND_RECALL)}
-              disabled={saved}
-            >
-              {saved ? 'Saved' : 'Save result'}
-            </button>
-          </div>
-        )}
-      </>
-    )
-  }
-
-  const renderActionDrill = (item, saveHandler = saveMemoryErrorResult) => {
-    const lines = getMemoryActionLines(item)
-    const selections = memoryActionSelections[item.id] || {}
-    const checks = lines.length
-    const errors = lines.filter((line) => selections[line.id] && selections[line.id] !== line.right).length
-    const allAnswered = checks > 0 && lines.every((line) => selections[line.id])
-    const result = {
-      checks,
-      errors,
-      errorRate: calculateMemoryErrorRate(errors, checks),
-    }
-    const saved = Boolean(memorySavedResults[getMemorySavedResultKey(MEMORY_MODES.ACTION_DRILL, item)])
-
-    if (lines.length === 0) {
-      return <p className="memory-drill-empty">No right-side values to drill for this item.</p>
-    }
-
-    return (
-      <div className="memory-question-list">
-        {lines.map((line) => (
-          <div className="memory-drill-question" key={line.id}>
-            <div className="memory-step-line">
-              <span>{line.left}</span>
-              <span className="memory-separator">—</span>
-              <strong>?</strong>
-            </div>
-            <div className="memory-answer-options">
-              {getMemoryActionOptions(line, applicableMemoryItems).map((option) => {
-                const selected = selections[line.id] === option
-                const hasSelection = Boolean(selections[line.id])
-                const isCorrectOption = option === line.right
-                const optionClass = hasSelection
-                  ? isCorrectOption
-                    ? 'answer-button answer-correct'
-                    : selected
-                    ? 'answer-button answer-wrong'
-                    : 'answer-button answer-disabled'
-                  : 'answer-button'
-
-                return (
-                  <button
-                    className={optionClass}
-                    key={option}
-                    onClick={() => handleActionSelection(item.id, line.id, option)}
-                    disabled={hasSelection}
-                  >
-                    {formatMemoryResponse(option)}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        ))}
-        {allAnswered && (
-          <>
-            <div className="memory-result-panel">
-              <span>Errors: {result.errors} / {result.checks}</span>
-              <span>Error rate: {result.errorRate}%</span>
-              <button
-                className="button button-primary"
-                onClick={() => saveHandler(item.id, result, MEMORY_MODES.ACTION_DRILL)}
-                disabled={saved}
-              >
-                {saved ? 'Saved' : 'Save result'}
-              </button>
-            </div>
-            {renderFullMemoryItemReference(item)}
-          </>
-        )}
-      </div>
-    )
-  }
-
-  const renderMixedChecklistLineActions = (item, line) => {
-    if (line.right) {
-      const selections = memoryActionSelections[item.id] || {}
-      const selectedValue = selections[line.id]
-
-      return (
-        <div className="memory-answer-options">
-          {getMemoryActionOptions(line, applicableMemoryItems).map((option) => {
-            const selected = selectedValue === option
-            const hasSelection = Boolean(selectedValue)
-            const isCorrectOption = option === line.right
-            const optionClass = hasSelection
-              ? isCorrectOption
-                ? 'answer-button answer-correct'
-                : selected
-                ? 'answer-button answer-wrong'
-                : 'answer-button answer-disabled'
-              : 'answer-button'
-
-            return (
-              <button
-                className={optionClass}
-                key={option}
-                onClick={() => handleActionSelection(item.id, line.id, option)}
-                disabled={hasSelection}
-              >
-                {formatMemoryResponse(option)}
-              </button>
-            )
-          })}
-        </div>
-      )
-    }
-
-    const marks = memoryBlindMarks[item.id] || {}
-
-    return (
-      <div className="memory-line-actions">
-        <button
-          className={marks[line.id] === true ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
-          onClick={() => handleBlindLineMark(item.id, line.id, true)}
-        >
-          Correct
-        </button>
-        <button
-          className={marks[line.id] === false ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
-          onClick={() => handleBlindLineMark(item.id, line.id, false)}
-        >
-          Wrong / Missed
-        </button>
-      </div>
-    )
-  }
-
-  const getMixedChecklistResult = (item) => {
-    const lines = getMemoryAssessableLines(item)
-    const selections = memoryActionSelections[item.id] || {}
-    const marks = memoryBlindMarks[item.id] || {}
-    const allAnswered = lines.every((line) => (line.right ? Boolean(selections[line.id]) : marks[line.id] !== undefined))
-    const errors = lines.filter((line) => (
-      line.right ? selections[line.id] && selections[line.id] !== line.right : marks[line.id] === false
-    )).length
-
-    return {
-      checks: lines.length,
-      errors,
-      errorRate: calculateMemoryErrorRate(errors, lines.length),
-      allAnswered,
-    }
-  }
-
-  const renderMixedChecklist = (item) => {
-    const result = getMixedChecklistResult(item)
-    const saved = Boolean(mixedSession?.results?.[item.id])
-
-    return (
-      <article className="memory-item-card" key={`mixed-${item.id}`}>
-        {renderMemoryItemHeader(item)}
-        {renderMemoryVisualCues(item)}
-        <ol className="memory-step-list memory-mixed-step-list">
-          {renderMemoryStepItemsForDrill(item, (step) => {
-            const parentLine = {
-              id: `${item.id}-step-${step.number}`,
-              left: step.left,
-              right: step.right || '',
-            }
-
-            return (
-              <li key={step.number}>
-                <div className="memory-drill-question memory-mixed-line">
-                  <div className="memory-step-line">
-                    <span>{renderMemoryText(step.left, step)}</span>
-                    {step.right && (
-                      <>
-                        <span className="memory-separator">—</span>
-                        <strong>?</strong>
-                      </>
-                    )}
-                  </div>
-                  {renderMixedChecklistLineActions(item, parentLine)}
-                </div>
-                {renderMemorySubstepsForDrill(step, (substep, index) => {
-                      const substepLine = {
-                        id: `${item.id}-step-${step.number}-substep-${index}`,
-                        left: substep.left,
-                        right: substep.right || '',
-                      }
-
-                      return (
-                        <div className="memory-drill-question memory-mixed-line" key={substepLine.id}>
-                          <div className="memory-substep-line">
-                            <span>{renderMemoryText(substep.left, substep)}</span>
-                            {substep.right && (
-                              <>
-                                <span className="memory-separator">—</span>
-                                <strong>?</strong>
-                              </>
-                            )}
-                          </div>
-                          {renderMixedChecklistLineActions(item, substepLine)}
-                        </div>
-                      )
-                    })}
-              </li>
-            )
-          })}
-        </ol>
-        {result.allAnswered && (
-          <div className="memory-result-panel">
-            <span>Errors: {result.errors} / {result.checks}</span>
-            <span>Error rate: {result.errorRate}%</span>
-            <button
-              className="button button-primary"
-              onClick={() => handleSaveMixedResult(item.id, result)}
-              disabled={saved}
-            >
-              {saved ? 'Saved' : 'Save result'}
-            </button>
-          </div>
-        )}
-      </article>
-    )
-  }
-
-  const renderOrderDrill = (item, saveHandler = saveMemoryErrorResult) => {
-    const steps = getMemoryOrderSteps(item)
-    const selectedIds = memoryOrderSelections[item.id] || []
-    const selectedSet = new Set(selectedIds)
-    const shuffledStepIds = memoryOrderShuffles[item.id] || createMemoryOrderShuffle(item)
-    const availableSteps = shuffledStepIds
-      .map((stepId) => steps.find((step) => step.id === stepId))
-      .filter((step) => step && !selectedSet.has(step.id))
-    const selectedSteps = selectedIds.map((stepId) => steps.find((step) => step.id === stepId)).filter(Boolean)
-    const complete = steps.length > 0 && selectedIds.length === steps.length
-    const errors = complete ? selectedIds.filter((stepId, index) => stepId !== steps[index].id).length : 0
-    const result = {
-      checks: steps.length,
-      errors,
-      errorRate: calculateMemoryErrorRate(errors, steps.length),
-    }
-    const saved = Boolean(memorySavedResults[getMemorySavedResultKey(MEMORY_MODES.ORDER_DRILL, item)])
-
-    return (
-      <div className="memory-order-layout">
-        <div className="memory-order-column">
-          <h4>Available items</h4>
-          {availableSteps.map((step) => (
-            <button className="memory-order-item" key={step.id} onClick={() => handleOrderSelect(item.id, step.id)}>
-              <span>{step.left}</span>
-              {step.right && <strong>{formatMemoryResponse(step.right)}</strong>}
-            </button>
-          ))}
-        </div>
-        <div className="memory-order-column">
-          <h4>Your order</h4>
-          {selectedSteps.length === 0 ? (
-            <p className="memory-drill-empty">Tap items in sequence.</p>
-          ) : (
-            selectedSteps.map((step, index) => (
-              <div className="memory-order-item memory-order-item-selected" key={step.id}>
-                <span>{index + 1}. {step.left}</span>
-                {step.right && <strong>{formatMemoryResponse(step.right)}</strong>}
-              </div>
-            ))
-          )}
-          <div className="memory-review-actions">
-            <button className="button button-ghost button-small" onClick={() => handleOrderReset(item.id)}>
-              Reset order
-            </button>
-            {complete && (
-              <button
-                className="button button-secondary button-small"
-                onClick={() => setMemoryOrderReveals((current) => ({ ...current, [item.id]: true }))}
-              >
-                Show correct order
-              </button>
-            )}
-          </div>
-        </div>
-        {complete && (
-          <div className="memory-result-panel memory-order-result">
-            <span>Order errors: {result.errors} / {result.checks}</span>
-            <span>Error rate: {result.errorRate}%</span>
-            <button
-              className="button button-primary"
-              onClick={() => saveHandler(item.id, result, MEMORY_MODES.ORDER_DRILL)}
-              disabled={saved}
-            >
-              {saved ? 'Saved' : 'Save result'}
-            </button>
-          </div>
-        )}
-        {memoryOrderReveals[item.id] && (
-          <div className="memory-correct-order">
-            <h4>Correct order</h4>
-            {steps.map((step, index) => (
-              <div className="memory-step-line" key={step.id}>
-                <span>{index + 1}. {step.left}</span>
-                {step.right && (
-                  <>
-                    <span className="memory-separator">—</span>
-                    <strong>{formatMemoryResponse(step.right)}</strong>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  const renderMemoryPracticeCard = (item, mode, saveHandler = saveMemoryErrorResult) => (
-    <article className="memory-item-card" key={`${mode}-${item.id}`}>
+  const renderMemoryPracticeCard = (item) => (
+    <article className="memory-item-card" key={`memory-${item.id}`}>
       {renderMemoryItemHeader(item)}
-      {mode !== MEMORY_MODES.BLIND_RECALL && renderMemoryVisualCues(item)}
-      {mode === MEMORY_MODES.STUDY && renderMemorySteps(item)}
-      {mode === MEMORY_MODES.BLIND_RECALL && renderBlindRecall(item, saveHandler)}
-      {mode === MEMORY_MODES.ACTION_DRILL && renderActionDrill(item, saveHandler)}
-      {mode === MEMORY_MODES.ORDER_DRILL && renderOrderDrill(item, saveHandler)}
+      {renderMemoryVisualCues(item)}
+      {renderMemoryInfoPanels(item)}
+      {renderMemorySteps(item)}
     </article>
   )
 
@@ -2600,15 +1735,6 @@ function App() {
     view,
   ])
 
-  useEffect(() => {
-    if (view !== 'memory-items' || memoryMode !== MEMORY_MODES.ORDER_DRILL) return
-
-    setMemoryOrderSelections({})
-    setMemoryOrderReveals({})
-    setMemorySavedResults({})
-    setMemoryOrderShuffles(createMemoryOrderShuffleMap(filteredMemoryItems))
-  }, [memoryCategoryFilter, memoryDifferenceFilter, memoryMode, memorySearch, memoryTopicFilter, selectedMemoryAircraft, view])
-
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -2704,28 +1830,11 @@ function App() {
                 </div>
               </article>
 
-              <article className={`action-card memory-card ${
-                memoryStatsSummary.testedCount > 0
-                  ? `memory-card-${getMemoryErrorSeverity(memoryStatsSummary.averageErrorRate)}`
-                  : 'memory-card-neutral'
-              }`}>
+              <article className="action-card memory-card memory-card-neutral">
                 <h3 className="memory-title-critical">MEMORY ITEMS</h3>
                 <span className="memory-aircraft-badge">{`${MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.NG]} / ${MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.MAX]}`}</span>
-                <p>Critical recall items.</p>
-                <p>{commonMemoryItemCount} common · {defaultAircraftMemoryItems.length} {defaultMemoryAircraftLabel}</p>
-                {memoryStatsSummary.testedCount > 0 ? (
-                  <p>
-                    {defaultMemoryAircraftLabel} average error: <strong className={`memory-error-value memory-error-${getMemoryErrorSeverity(memoryStatsSummary.averageErrorRate)}`}>{memoryStatsSummary.averageErrorRate}%</strong>
-                    {memoryStatsSummary.highestErrorItem && (
-                      <>
-                        <br />
-                        Worst: {memoryStatsSummary.highestErrorItem.item.title} — <strong className={`memory-error-value memory-error-${getMemoryErrorSeverity(memoryStatsSummary.highestErrorItem.averageErrorRate)}`}>{memoryStatsSummary.highestErrorItem.averageErrorRate}%</strong>
-                      </>
-                    )}
-                  </p>
-                ) : (
-                  <p>No tests yet</p>
-                )}
+                <p>{MEMORY_ITEMS.length} checklists</p>
+                <p>QRH recall items</p>
                 <div className="card-actions">
                   <button
                     className="button button-secondary"
@@ -2858,7 +1967,7 @@ function App() {
                   <span className="memory-aircraft-badge">{selectedMemoryAircraftLabel}</span>
                   <span className="memory-critical-badge">CRITICAL RECALL ITEMS</span>
                 </div>
-                <p className="subtitle">QRH-style recall items with error-rate practice.</p>
+                <p className="subtitle">QRH-style checklist reference for critical recall items.</p>
               </div>
               <button className="button button-ghost" onClick={handleBackToDashboard}>
                 Back to dashboard
@@ -2883,11 +1992,7 @@ function App() {
             <div className="memory-mode-row">
               <div className="segmented-control">
                 {[
-                  [MEMORY_MODES.STUDY, 'Study'],
-                  [MEMORY_MODES.BLIND_RECALL, 'Blind Recall'],
-                  [MEMORY_MODES.ACTION_DRILL, 'Action Drill'],
-                  [MEMORY_MODES.ORDER_DRILL, 'Order Drill'],
-                  [MEMORY_MODES.MIXED_TEST, 'Mixed Test'],
+                  [MEMORY_MODES.STUDY, 'Memory Items'],
                   [MEMORY_MODES.COMPARE, 'Compare NG / MAX'],
                 ].map(([mode, label]) => (
                   <button
@@ -2905,21 +2010,6 @@ function App() {
               <button className="button button-secondary" onClick={handleResetMemoryFilters}>
                 All topics
               </button>
-              <div className="segmented-control memory-difference-filter">
-                {[
-                  [MEMORY_DIFFERENCE_FILTERS.ALL, 'All'],
-                  [MEMORY_DIFFERENCE_FILTERS.COMMON, 'Common'],
-                  [MEMORY_DIFFERENCE_FILTERS.DIFFERENCES, 'Differences'],
-                ].map(([filter, label]) => (
-                  <button
-                    key={filter}
-                    className={memoryDifferenceFilter === filter ? 'segmented-option segmented-option-active' : 'segmented-option'}
-                    onClick={() => handleMemoryDifferenceFilterChange(filter)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
               <label className="field-label">
                 Topic
                 <select value={memoryTopicFilter} onChange={(event) => setMemoryTopicFilter(event.target.value)}>
@@ -2955,73 +2045,10 @@ function App() {
 
             <div className="reference-result-count">
               Showing {filteredMemoryItems.length} of {applicableMemoryItems.length} {selectedMemoryAircraftLabel} memory items
-              {filteredMemoryStatsSummary.testedCount > 0 && ` · Average error: ${filteredMemoryStatsSummary.averageErrorRate}%`}
             </div>
 
             {memoryMode === MEMORY_MODES.COMPARE ? (
               renderMemoryCompareMode()
-            ) : memoryMode === MEMORY_MODES.MIXED_TEST ? (
-              <div className="memory-item-list">
-                {!mixedSession && (
-                  <article className="memory-item-card">
-                    <div className="memory-item-header">
-                      <div>
-                        <h3>Mixed Test</h3>
-                        <p>
-                          {filteredMemoryItems.length === 0
-                            ? applicableMemoryItems.length === 0
-                              ? 'No Memory Items available for this aircraft.'
-                              : memoryDifferenceFilter === MEMORY_DIFFERENCE_FILTERS.DIFFERENCES
-                                ? 'No aircraft-specific Memory Item differences yet.'
-                                : 'No Memory Items match the current filters.'
-                            : `${Math.min(10, filteredMemoryItems.length)} ${selectedMemoryAircraftLabel} memory items from the current filters.`}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="card-actions">
-                      <button
-                        className="button button-primary"
-                        onClick={handleStartMixedTest}
-                        disabled={filteredMemoryItems.length === 0}
-                      >
-                        Start Mixed Test
-                      </button>
-                    </div>
-                  </article>
-                )}
-
-                {mixedSession && (
-                  <>
-                    <div className="reference-result-count">
-                      Mixed Test: {Object.keys(mixedSession.results).length} of {mixedSession.items.length} saved
-                    </div>
-                    {mixedSession.currentIndex < mixedSession.items.length && (
-                      <>
-                        <p className="memory-mixed-mode-label">
-                          Checklist {mixedSession.currentIndex + 1} of {mixedSession.items.length}
-                        </p>
-                        {renderMixedChecklist(mixedSession.items[mixedSession.currentIndex])}
-                      </>
-                    )}
-                    {mixedSession.items.length > 0 && mixedSession.currentIndex >= mixedSession.items.length && (
-                      <article className="memory-item-card">
-                        <div className="memory-result-panel">
-                          <span>Memory Items tested: {mixedSession.items.length}</span>
-                          <span>
-                            Total errors: {Object.values(mixedSession.results).reduce((sum, result) => sum + result.errors, 0)} / {Object.values(mixedSession.results).reduce((sum, result) => sum + result.checks, 0)}
-                          </span>
-                          <span>
-                            Error rate: {calculateMemoryErrorRate(
-                              Object.values(mixedSession.results).reduce((sum, result) => sum + result.errors, 0),
-                              Object.values(mixedSession.results).reduce((sum, result) => sum + result.checks, 0),
-                            )}%
-                          </span>
-                        </div>
-                      </article>
-                    )}
-                  </>
-                )}
-              </div>
             ) : (
               <div className="memory-item-list">
                 {filteredMemoryItems.length === 0 ? (
@@ -3029,9 +2056,7 @@ function App() {
                     <p className="memory-drill-empty">
                       {applicableMemoryItems.length === 0
                         ? 'No Memory Items available for this aircraft.'
-                        : memoryDifferenceFilter === MEMORY_DIFFERENCE_FILTERS.DIFFERENCES
-                          ? 'No aircraft-specific Memory Item differences yet.'
-                          : 'No Memory Items match the current filters.'}
+                        : 'No Memory Items match the current filters.'}
                     </p>
                   </article>
                 ) : (
@@ -3939,19 +2964,6 @@ function App() {
               <div className="stat-card">
                 <span>Total Memory Items</span>
                 <strong>{MEMORY_ITEMS.length}</strong>
-              </div>
-              <div className="stat-card">
-                <span>Tested Memory Items</span>
-                <strong>{memoryStatsSummary.testedCount}</strong>
-              </div>
-              <div className="stat-card">
-                <span>Memory Items average error</span>
-                <strong>{memoryStatsSummary.testedCount > 0 ? `${memoryStatsSummary.averageErrorRate}%` : '—'}</strong>
-              </div>
-              <div className="stat-card">
-                <span>Highest error item</span>
-                <strong>{memoryStatsSummary.highestErrorItem ? `${memoryStatsSummary.highestErrorItem.averageErrorRate}%` : '—'}</strong>
-                <small>{memoryStatsSummary.highestErrorItem?.item.title || 'No memory tests yet'}</small>
               </div>
             </div>
           </section>
