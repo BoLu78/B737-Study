@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.19'
+const APP_VERSION = 'v8.20'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -481,6 +481,7 @@ function createManualChunkExcerpt(text, query) {
 
 function getMemoryItemSearchText(item) {
   const stepTexts = item.steps.flatMap((step) => [
+    step.text,
     step.left,
     step.right,
     ...(step.substeps || []).flatMap((substep) => [substep.left, substep.right]),
@@ -488,6 +489,9 @@ function getMemoryItemSearchText(item) {
 
   return [
     item.title,
+    item.titlePrimary,
+    item.titleSecondary,
+    item.titleTertiary,
     item.subtitle,
     item.topic,
     item.category,
@@ -503,7 +507,7 @@ function calculateMemoryErrorRate(errors, checks) {
 }
 
 function getMemoryAssessableLines(item) {
-  return item.steps.flatMap((step) => [
+  return item.steps.filter((step) => !step.type).flatMap((step) => [
     {
       id: `${item.id}-step-${step.number}`,
       left: step.left,
@@ -581,7 +585,7 @@ function getMemoryActionOptions(line) {
 }
 
 function getMemoryOrderSteps(item) {
-  return item.steps.map((step) => ({
+  return item.steps.filter((step) => !step.type).map((step) => ({
     id: `${item.id}-order-${step.number}`,
     left: step.left,
     right: step.right || '',
@@ -666,6 +670,34 @@ function formatMemoryResponse(value) {
       <span className="memory-response-action">{formatMemoryActionText(confirmMatch[1])}</span>
     </>
   )
+}
+
+function renderMemoryText(value, options = {}) {
+  const text = String(value || '')
+
+  if (!text) return null
+
+  const emphasis = Array.isArray(options.emphasis) ? options.emphasis.filter(Boolean) : []
+  const renderedText = emphasis.reduce((parts, phrase) => (
+    parts.flatMap((part, partIndex) => {
+      if (typeof part !== 'string') return part
+
+      const phraseIndex = part.toLowerCase().indexOf(String(phrase).toLowerCase())
+      if (phraseIndex < 0) return part
+
+      const before = part.slice(0, phraseIndex)
+      const match = part.slice(phraseIndex, phraseIndex + String(phrase).length)
+      const after = part.slice(phraseIndex + String(phrase).length)
+
+      return [
+        before,
+        <strong key={`${phrase}-${partIndex}-${phraseIndex}`}>{match}</strong>,
+        after,
+      ].filter((item) => item !== '')
+    })
+  ), [text])
+
+  return options.bold ? <strong>{renderedText}</strong> : renderedText
 }
 
 function App() {
@@ -1483,57 +1515,128 @@ function App() {
     }))
   }
 
+  const renderMemoryDivider = (key) => (
+    <div className="memory-divider-squares" aria-hidden="true" key={key}>
+      <span />
+      <span />
+      <span />
+      <span />
+    </div>
+  )
+
+  const renderMemoryNote = (step, key) => (
+    <li className="memory-note-list-item" key={key}>
+      <div className="memory-note-block">
+      {renderMemoryText(step.text, step)}
+      </div>
+    </li>
+  )
+
+  const renderMemoryLine = (line, className) => (
+    <div className={className}>
+      <span>{renderMemoryText(line.left, line)}</span>
+      {line.right && (
+        <>
+          <span className="memory-separator">—</span>
+          <strong>{formatMemoryResponse(line.right)}</strong>
+        </>
+      )}
+    </div>
+  )
+
   const renderMemorySteps = (item) => (
     <ol className="memory-step-list">
-      {item.steps.map((step) => (
-        <li key={step.number}>
-          <div className="memory-step-line">
-            <span>{step.left}</span>
-            {step.right && (
-              <>
-                <span className="memory-separator">—</span>
-                <strong>{formatMemoryResponse(step.right)}</strong>
-              </>
+      {item.steps.map((step, stepIndex) => (
+        step.type === 'note' ? renderMemoryNote(step, `${item.id}-note-${stepIndex}`) : (
+          <li key={step.number}>
+            {renderMemoryLine(step, 'memory-step-line')}
+            {step.substeps?.length > 0 && (
+              <div className="memory-substep-list">
+                {step.substeps.map((substep, index) => (
+                  <div key={`${step.number}-${index}-${substep.left}`}>
+                    {renderMemoryLine(substep, 'memory-substep-line')}
+                    {substep.dividerAfter && renderMemoryDivider(`${step.number}-${index}-divider`)}
+                  </div>
+                ))}
+              </div>
             )}
-          </div>
-          {step.substeps?.length > 0 && (
-            <div className="memory-substep-list">
-              {step.substeps.map((substep) => (
-                <div className="memory-substep-line" key={`${step.number}-${substep.left}`}>
-                  <span>{substep.left}</span>
-                  {substep.right && (
-                    <>
-                      <span className="memory-separator">—</span>
-                      <strong>{formatMemoryResponse(substep.right)}</strong>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </li>
+            {step.dividerAfter && renderMemoryDivider(`${step.number}-divider`)}
+          </li>
+        )
       ))}
     </ol>
   )
 
   const renderMemoryVisualCues = (item) => {
-    if (!item.visualCues?.length) return null
+    const visualCueGroups = item.visualCueGroups?.length
+      ? item.visualCueGroups
+      : item.visualCues?.length
+        ? [{ label: '', cues: item.visualCues }]
+        : []
+
+    if (visualCueGroups.length === 0) return null
 
     return (
       <div className="memory-visual-cues" aria-label={`${item.title} visual cues`}>
-        {item.visualCues.map((cue, index) => (
-          <div
-            className={`memory-visual-cue memory-visual-cue-${cue.type} memory-visual-cue-${cue.color || 'amber'}`}
-            key={`${cue.type}-${index}-${cue.lines.join('-')}`}
-          >
-            {cue.lines.map((line) => (
-              <span key={line}>{line}</span>
-            ))}
+        {visualCueGroups.map((group, groupIndex) => (
+          <div className="memory-visual-cue-group" key={`${group.label || 'cue-group'}-${groupIndex}`}>
+            {group.label && <span className="memory-visual-cue-group-label">{group.label}</span>}
+            <div className="memory-visual-cue-group-items">
+              {group.cues.map((cue, index) => (
+                <div
+                  className={`memory-visual-cue memory-visual-cue-${cue.type} memory-visual-cue-${cue.color || 'amber'}`}
+                  key={`${cue.type}-${index}-${cue.lines.join('-')}`}
+                >
+                  {cue.lines.map((line) => (
+                    <span key={line}>{line}</span>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
     )
   }
+
+  const renderMemoryTitle = (item) => {
+    if (item.titleLayout === 'stacked-or') {
+      return (
+        <div className="memory-title-stack">
+          <h3>{item.titlePrimary || item.title}</h3>
+          <span>or</span>
+          <h3>{item.titleSecondary}</h3>
+          {item.titleTertiary && <h3>{item.titleTertiary}</h3>}
+        </div>
+      )
+    }
+
+    return (
+      <>
+        <h3>{item.title}</h3>
+        {item.subtitle && <p>{item.subtitle}</p>}
+      </>
+    )
+  }
+
+  const renderMemoryStepItemsForDrill = (item, renderStepContent) => (
+    item.steps.map((step, stepIndex) => (
+      step.type === 'note' ? renderMemoryNote(step, `${item.id}-drill-note-${stepIndex}`) : renderStepContent(step)
+    ))
+  )
+
+  const renderMemorySubstepsForDrill = (step, renderSubstepContent) => (
+    step.substeps?.length > 0 && (
+      <div className="memory-substep-list">
+        {step.substeps.map((substep, index) => (
+          <div key={`${step.number}-${index}-${substep.left}`}>
+            {renderSubstepContent(substep, index)}
+            {substep.dividerAfter && renderMemoryDivider(`${step.number}-${index}-drill-divider`)}
+          </div>
+        ))}
+      </div>
+    )
+  )
 
   const renderFullMemoryItemReference = (item) => (
     <div className="memory-full-reference">
@@ -1549,9 +1652,8 @@ function App() {
     return (
       <div className="memory-item-header">
         <div>
-          <h3>{item.title}</h3>
+          {renderMemoryTitle(item)}
           <span className="memory-aircraft-badge">737NG</span>
-          {item.subtitle && <p>{item.subtitle}</p>}
         </div>
         <div className="memory-status-list">
           {statusText.map((text) => (
@@ -1588,21 +1690,13 @@ function App() {
       <>
         {renderMemoryVisualCues(item)}
         <ol className="memory-step-list">
-          {item.steps.map((step) => {
+          {renderMemoryStepItemsForDrill(item, (step) => {
             const parentLineId = `${item.id}-step-${step.number}`
 
             return (
               <li key={step.number}>
                 <div className="memory-assessment-row">
-                  <div className="memory-step-line">
-                    <span>{step.left}</span>
-                    {step.right && (
-                      <>
-                        <span className="memory-separator">—</span>
-                        <strong>{formatMemoryResponse(step.right)}</strong>
-                      </>
-                    )}
-                  </div>
+                  {renderMemoryLine(step, 'memory-step-line')}
                   <div className="memory-line-actions">
                     <button
                       className={marks[parentLineId] === true ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
@@ -1618,22 +1712,12 @@ function App() {
                     </button>
                   </div>
                 </div>
-                {step.substeps?.length > 0 && (
-                  <div className="memory-substep-list">
-                    {step.substeps.map((substep, index) => {
+                {renderMemorySubstepsForDrill(step, (substep, index) => {
                       const substepLineId = `${item.id}-step-${step.number}-substep-${index}`
 
                       return (
                         <div className="memory-assessment-row memory-substep-assessment-row" key={substepLineId}>
-                          <div className="memory-substep-line">
-                            <span>{substep.left}</span>
-                            {substep.right && (
-                              <>
-                                <span className="memory-separator">—</span>
-                                <strong>{formatMemoryResponse(substep.right)}</strong>
-                              </>
-                            )}
-                          </div>
+                          {renderMemoryLine(substep, 'memory-substep-line')}
                           <div className="memory-line-actions">
                             <button
                               className={marks[substepLineId] === true ? 'button button-secondary button-small memory-choice-active' : 'button button-ghost button-small'}
@@ -1651,8 +1735,6 @@ function App() {
                         </div>
                       )
                     })}
-                  </div>
-                )}
               </li>
             )
           })}
@@ -1827,7 +1909,7 @@ function App() {
         {renderMemoryItemHeader(item)}
         {renderMemoryVisualCues(item)}
         <ol className="memory-step-list memory-mixed-step-list">
-          {item.steps.map((step) => {
+          {renderMemoryStepItemsForDrill(item, (step) => {
             const parentLine = {
               id: `${item.id}-step-${step.number}`,
               left: step.left,
@@ -1838,7 +1920,7 @@ function App() {
               <li key={step.number}>
                 <div className="memory-drill-question memory-mixed-line">
                   <div className="memory-step-line">
-                    <span>{step.left}</span>
+                    <span>{renderMemoryText(step.left, step)}</span>
                     {step.right && (
                       <>
                         <span className="memory-separator">—</span>
@@ -1848,9 +1930,7 @@ function App() {
                   </div>
                   {renderMixedChecklistLineActions(item, parentLine)}
                 </div>
-                {step.substeps?.length > 0 && (
-                  <div className="memory-substep-list">
-                    {step.substeps.map((substep, index) => {
+                {renderMemorySubstepsForDrill(step, (substep, index) => {
                       const substepLine = {
                         id: `${item.id}-step-${step.number}-substep-${index}`,
                         left: substep.left,
@@ -1860,7 +1940,7 @@ function App() {
                       return (
                         <div className="memory-drill-question memory-mixed-line" key={substepLine.id}>
                           <div className="memory-substep-line">
-                            <span>{substep.left}</span>
+                            <span>{renderMemoryText(substep.left, substep)}</span>
                             {substep.right && (
                               <>
                                 <span className="memory-separator">—</span>
@@ -1872,8 +1952,6 @@ function App() {
                         </div>
                       )
                     })}
-                  </div>
-                )}
               </li>
             )
           })}

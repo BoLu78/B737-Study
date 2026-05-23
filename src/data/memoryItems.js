@@ -77,7 +77,10 @@ export const MEMORY_ITEMS = [
   {
     id: 'cabin-altitude-warning-or-rapid-depressurization',
     title: 'CABIN ALTITUDE WARNING',
-    subtitle: 'or Rapid Depressurization',
+    titlePrimary: 'CABIN ALTITUDE WARNING',
+    titleSecondary: 'Rapid Depressurization',
+    titleLayout: 'stacked-or',
+    subtitle: '',
     category: 'Non-Normal Checklist',
     topic: 'Pressurization',
     priority: 'critical',
@@ -123,8 +126,11 @@ export const MEMORY_ITEMS = [
             right: 'ON',
           },
           {
-            left: 'Go to the Emergency Descent checklist on page 0.1',
+            left: '►►Go to the Emergency Descent ( ) checklist on page 0.1',
             right: '',
+            bold: true,
+            dividerAfter: true,
+            dividerType: 'squares',
           },
         ],
       },
@@ -132,7 +138,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'emergency-descent',
-    title: 'Emergency Descent',
+    title: 'Emergency Descent ( )',
     subtitle: '',
     category: 'Non-Normal Checklist',
     topic: 'Pressurization',
@@ -159,6 +165,10 @@ export const MEMORY_ITEMS = [
         right: 'FLIGHT DETENT',
       },
       {
+        type: 'note',
+        text: 'If structural integrity is in doubt, limit speed as much as possible and avoid high maneuvering loads.',
+      },
+      {
         number: '5',
         left: 'Set target speed to Mmo/Vmo',
         right: '',
@@ -178,7 +188,10 @@ export const MEMORY_ITEMS = [
   {
     id: 'engine-fire-or-engine-severe-damage-or-separation',
     title: 'ENGINE FIRE',
-    subtitle: 'or Engine Severe Damage or Separation',
+    titlePrimary: 'ENGINE FIRE',
+    titleSecondary: 'Engine Severe Damage or Separation',
+    titleLayout: 'stacked-or',
+    subtitle: '',
     category: 'Non-Normal Checklist',
     topic: 'Fire Protection',
     priority: 'critical',
@@ -238,7 +251,7 @@ export const MEMORY_ITEMS = [
   },
   {
     id: 'engine-overheat',
-    title: 'Engine Overheat',
+    title: 'ENGINE OVERHEAT',
     subtitle: '',
     category: 'Non-Normal Checklist',
     topic: 'Fire Protection',
@@ -272,8 +285,11 @@ export const MEMORY_ITEMS = [
         right: '',
         substeps: [
           {
-            left: 'Go to the ENGINE FIRE or Engine Severe Damage or Separation checklist on page 8.2',
+            left: '►►Go to the ENGINE FIRE or Engine Severe Damage or Separation checklist on page 8.2',
             right: '',
+            bold: true,
+            dividerAfter: true,
+            dividerType: 'squares',
           },
         ],
       },
@@ -313,6 +329,86 @@ export const MEMORY_ITEMS = [
         number: '1',
         left: 'Assure correct airplane takeoff configuration',
         right: '',
+      },
+    ],
+  },
+  {
+    id: 'warning-horn-intermittent-or-warning-light-cabin-altitude-or-takeoff-configuration',
+    title: 'WARNING HORN (INTERMITTENT)',
+    titlePrimary: 'WARNING HORN (INTERMITTENT)',
+    titleSecondary: 'WARNING LIGHT - CABIN ALTITUDE OR TAKEOFF CONFIGURATION',
+    titleLayout: 'stacked-or',
+    subtitle: '',
+    category: 'Non-Normal Checklist',
+    topic: 'Warning Systems',
+    priority: 'critical',
+    visualCueGroups: [
+      {
+        label: 'Main Panel - Captain',
+        cues: [
+          {
+            type: 'warning-light',
+            color: 'red',
+            lines: ['TAKEOFF', 'CONFIG'],
+          },
+          {
+            type: 'warning-light',
+            color: 'red',
+            lines: ['CABIN', 'ALTITUDE'],
+          },
+        ],
+      },
+      {
+        label: 'Main Panel - F/O',
+        cues: [
+          {
+            type: 'warning-light',
+            color: 'red',
+            lines: ['CABIN', 'ALTITUDE'],
+          },
+          {
+            type: 'warning-light',
+            color: 'red',
+            lines: ['TAKEOFF', 'CONFIG'],
+          },
+        ],
+      },
+    ],
+    steps: [
+      {
+        number: '1',
+        left: 'If the intermittent warning horn sounds or a CABIN ALTITUDE light illuminates in flight at an airplane flight altitude above 10,000 feet MSL:',
+        right: '',
+        emphasis: ['in flight'],
+        substeps: [
+          {
+            left: 'Don the oxygen masks and set the regulators to 100%.',
+            right: '',
+          },
+          {
+            left: 'Establish crew communications.',
+            right: '',
+          },
+          {
+            left: '►►Go to the CABIN ALTITUDE WARNING or Rapid Depressurization checklist on page 2.1',
+            right: '',
+            bold: true,
+            dividerAfter: true,
+            dividerType: 'squares',
+          },
+        ],
+      },
+      {
+        number: '2',
+        left: 'If the intermittent warning horn sounds or a TAKEOFF CONFIG light illuminates on the ground when advancing the thrust levers to takeoff thrust:',
+        right: '',
+        emphasis: ['on the ground'],
+        substeps: [
+          {
+            left: 'Assure correct airplane takeoff configuration.',
+            right: '',
+          },
+        ],
       },
     ],
   },
@@ -401,8 +497,10 @@ export const MEMORY_ITEMS = [
         right: '',
         substeps: [
           {
-            left: 'Do not re-engage the autopilot or autothrottle',
+            left: 'Do not re-engage the autopilot or autothrottle.',
             right: '',
+            dividerAfter: true,
+            dividerType: 'squares',
           },
         ],
       },
