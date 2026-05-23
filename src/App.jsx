@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.17'
+const APP_VERSION = 'v8.18'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -123,6 +123,10 @@ const GENERATED_QUESTIONS = generatedQuestionBank.map((question) => {
     difficulty: null,
   }
 })
+
+function normalizeTopicDisplayName(topic) {
+  return String(topic || '').replace(/\s+/g, ' ').trim()
+}
 
 function buildAdminFormFromQuestion(question) {
   return {
@@ -2771,20 +2775,29 @@ function App() {
               {finalTestScope === FINAL_TEST_SCOPES.SELECTED_TOPICS && (
                 <div className="topic-select-panel">
                   <span>Selected topics</span>
-                  <div className="topic-checkbox-grid">
-                    {topics.map((topic) => (
-                      <label className="topic-select-option" key={topic}>
-                        <input
-                          type="checkbox"
-                          checked={finalTestSelectedTopics.includes(topic)}
-                          onChange={() => handleFinalTestTopicToggle(topic)}
-                        />
-                        <span className="topic-select-text">
-                          <strong>{topic}</strong>
-                          <small>{topicQuestionCounts.get(topic) || 0} questions</small>
-                        </span>
-                      </label>
-                    ))}
+                  <div className="final-topic-grid">
+                    {topics.map((topic) => {
+                      const isSelected = finalTestSelectedTopics.includes(topic)
+                      const displayTopic = normalizeTopicDisplayName(topic)
+
+                      return (
+                        <label
+                          className={isSelected ? 'final-topic-option is-selected' : 'final-topic-option'}
+                          key={topic}
+                        >
+                          <input
+                            type="checkbox"
+                            className="final-topic-checkbox"
+                            checked={isSelected}
+                            onChange={() => handleFinalTestTopicToggle(topic)}
+                          />
+                          <span className="final-topic-option-body">
+                            <span className="final-topic-option-title">{displayTopic}</span>
+                            <span className="final-topic-option-count">{topicQuestionCounts.get(topic) || 0} questions</span>
+                          </span>
+                        </label>
+                      )
+                    })}
                   </div>
                 </div>
               )}
