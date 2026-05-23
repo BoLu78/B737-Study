@@ -6,9 +6,12 @@ import xlsx from 'xlsx'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..')
-const inputPath = path.join(repoRoot, 'data/import/T73 R01 TEST 737_R01..xlsx')
-const overridePath = path.join(repoRoot, 'data/import/question-overrides.json')
-const outputPath = path.join(repoRoot, 'data/generated/questions.json')
+const QUESTION_SOURCE_FILE = 'data/import/T73 R01 TEST 737_R01..xlsx'
+const QUESTION_OVERRIDES_FILE = 'data/import/question-overrides.json'
+const GENERATED_QUESTIONS_FILE = 'data/generated/questions.json'
+const inputPath = path.join(repoRoot, QUESTION_SOURCE_FILE)
+const overridePath = path.join(repoRoot, QUESTION_OVERRIDES_FILE)
+const outputPath = path.join(repoRoot, GENERATED_QUESTIONS_FILE)
 
 const REQUIRED_HEADERS = ['ID', 'Question', 'AnswerOne', 'AnswerTwo', 'AnswerThree', 'AnswerFour', 'Correct', 'Argument']
 const ANSWER_COLUMNS = ['AnswerOne', 'AnswerTwo', 'AnswerThree', 'AnswerFour']
@@ -63,7 +66,7 @@ async function loadExcelRecords() {
   try {
     await fs.access(inputPath)
   } catch {
-    throw new Error(`Required Excel question source is missing: ${path.relative(repoRoot, inputPath)}`)
+    throw new Error(`Missing canonical Excel source: ${QUESTION_SOURCE_FILE}`)
   }
 
   const workbook = xlsx.readFile(inputPath)

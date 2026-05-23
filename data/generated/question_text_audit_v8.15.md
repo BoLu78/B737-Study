@@ -2,7 +2,7 @@
 
 ## Summary
 
-- Source: data/generated/questions.json; data/import/questions.csv
+- Source: data/generated/questions.json; data/import/T73 R01 TEST 737_R01..xlsx
 - Total questions scanned: 645
 - Suspicious question count: 41
 - Duplicate answer option groups: 3

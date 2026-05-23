@@ -604,27 +604,50 @@ code {
 
 .topic-checkbox-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 8px;
-  max-height: 260px;
-  overflow: auto;
-  padding-right: 4px;
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+  gap: 10px;
+  overflow-x: hidden;
 }
 
-.topic-checkbox {
+.topic-select-option {
   display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 36px;
-  padding: 8px 10px;
-  border-radius: 12px;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+  min-height: 66px;
+  padding: 12px;
+  border-radius: 14px;
   color: var(--text);
   background: rgba(7, 16, 34, 0.52);
   border: 1px solid rgba(148, 163, 184, 0.1);
+  cursor: pointer;
 }
 
-.topic-checkbox input {
+.topic-select-option:hover {
+  background: rgba(15, 31, 58, 0.72);
+  border-color: rgba(96, 165, 250, 0.22);
+}
+
+.topic-select-option input {
+  flex: 0 0 auto;
+  margin-top: 3px;
   accent-color: var(--accent);
+}
+
+.topic-select-text {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.topic-select-text strong {
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.topic-select-text small {
+  color: var(--text-muted);
+  font-size: 0.78rem;
 }
 
 .setup-note,

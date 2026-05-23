@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import xlsx from 'xlsx'
 import { cleanQuizText } from '../src/utils/questionTextCleaner.js'
 
 /* global process */
@@ -10,8 +11,9 @@ const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..')
 const reportPath = path.join(repoRoot, 'data/generated/question_text_audit_v8.15.md')
 const questionJsonPath = path.join(repoRoot, 'data/generated/questions.json')
-const questionCsvPath = path.join(repoRoot, 'data/import/questions.csv')
+const questionSourcePath = path.join(repoRoot, 'data/import/T73 R01 TEST 737_R01..xlsx')
 const ANSWER_KEYS = ['A', 'B', 'C', 'D']
+const SHEET_NAME = 'Table 1'
 
 const PATTERNS = [
   {
@@ -62,15 +64,20 @@ async function loadQuestions() {
 
 async function loadSourceRows() {
   try {
-    const fileText = await fs.readFile(questionCsvPath, 'utf8')
-    const rows = parseCsv(fileText)
+    await fs.access(questionSourcePath)
+    const workbook = xlsx.readFile(questionSourcePath)
+    const sheet = workbook.Sheets[SHEET_NAME]
+    if (!sheet) throw new Error(`Missing Excel sheet: ${SHEET_NAME}`)
+    const rows = xlsx.utils
+      .sheet_to_json(sheet, { header: 1, defval: '', blankrows: false, raw: false })
+      .filter((candidate) => candidate.some((value) => normalizeCell(value)))
     const headers = rows[0].map(normalizeCell)
     return {
       records: rows.slice(1).map((row) => Object.fromEntries(headers.map((header, index) => [header, normalizeCell(row[index])]))),
-      source: path.relative(repoRoot, questionCsvPath),
+      source: path.relative(repoRoot, questionSourcePath),
     }
   } catch {
-    return { records: [], source: 'No CSV source available' }
+    return { records: [], source: 'No Excel source available' }
   }
 }
 
@@ -80,52 +87,6 @@ function normalizeCell(value) {
     .replace(/\r?\n|\r/g, ' ')
     .replace(/[ \t]+/g, ' ')
     .trim()
-}
-
-function parseCsv(text, delimiter = ';') {
-  const rows = []
-  let row = []
-  let cell = ''
-  let inQuotes = false
-
-  for (let index = 0; index < text.length; index += 1) {
-    const char = text[index]
-    const nextChar = text[index + 1]
-
-    if (char === '"') {
-      if (inQuotes && nextChar === '"') {
-        cell += '"'
-        index += 1
-      } else {
-        inQuotes = !inQuotes
-      }
-      continue
-    }
-
-    if (char === delimiter && !inQuotes) {
-      row.push(cell)
-      cell = ''
-      continue
-    }
-
-    if ((char === '\n' || char === '\r') && !inQuotes) {
-      if (char === '\r' && nextChar === '\n') index += 1
-      row.push(cell)
-      rows.push(row)
-      row = []
-      cell = ''
-      continue
-    }
-
-    cell += char
-  }
-
-  if (cell || row.length > 0) {
-    row.push(cell)
-    rows.push(row)
-  }
-
-  return rows.filter((candidate) => candidate.some((value) => normalizeCell(value)))
 }
 
 function getQuestionId(question) {
@@ -463,11 +424,11 @@ function renderReport({ questions, source, audit }) {
 
 async function main() {
   const questionSource = await loadQuestions()
-  const csvSource = await loadSourceRows()
-  const audit = auditQuestions(questionSource.questions, csvSource.records)
+  const excelSource = await loadSourceRows()
+  const audit = auditQuestions(questionSource.questions, excelSource.records)
   const report = renderReport({
     questions: questionSource.questions,
-    source: `${questionSource.source}; ${csvSource.source}`,
+    source: `${questionSource.source}; ${excelSource.source}`,
     audit,
   })
 

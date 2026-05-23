@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.16'
+const APP_VERSION = 'v8.17'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -64,7 +64,7 @@ const COMMON_MEMORY_ACTION_OPTIONS = [
   '4° and 75% N1',
 ]
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
-const DATA_SOURCE_GENERATED = 'CSV question bank'
+const DATA_SOURCE_GENERATED = 'T73 R01 Excel question bank'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
 const ANSWER_KEYS = ['A', 'B', 'C', 'D']
 const PLACEHOLDER_ANSWERS = new Set(['not applicable', 'n/a', 'na'])
@@ -117,7 +117,7 @@ const GENERATED_QUESTIONS = generatedQuestionBank.map((question) => {
     correctAnswerLetter,
     explanation: '',
     manualReference: null,
-    sourceDocument: 'questions.csv',
+    sourceDocument: DATA_SOURCE_GENERATED,
     sourcePage: null,
     status: 'active',
     difficulty: null,
@@ -827,6 +827,10 @@ function App() {
   }, [])
 
   const topics = Array.from(new Set(questions.map((item) => item.topic)))
+  const topicQuestionCounts = questions.reduce((counts, question) => {
+    counts.set(question.topic, (counts.get(question.topic) || 0) + 1)
+    return counts
+  }, new Map())
   const questionLookup = createQuestionLookup(questions)
   const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
   const finalTestEligibleQuestions = getEligibleFinalTestQuestions(questions, finalTestScope, finalTestSelectedTopics)
@@ -2769,13 +2773,16 @@ function App() {
                   <span>Selected topics</span>
                   <div className="topic-checkbox-grid">
                     {topics.map((topic) => (
-                      <label className="topic-checkbox" key={topic}>
+                      <label className="topic-select-option" key={topic}>
                         <input
                           type="checkbox"
                           checked={finalTestSelectedTopics.includes(topic)}
                           onChange={() => handleFinalTestTopicToggle(topic)}
                         />
-                        <span>{topic}</span>
+                        <span className="topic-select-text">
+                          <strong>{topic}</strong>
+                          <small>{topicQuestionCounts.get(topic) || 0} questions</small>
+                        </span>
                       </label>
                     ))}
                   </div>

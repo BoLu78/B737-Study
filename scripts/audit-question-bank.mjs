@@ -8,7 +8,10 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..')
 const questionJsonPath = path.join(repoRoot, 'data/generated/questions.json')
+const buildScriptPath = path.join(repoRoot, 'scripts/build-questions.mjs')
 const ANSWER_KEYS = ['A', 'B', 'C', 'D']
+const QUESTION_SOURCE_FILE = 'data/import/T73 R01 TEST 737_R01..xlsx'
+const DEPRECATED_SOURCE_FILE = 'data/import/questions.csv'
 const TARGET_QUESTION_ID = 450
 const SOURCE_442_ID = 442
 const TARGET_QUESTION_TEXT = 'Alternate fuel must be sufficient for:'
@@ -44,6 +47,21 @@ async function loadQuestions() {
   return JSON.parse(fileText)
 }
 
+async function auditBuildSource() {
+  const findings = []
+  const buildScript = await fs.readFile(buildScriptPath, 'utf8')
+
+  if (!buildScript.includes(QUESTION_SOURCE_FILE)) {
+    addFinding(findings, 'error', `Question build script does not reference canonical source ${QUESTION_SOURCE_FILE}.`)
+  }
+
+  if (buildScript.includes(DEPRECATED_SOURCE_FILE)) {
+    addFinding(findings, 'error', `Question build script still references deprecated source ${DEPRECATED_SOURCE_FILE}.`)
+  }
+
+  return findings
+}
+
 function auditQuestionShape(questions) {
   const findings = []
   const ids = new Map()
@@ -64,6 +82,10 @@ function auditQuestionShape(questions) {
 
     if (!normalizeCell(question.question)) {
       addFinding(findings, 'error', `Question ${question.id ?? `index ${index}`} has empty question text.`)
+    }
+
+    if (!normalizeCell(question.topic)) {
+      addFinding(findings, 'error', `Question ${question.id ?? `index ${index}`} has an empty topic.`)
     }
 
     if (options.length < 2) {
@@ -158,6 +180,7 @@ function summarize(findings, severity) {
 async function main() {
   const questions = await loadQuestions()
   const findings = [
+    ...await auditBuildSource(),
     ...auditQuestionShape(questions),
     ...auditQuestion450(questions),
   ]
