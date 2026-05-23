@@ -352,7 +352,7 @@ code {
 }
 
 .primary-actions-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .action-card {
@@ -690,38 +690,10 @@ code {
 }
 
 .topics-view,
-.study-setup-view,
 .memory-items-view,
 .final-test-view {
   display: grid;
   gap: 18px;
-}
-
-.study-setup-panel {
-  display: grid;
-  gap: 18px;
-  border-radius: 20px;
-  padding: 24px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-}
-
-.study-setup-panel h3 {
-  color: #dbeafe;
-  font-size: 1.24rem;
-  line-height: 1.25;
-}
-
-.study-setup-panel p:not(.eyebrow) {
-  color: var(--text-muted);
-}
-
-.study-count-presets {
-  max-width: 360px;
-}
-
-.study-custom-count {
-  max-width: 220px;
 }
 
 .memory-mode-row,

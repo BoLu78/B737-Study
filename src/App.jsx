@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.18'
+const APP_VERSION = 'v8.19'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -683,8 +683,6 @@ function App() {
   const [isReviewingWrongAnswers, setIsReviewingWrongAnswers] = useState(false)
   const [isSessionComplete, setIsSessionComplete] = useState(false)
   const [sessionResults, setSessionResults] = useState([])
-  const [randomStudyCount, setRandomStudyCount] = useState(20)
-  const [randomStudySessionQuestions, setRandomStudySessionQuestions] = useState([])
   const [finalTestScope, setFinalTestScope] = useState(FINAL_TEST_SCOPES.ALL)
   const [finalTestCount, setFinalTestCount] = useState(100)
   const [finalTestSelectedTopics, setFinalTestSelectedTopics] = useState([])
@@ -850,18 +848,14 @@ function App() {
       ? finalTestSessionQuestions
       : practiceMode === 'marked'
         ? markedReviewQuestions
-        : practiceMode === 'random-study'
-          ? randomStudySessionQuestions
-          : topicSessionQuestions
+        : topicSessionQuestions
   const activeQuizTitle = isReviewingWrongAnswers
     ? 'Wrong Answer Review'
     : practiceMode === 'final'
-      ? 'Final Test Simulation'
+      ? 'Study Session'
       : practiceMode === 'marked'
         ? 'Marked Question Review'
-        : practiceMode === 'random-study'
-          ? 'Random Study'
-          : currentTopic
+        : currentTopic
   const currentQuestion = activeQuizQuestions[questionIndex]
   const currentReviewResult = isReviewingWrongAnswers ? wrongResults[questionIndex] : null
   const currentAnswerOptions = normalizeQuizOptions(currentQuestion)
@@ -871,15 +865,12 @@ function App() {
       ? finalTestSessionQuestions.length
       : practiceMode === 'marked'
         ? markedReviewQuestions.length
-        : practiceMode === 'random-study'
-          ? randomStudySessionQuestions.length
-          : topicSessionQuestions.length
+        : topicSessionQuestions.length
   const totalAnswered = sessionResults.length
   const correctCount = sessionResults.filter((result) => result.isCorrect).length
   const wrongCount = wrongResults.length
   const scorePercent = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0
-  const activeQuestionPool = questions.filter((item) => item.status === 'active')
-  const activeQuestions = activeQuestionPool.length
+  const activeQuestions = questions.filter((item) => item.status === 'active').length
   const sourceDocuments = getUniqueReferenceValues(questions, 'sourceDocument')
   const referenceTopics = getUniqueReferenceValues(questions, 'topic')
   const memoryTopics = Array.from(new Set(MEMORY_ITEMS.map((item) => item.topic))).sort((first, second) =>
@@ -1020,49 +1011,6 @@ function App() {
     saveStoredInProgressTopicSessions(next)
   }
 
-  const getSafeRandomStudyCount = (value = randomStudyCount) => {
-    const fallbackCount = Math.min(20, activeQuestionPool.length)
-    const numericValue = Number(value)
-
-    if (!Number.isFinite(numericValue) || numericValue < 1) {
-      return Math.max(fallbackCount, 1)
-    }
-
-    return Math.min(Math.max(Math.round(numericValue), 1), activeQuestionPool.length)
-  }
-
-  const handleRandomStudyCountChange = (value) => {
-    setRandomStudyCount(value)
-  }
-
-  const handleRandomStudyPreset = (count) => {
-    setRandomStudyCount(Math.min(count, activeQuestionPool.length || count))
-  }
-
-  const startRandomStudySession = (requestedCount = randomStudyCount) => {
-    const safeCount = getSafeRandomStudyCount(requestedCount)
-    const selectedQuestions = shuffleArray(activeQuestionPool).slice(0, safeCount)
-
-    setPracticeMode('random-study')
-    setIsReviewingWrongAnswers(false)
-    setIsSessionComplete(false)
-    setSessionResults([])
-    setFinalTestSessionQuestions([])
-    setMarkedReviewQuestions([])
-    setTopicSessionQuestions([])
-    setRandomStudySessionQuestions(selectedQuestions)
-    setRandomStudyCount(safeCount)
-    setQuestionIndex(0)
-    setAnswered(false)
-    setSelectedAnswer(null)
-    setCorrect(false)
-    setView('quiz')
-  }
-
-  const handleOpenStudySetup = () => {
-    setView('study-setup')
-  }
-
   const startNewTopicSession = (topic = currentTopic) => {
     const randomizedQuestions = shuffleArray(questions.filter((item) => item.topic === topic))
 
@@ -1072,7 +1020,6 @@ function App() {
     setSessionResults([])
     setFinalTestSessionQuestions([])
     setMarkedReviewQuestions([])
-    setRandomStudySessionQuestions([])
     setTopicSessionQuestions(randomizedQuestions)
     setSelectedTopic(topic)
     setQuestionIndex(0)
@@ -1092,7 +1039,6 @@ function App() {
     setSessionResults(storedSession.sessionResults)
     setFinalTestSessionQuestions([])
     setMarkedReviewQuestions([])
-    setRandomStudySessionQuestions([])
     setTopicSessionQuestions(storedSession.questions)
     setSelectedTopic(topic)
     setQuestionIndex(safeIndex)
@@ -1127,7 +1073,6 @@ function App() {
     setSessionResults([])
     setFinalTestSessionQuestions(selectedQuestions)
     setTopicSessionQuestions([])
-    setRandomStudySessionQuestions([])
     setMarkedReviewQuestions([])
     setFinalTestSessionConfig({
       scope: finalTestScope,
@@ -1151,9 +1096,6 @@ function App() {
       })
 
       setFinalTestSessionQuestions(selectedQuestions)
-    } else if (practiceMode === 'random-study') {
-      startRandomStudySession(randomStudyCount)
-      return
     } else if (practiceMode === 'topic') {
       startNewTopicSession(currentTopic)
       return
@@ -1363,7 +1305,6 @@ function App() {
     setSessionResults([])
     setFinalTestSessionQuestions([])
     setTopicSessionQuestions([])
-    setRandomStudySessionQuestions([])
     setMarkedReviewQuestions(reviewQuestions)
     setSelectedTopic(topic)
     setQuestionIndex(0)
@@ -2269,7 +2210,7 @@ function App() {
           <p className="eyebrow">B737 Study App</p>
           <h1>Study Questions</h1>
           <p className="subtitle">
-            Practice the question bank and prepare for the final test.
+            Practice the question bank with focused and randomized sessions.
           </p>
         </div>
         <div className="header-status">
@@ -2310,27 +2251,15 @@ function App() {
         <aside className="sidebar-nav" aria-label="Primary navigation">
           {[
             ['dashboard', 'Dashboard'],
-            ['study-setup', 'Study'],
+            ['final-test', 'Study'],
             ['topics', 'Topics'],
             ['memory-items', 'Memory Items'],
             ['stats', 'Stats'],
-            ['final-test', 'Final Test'],
           ].map(([targetView, label]) => (
             <button
               key={targetView}
-              className={
-                view === targetView ||
-                (targetView === 'study-setup' && view === 'quiz' && practiceMode === 'random-study')
-                  ? 'sidebar-link sidebar-link-active'
-                  : 'sidebar-link'
-              }
-              onClick={() => {
-                if (targetView === 'study-setup') {
-                  handleOpenStudySetup()
-                } else {
-                  setView(targetView)
-                }
-              }}
+              className={view === targetView || (targetView === 'final-test' && view === 'quiz' && practiceMode === 'final') ? 'sidebar-link sidebar-link-active' : 'sidebar-link'}
+              onClick={() => setView(targetView)}
             >
               {label}
             </button>
@@ -2343,12 +2272,12 @@ function App() {
             <div className="primary-actions-grid">
               <article className="action-card">
                 <h3>Study</h3>
-                <p>Random questions from the full database.</p>
+                <p>Randomized questions by full bank, aircraft systems, or selected topics.</p>
                 <div className="card-actions">
                   <button
-                    className="button button-secondary"
-                    onClick={handleOpenStudySetup}
-                    disabled={isLoading}
+                    className="button button-primary"
+                    onClick={() => setView('final-test')}
+                    disabled={isLoading || questions.length === 0}
                   >
                     Start Study
                   </button>
@@ -2365,20 +2294,6 @@ function App() {
                     disabled={isLoading}
                   >
                     Topics
-                  </button>
-                </div>
-              </article>
-
-              <article className="action-card">
-                <h3>Final Test</h3>
-                <p>Random exam-style run.</p>
-                <div className="card-actions">
-                  <button
-                    className="button button-primary"
-                    onClick={() => setView('final-test')}
-                    disabled={isLoading || questions.length === 0}
-                  >
-                    Start Final Test
                   </button>
                 </div>
               </article>
@@ -2483,71 +2398,6 @@ function App() {
                 </div>
               )}
             </section>
-          </section>
-        )}
-
-        {view === 'study-setup' && (
-          <section className="study-setup-view">
-            <div className="section-header">
-              <div>
-                <p className="eyebrow">Study</p>
-                <h2>Study</h2>
-                <p className="subtitle">Random questions from the full database.</p>
-              </div>
-              <button className="button button-ghost" onClick={handleBackToDashboard}>
-                Back to dashboard
-              </button>
-            </div>
-
-            <article className="study-setup-panel">
-              <div>
-                <p className="eyebrow">Random Study</p>
-                <h3>Random Study</h3>
-                <p>Choose how many questions to practice.</p>
-              </div>
-
-              <div className="setup-group">
-                <span>Question count</span>
-                <div className="segmented-control segmented-control-compact study-count-presets">
-                  {[10, 20, 30, 50, 100].map((count) => (
-                    <button
-                      key={count}
-                      className={Number(randomStudyCount) === Math.min(count, activeQuestionPool.length || count) ? 'segmented-option segmented-option-active' : 'segmented-option'}
-                      onClick={() => handleRandomStudyPreset(count)}
-                      disabled={activeQuestionPool.length === 0}
-                    >
-                      {count}
-                    </button>
-                  ))}
-                </div>
-                <label className="field-label study-custom-count">
-                  Custom
-                  <input
-                    type="number"
-                    min="1"
-                    max={activeQuestionPool.length || 1}
-                    value={randomStudyCount}
-                    onChange={(event) => handleRandomStudyCountChange(event.target.value)}
-                    onBlur={() => setRandomStudyCount(getSafeRandomStudyCount())}
-                  />
-                </label>
-              </div>
-
-              <p className="setup-note">Available questions: {activeQuestionPool.length}</p>
-
-              <div className="card-actions">
-                <button
-                  className="button button-primary"
-                  onClick={() => startRandomStudySession()}
-                  disabled={activeQuestionPool.length === 0}
-                >
-                  Start Random Study
-                </button>
-                <button className="button button-ghost" onClick={handleBackToDashboard}>
-                  Back to dashboard
-                </button>
-              </div>
-            </article>
           </section>
         )}
 
@@ -2736,13 +2586,13 @@ function App() {
         {view === 'final-test' && (
           <section className="final-test-view">
             <article className="final-test-panel">
-              <p className="eyebrow">Final Test</p>
-              <h2>Final Test</h2>
-              <p>Randomized exam-style practice.</p>
+              <p className="eyebrow">Study</p>
+              <h2>Study</h2>
+              <p>Randomized question practice.</p>
 
               <div className="final-test-setup-grid">
                 <div className="setup-group">
-                  <span>Test scope</span>
+                  <span>Study scope</span>
                   <div className="segmented-control">
                     {Object.entries(FINAL_TEST_SCOPE_LABELS).map(([scope, label]) => (
                       <button
@@ -2812,7 +2662,7 @@ function App() {
                   <dd>{finalTestAvailableCount}</dd>
                 </div>
                 <div>
-                  <dt>Test size</dt>
+                  <dt>Study size</dt>
                   <dd>{finalTestPlannedCount}</dd>
                 </div>
                 <div>
@@ -2824,7 +2674,7 @@ function App() {
                 <p className="setup-note">Only {finalTestAvailableCount} questions available for this scope.</p>
               )}
               {finalTestScope === FINAL_TEST_SCOPES.SELECTED_TOPICS && finalTestSelectedTopics.length === 0 && (
-                <p className="setup-note">Select at least one topic to build this test.</p>
+                <p className="setup-note">Select at least one topic to build this study session.</p>
               )}
               <div className="card-actions">
                 <button
@@ -2832,7 +2682,7 @@ function App() {
                   onClick={handleStartFinalTest}
                   disabled={finalTestAvailableCount === 0}
                 >
-                  Start Final Test
+                  Start Study
                 </button>
                 <button className="button button-ghost" onClick={handleBackToDashboard}>
                   Back to dashboard
@@ -2850,12 +2700,10 @@ function App() {
                   {isReviewingWrongAnswers
                     ? 'Review'
                     : practiceMode === 'final'
-                      ? 'Final test simulation'
+                      ? 'Study session'
                       : practiceMode === 'marked'
                         ? 'Marked review'
-                        : practiceMode === 'random-study'
-                          ? 'Random study'
-                          : 'Topic practice'}
+                        : 'Topic practice'}
                 </p>
                 <h2>{activeQuizTitle}</h2>
                 <p className="subtitle">
@@ -2880,20 +2728,18 @@ function App() {
               <article className="question-card session-complete-card">
                 <p className="eyebrow">Session Complete</p>
                 <h3>
-                  {practiceMode === 'marked'
+                  {practiceMode === 'final'
+                    ? 'Study Complete'
+                    : practiceMode === 'marked'
                     ? 'Marked Review Complete'
-                    : practiceMode === 'random-study'
-                      ? 'Random Study Complete'
-                      : 'Session Complete'}
+                    : 'Session Complete'}
                 </h3>
                 <p>
                   {practiceMode === 'final'
-                    ? `Final Test Simulation · ${activeFinalTestScopeLabel}`
+                    ? `Study Session · ${activeFinalTestScopeLabel}`
                     : practiceMode === 'marked'
                       ? `${currentTopic} · Marked Review Complete`
-                      : practiceMode === 'random-study'
-                        ? 'Random Study'
-                        : currentTopic}
+                      : currentTopic}
                 </p>
                 <div className="result-summary-grid">
                   <div>
@@ -2924,19 +2770,12 @@ function App() {
                   )}
                   <button className="button button-secondary" onClick={handleRetrySession}>
                     {practiceMode === 'final'
-                      ? 'Retry Final Test'
+                      ? 'Retry Study'
                       : practiceMode === 'marked'
                         ? 'Review Again'
-                        : practiceMode === 'random-study'
-                          ? 'Retry Random Study'
-                          : 'Retry Topic'}
+                        : 'Retry Topic'}
                   </button>
-                  {practiceMode === 'random-study' && (
-                    <button className="button button-ghost" onClick={handleOpenStudySetup}>
-                      Back to Study
-                    </button>
-                  )}
-                  {practiceMode !== 'final' && practiceMode !== 'marked' && practiceMode !== 'random-study' && (
+                  {practiceMode !== 'final' && practiceMode !== 'marked' && (
                     <button className="button button-ghost" onClick={() => setView('topics')}>
                       Choose Another Topic
                     </button>
