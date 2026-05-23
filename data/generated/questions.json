@@ -10638,11 +10638,11 @@
     "options": [
       {
         "key": "A",
-        "text": "Full missed approach procedure from DH, DA, MDA, MDH at destination aerodrome to missed approach altitude; climb from missed approach altitude to cruising level/altitude; cruise from TOC to TOD; descent from TOD to the point where the approach is initiate"
+        "text": "Full missed approach procedure from DH, DA, MDA, MDH at destination aerodrome to missed approach altitude; climb from missed approach altitude to cruising level/altitude; descent from TOD to the point where the approach is initiate"
       },
       {
         "key": "B",
-        "text": "Full missed approach procedure from DH, DA, MDA, MDH at destination aerodrome to missed approach altitude; climb from missed approach altitude to cruising level/altitude; cruise from TOC to TOD; descent from TOD to the point where the approach is initiate"
+        "text": "Climb from missed approach altitude to cruising level/altitude; cruise from TOC to TOD; descent from TOD to the point where the approach is initiate"
       },
       {
         "key": "C",
@@ -10650,7 +10650,7 @@
       },
       {
         "key": "D",
-        "text": "Full missed approach procedure from DH, DA, MDA, MDH at destination aerodrome to missed approach altitude; climb from missed approach altitude to cruising level/altitude; cruise from TOC to TOD; descent from TOD to the point where the approach is initiate"
+        "text": "Full missed approach procedure from DH, DA, MDA, MDH at destination aerodrome to missed approach altitude; climb from missed approach altitude to cruising level/altitude; cruise from TOC to TOD"
       }
     ],
     "correct": "C"
