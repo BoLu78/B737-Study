@@ -7,6 +7,16 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Engines',
     priority: 'critical',
+    compare: {
+      conditions: {
+        '737NG': ['On the ground, an aborted engine start is needed.'],
+        '737MAX': ['On the ground, an aborted engine start is needed.'],
+      },
+      objectives: {
+        '737NG': ['To shut down the engine and motor it.'],
+        '737MAX': ['To shut down the engine and motor it.'],
+      },
+    },
     steps: [
       {
         number: '1',
@@ -23,6 +33,22 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Flight Instruments',
     priority: 'critical',
+    compare: {
+      conditions: {
+        '737NG': [
+          'Airspeed or Mach indications are suspected to be unreliable.',
+          'Items which might indicate unreliable airspeed are listed in the Additional Information section.',
+        ],
+        '737MAX': [
+          'Airspeed or Mach indications are suspected to be unreliable.',
+          'Items which might indicate unreliable airspeed are listed in the Additional Information section.',
+        ],
+      },
+      objectives: {
+        '737NG': ['To identify a reliable airspeed indication, if possible, or to use the Flight With Unreliable Airspeed table in the Performance Inflight chapter for the remainder of the flight.'],
+        '737MAX': ['To identify a reliable airspeed indication, if possible, or to use the Flight With Unreliable Airspeed table in the Performance Inflight chapter for the remainder of the flight.'],
+      },
+    },
     steps: [
       {
         number: '1',
@@ -64,6 +90,12 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Fire Protection',
     priority: 'critical',
+    compare: {
+      conditions: {
+        '737NG': ['Fire is detected in the APU.'],
+        '737MAX': ['Fire is detected in the APU.'],
+      },
+    },
     steps: [
       {
         number: '1',
@@ -88,6 +120,20 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Pressurization',
     priority: 'critical',
+    compare: {
+      conditions: {
+        '737NG': [
+          'One or more of these occur:',
+          'A cabin altitude exceedance',
+          'In flight, the intermittent cabin altitude/configuration warning horn sounds or a CABIN ALTITUDE light (if installed and operative) illuminates.',
+        ],
+        '737MAX': [
+          'One or more of these occur:',
+          'A cabin altitude exceedance',
+          'In flight, the intermittent cabin altitude/configuration warning horn sounds or a CABIN ALTITUDE light illuminates.',
+        ],
+      },
+    },
     visualCues: [
       {
         type: 'warning-light',
@@ -148,6 +194,20 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Pressurization',
     priority: 'critical',
+    compare: {
+      conditions: {
+        '737NG': [
+          'One or more of these occur:',
+          'Cabin altitude cannot be controlled',
+          'A rapid descent is needed.',
+        ],
+        '737MAX': [
+          'One or more of these occur:',
+          'Cabin altitude cannot be controlled',
+          'A rapid descent is needed.',
+        ],
+      },
+    },
     steps: [
       {
         number: '1',
@@ -201,6 +261,23 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Fire Protection',
     priority: 'critical',
+    compare: {
+      conditions: {
+        '737NG': [
+          'One or more of these occur:',
+          'Engine fire warning',
+          'Airframe vibrations with abnormal engine indications',
+          'Engine separation',
+        ],
+        '737MAX': [
+          'One or more of these occur:',
+          'Engine fire warning',
+          'Airframe vibrations with abnormal engine indications',
+          'Engine separation.',
+          'Engine failure with smoke or fumes in the flight deck or cabin.',
+        ],
+      },
+    },
     steps: [
       {
         number: '1',
@@ -243,6 +320,30 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Engines',
     priority: 'critical',
+    compare: {
+      conditions: {
+        '737NG': [
+          'One or more of these occur:',
+          'Engine indications are abnormal',
+          'Engine indications are rapidly approaching or exceeding limits',
+          'Abnormal engine noises are heard, possibly with airframe vibration',
+          'There is no response to thrust lever movement or the response is abnormal',
+          'Flames in the engine inlet or exhaust are reported.',
+        ],
+        '737MAX': [
+          'One or more of these occur:',
+          'Engine indications are abnormal',
+          'Engine indications are rapidly approaching or exceeding limits',
+          'Abnormal engine noises are heard, possibly with airframe vibration',
+          'There is no response to thrust lever movement or the response is abnormal',
+          'Flames in the engine inlet or exhaust are reported.',
+        ],
+      },
+      objectives: {
+        '737NG': ['To attempt to recover normal engine operation or shut down the engine if recovery is not possible.'],
+        '737MAX': ['To attempt to recover normal engine operation or shut down the engine if recovery is not possible.'],
+      },
+    },
     steps: [
       {
         number: '1',
@@ -264,6 +365,12 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Fire Protection',
     priority: 'critical',
+    compare: {
+      conditions: {
+        '737NG': ['An overheat is detected in the engine.'],
+        '737MAX': ['An overheat is detected in the engine.'],
+      },
+    },
     visualCues: [
       {
         type: 'warning-light',
@@ -311,6 +418,12 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Warning Systems',
     priority: 'critical',
+    compare: {
+      conditions: {
+        '737NG': ['In flight, the steady warning horn sounds.'],
+        '737MAX': ['In flight, the steady warning horn sounds.'],
+      },
+    },
     steps: [
       {
         number: '1',
@@ -327,6 +440,12 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Warning Systems',
     priority: 'critical',
+    compare: {
+      conditions: {
+        '737NG': ['On the ground, the intermittent cabin altitude/configuration warning horn sounds or a TAKEOFF CONFIG light (if installed and operative) illuminates when advancing the thrust levers to takeoff thrust.'],
+        '737MAX': ['On the ground, the intermittent cabin altitude/configuration warning horn sounds or a TAKEOFF CONFIG light illuminates when advancing the thrust levers to takeoff thrust.'],
+      },
+    },
     visualCues: [
       {
         type: 'warning-light',
@@ -353,6 +472,198 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Warning Systems',
     priority: 'critical',
+    compare: {
+      visualCueGroups: {
+        '737NG': [
+          {
+            label: 'Left Forward Panel',
+            cues: [
+              {
+                type: 'warning-light',
+                color: 'red',
+                lines: ['TAKEOFF', 'CONFIG'],
+              },
+              {
+                type: 'warning-light',
+                color: 'red',
+                lines: ['CABIN', 'ALTITUDE'],
+              },
+            ],
+          },
+          {
+            label: 'Right Forward Panel',
+            cues: [
+              {
+                type: 'warning-light',
+                color: 'red',
+                lines: ['CABIN', 'ALTITUDE'],
+              },
+              {
+                type: 'warning-light',
+                color: 'red',
+                lines: ['TAKEOFF', 'CONFIG'],
+              },
+            ],
+          },
+        ],
+        '737MAX': [
+          {
+            label: 'Main Panel - Captain',
+            cues: [
+              {
+                type: 'warning-light',
+                color: 'red',
+                lines: ['TAKEOFF', 'CONFIG'],
+              },
+              {
+                type: 'warning-light',
+                color: 'red',
+                lines: ['CABIN', 'ALTITUDE'],
+              },
+            ],
+          },
+          {
+            label: 'Main Panel - F/O',
+            cues: [
+              {
+                type: 'warning-light',
+                color: 'red',
+                lines: ['CABIN', 'ALTITUDE'],
+              },
+              {
+                type: 'warning-light',
+                color: 'red',
+                lines: ['TAKEOFF', 'CONFIG'],
+              },
+            ],
+          },
+        ],
+      },
+      conditions: {
+        '737NG': [
+          'One of these occurs:',
+          'In flight, at an airplane flight altitude above 10,000 feet MSL, the intermittent warning horn sounds or a CABIN ALTITUDE light (if installed and operative) illuminates',
+          'On the ground, the intermittent warning horn sounds or a TAKEOFF CONFIG light (if installed and operative) illuminates when advancing the thrust levers to takeoff thrust.',
+        ],
+        '737MAX': [
+          'One of these occurs:',
+          'In flight, at an airplane flight altitude above 10,000 feet MSL, the intermittent warning horn sounds or a CABIN ALTITUDE light illuminates',
+          'On the ground, the intermittent warning horn sounds or a TAKEOFF CONFIG light illuminates when advancing the thrust levers to takeoff thrust.',
+        ],
+      },
+    },
+    variants: {
+      '737NG': {
+        visualCueGroups: [
+          {
+            label: 'Left Forward Panel',
+            cues: [
+              {
+                type: 'warning-light',
+                color: 'red',
+                lines: ['TAKEOFF', 'CONFIG'],
+              },
+              {
+                type: 'warning-light',
+                color: 'red',
+                lines: ['CABIN', 'ALTITUDE'],
+              },
+            ],
+          },
+          {
+            label: 'Right Forward Panel',
+            cues: [
+              {
+                type: 'warning-light',
+                color: 'red',
+                lines: ['CABIN', 'ALTITUDE'],
+              },
+              {
+                type: 'warning-light',
+                color: 'red',
+                lines: ['TAKEOFF', 'CONFIG'],
+              },
+            ],
+          },
+        ],
+        steps: [
+          {
+            number: '1',
+            left: 'If the intermittent warning horn sounds or a CABIN ALTITUDE light (if installed and operative) illuminates in flight at an airplane flight altitude above 10,000 feet MSL:',
+            right: '',
+            emphasis: ['in flight'],
+            substeps: [
+              {
+                left: 'Don the oxygen masks and set the regulators to 100%.',
+                right: '',
+              },
+              {
+                left: 'Establish crew communications.',
+                right: '',
+              },
+              {
+                left: '►►Go to the CABIN ALTITUDE WARNING or Rapid Depressurization checklist on page 2.1',
+                right: '',
+                bold: true,
+                dividerAfter: true,
+                dividerType: 'squares',
+              },
+            ],
+          },
+          {
+            number: '2',
+            left: 'If the intermittent warning horn sounds or a TAKEOFF CONFIG light (if installed and operative) illuminates on the ground when advancing the thrust levers to takeoff thrust:',
+            right: '',
+            emphasis: ['on the ground'],
+            substeps: [
+              {
+                left: 'Assure correct airplane takeoff configuration.',
+                right: '',
+              },
+            ],
+          },
+        ],
+      },
+      '737MAX': {
+        steps: [
+          {
+            number: '1',
+            left: 'If the intermittent warning horn sounds or a CABIN ALTITUDE light illuminates in flight at an airplane flight altitude above 10,000 feet MSL:',
+            right: '',
+            emphasis: ['in flight'],
+            substeps: [
+              {
+                left: 'Don the oxygen masks and set the regulators to 100%.',
+                right: '',
+              },
+              {
+                left: 'Establish crew communications.',
+                right: '',
+              },
+              {
+                left: '►►Go to the CABIN ALTITUDE WARNING or Rapid Depressurization checklist on page 2.1',
+                right: '',
+                bold: true,
+                dividerAfter: true,
+                dividerType: 'squares',
+              },
+            ],
+          },
+          {
+            number: '2',
+            left: 'If the intermittent warning horn sounds or a TAKEOFF CONFIG light illuminates on the ground when advancing the thrust levers to takeoff thrust:',
+            right: '',
+            emphasis: ['on the ground'],
+            substeps: [
+              {
+                left: 'Assure correct airplane takeoff configuration.',
+                right: '',
+              },
+            ],
+          },
+        ],
+      },
+    },
     visualCueGroups: [
       {
         label: 'Main Panel - Captain',
@@ -431,6 +742,24 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Engines',
     priority: 'critical',
+    compare: {
+      conditions: {
+        '737NG': [
+          'Both of these occur:',
+          'Both engines have a loss of thrust',
+          'Both ENG FAIL alerts show.',
+        ],
+        '737MAX': [
+          'Both of these occur:',
+          'Both engines have a loss of thrust',
+          'Both ENG FAIL alerts show.',
+        ],
+      },
+      objectives: {
+        '737NG': ['To restart at least one engine.'],
+        '737MAX': ['To restart at least one engine.'],
+      },
+    },
     steps: [
       {
         number: '1',
@@ -478,6 +807,12 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Flight Controls',
     priority: 'critical',
+    compare: {
+      conditions: {
+        '737NG': ['Uncommanded stabilizer trim movement occurs continuously or in a manner not appropriate for flight conditions.'],
+        '737MAX': ['Uncommanded stabilizer trim movement occurs continuously or in a manner not appropriate for flight conditions.'],
+      },
+    },
     steps: [
       {
         number: '1',

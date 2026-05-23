@@ -681,6 +681,11 @@ code {
     min-height: 76px;
     padding: 13px 14px;
   }
+
+  .memory-compare-grid,
+  .memory-compare-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .setup-note,
@@ -841,6 +846,84 @@ code {
 
 .memory-difference-filter {
   align-self: end;
+}
+
+.memory-compare-view {
+  display: grid;
+  gap: 16px;
+}
+
+.memory-compare-selector {
+  max-width: 520px;
+}
+
+.memory-compare-grid,
+.memory-compare-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.memory-compare-grid-head {
+  margin-top: 18px;
+}
+
+.memory-compare-column,
+.memory-compare-section {
+  min-width: 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(7, 16, 34, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.memory-compare-column h3,
+.memory-compare-section h4 {
+  margin: 0 0 12px;
+  color: #dbeafe;
+  font-size: 1rem;
+}
+
+.memory-compare-section {
+  margin-top: 16px;
+}
+
+.memory-compare-lines {
+  display: grid;
+  gap: 8px;
+}
+
+.memory-compare-line {
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: var(--text);
+  background: rgba(15, 24, 42, 0.58);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.memory-compare-line-different {
+  color: #fde68a;
+  background: rgba(245, 158, 11, 0.13);
+  border-color: rgba(245, 158, 11, 0.34);
+}
+
+.memory-compare-line-missing {
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.18);
+  border-color: rgba(248, 113, 113, 0.24);
+}
+
+.memory-compare-identical {
+  width: fit-content;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #d1fae5;
+  background: rgba(20, 83, 45, 0.28);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  font-weight: 700;
 }
 
 .memory-status-list {

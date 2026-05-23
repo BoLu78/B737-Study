@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.21'
+const APP_VERSION = 'v8.22'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -45,6 +45,7 @@ const MEMORY_MODES = {
   ACTION_DRILL: 'action-drill',
   ORDER_DRILL: 'order-drill',
   MIXED_TEST: 'mixed-test',
+  COMPARE: 'compare',
 }
 const MEMORY_AIRCRAFT = {
   NG: '737NG',
@@ -586,6 +587,39 @@ function getMemoryVisualCueSearchText(item) {
   ])
 }
 
+function getMemoryCompareCueGroups(item, aircraft) {
+  if (item.compare?.visualCueGroups?.[aircraft]) return item.compare.visualCueGroups[aircraft]
+  const resolvedItem = resolveMemoryItemForAircraft(item, aircraft)
+  return resolvedItem.visualCueGroups?.length
+    ? resolvedItem.visualCueGroups
+    : resolvedItem.visualCues?.length
+      ? [{ label: '', cues: resolvedItem.visualCues }]
+      : []
+}
+
+function normalizeMemoryCompareLine(value) {
+  return String(value || '')
+    .replace(/\s+/g, ' ')
+    .replace(/[.。]+$/u, '')
+    .trim()
+    .toLowerCase()
+}
+
+function getMemoryCompareLines(item, section, aircraft) {
+  return item.compare?.[section]?.[aircraft] || []
+}
+
+function flattenMemoryStepsForCompare(item) {
+  return item.steps.flatMap((step) => {
+    if (step.type === 'note') return [`Note: ${step.text}`]
+
+    return [
+      `${step.number}. ${step.left}${step.right ? ` - ${step.right}` : ''}`,
+      ...(step.substeps || []).map((substep) => `  ${substep.left}${substep.right ? ` - ${substep.right}` : ''}`),
+    ]
+  })
+}
+
 function getMemoryItemSearchText(item) {
   const stepTexts = item.steps.flatMap((step) => [
     step.text,
@@ -851,6 +885,7 @@ function App() {
   const [memoryMode, setMemoryMode] = useState(MEMORY_MODES.STUDY)
   const [selectedMemoryAircraft, setSelectedMemoryAircraft] = useState(DEFAULT_MEMORY_AIRCRAFT)
   const [memoryDifferenceFilter, setMemoryDifferenceFilter] = useState(MEMORY_DIFFERENCE_FILTERS.ALL)
+  const [compareMemoryItemId, setCompareMemoryItemId] = useState('')
   const [memoryTopicFilter, setMemoryTopicFilter] = useState('')
   const [memoryCategoryFilter, setMemoryCategoryFilter] = useState('')
   const [memorySearch, setMemorySearch] = useState('')
@@ -1028,6 +1063,12 @@ function App() {
     .filter((item) => isMemoryItemApplicableToAircraft(item, DEFAULT_MEMORY_AIRCRAFT))
     .map((item) => resolveMemoryItemForAircraft(item, DEFAULT_MEMORY_AIRCRAFT))
   const commonMemoryItemCount = MEMORY_ITEMS.filter((item) => isCommonMemoryItem(item)).length
+  const comparableMemoryItems = MEMORY_ITEMS.filter((item) => (
+    isMemoryItemApplicableToAircraft(item, MEMORY_AIRCRAFT.NG) &&
+    isMemoryItemApplicableToAircraft(item, MEMORY_AIRCRAFT.MAX)
+  ))
+  const activeCompareMemoryItem = comparableMemoryItems.find((item) => item.id === compareMemoryItemId) || comparableMemoryItems[0] || null
+  const activeCompareMemoryItemId = activeCompareMemoryItem?.id || ''
   const memoryTopics = Array.from(new Set(applicableMemoryItems.map((item) => item.topic))).sort((first, second) =>
     first.localeCompare(second, undefined, { numeric: true }),
   )
@@ -1747,6 +1788,32 @@ function App() {
     )
   }
 
+  const renderMemoryCueGroups = (groups, title) => {
+    if (!groups.length) return null
+
+    return (
+      <div className="memory-visual-cues" aria-label={`${title} visual cues`}>
+        {groups.map((group, groupIndex) => (
+          <div className="memory-visual-cue-group" key={`${group.label || 'cue-group'}-${groupIndex}`}>
+            {group.label && <span className="memory-visual-cue-group-label">{group.label}</span>}
+            <div className="memory-visual-cue-group-items">
+              {group.cues.map((cue, index) => (
+                <div
+                  className={`memory-visual-cue memory-visual-cue-${cue.type} memory-visual-cue-${cue.color || 'amber'}`}
+                  key={`${cue.type}-${index}-${cue.lines.join('-')}`}
+                >
+                  {cue.lines.map((line) => (
+                    <span key={line}>{line}</span>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   const renderMemoryTitle = (item) => {
     if (item.titleLayout === 'stacked-or') {
       return (
@@ -1785,6 +1852,116 @@ function App() {
       </div>
     )
   )
+
+  const renderCompareLinePair = (leftLine, rightLine, index) => {
+    const hasLeft = Boolean(leftLine)
+    const hasRight = Boolean(rightLine)
+    const normalizedLeft = normalizeMemoryCompareLine(leftLine)
+    const normalizedRight = normalizeMemoryCompareLine(rightLine)
+    const isDifferent = normalizedLeft !== normalizedRight
+    const leftClassName = !hasLeft
+      ? 'memory-compare-line memory-compare-line-missing'
+      : isDifferent
+        ? 'memory-compare-line memory-compare-line-different'
+        : 'memory-compare-line'
+    const rightClassName = !hasRight
+      ? 'memory-compare-line memory-compare-line-missing'
+      : isDifferent
+        ? 'memory-compare-line memory-compare-line-different'
+        : 'memory-compare-line'
+
+    return (
+      <div className="memory-compare-row" key={`compare-line-${index}`}>
+        <div className={leftClassName}>{hasLeft ? leftLine : 'Missing on NG'}</div>
+        <div className={rightClassName}>{hasRight ? rightLine : 'Missing on MAX'}</div>
+      </div>
+    )
+  }
+
+  const renderCompareLineSection = (title, leftLines, rightLines, emptyText = 'No data available.') => {
+    if (leftLines.length === 0 && rightLines.length === 0) return null
+
+    const maxLength = Math.max(leftLines.length, rightLines.length)
+
+    return (
+      <section className="memory-compare-section">
+        <h4>{title}</h4>
+        <div className="memory-compare-lines">
+          {maxLength === 0 ? <p className="memory-drill-empty">{emptyText}</p> : Array.from({ length: maxLength }, (_, index) => renderCompareLinePair(leftLines[index], rightLines[index], index))}
+        </div>
+      </section>
+    )
+  }
+
+  const renderMemoryCompareMode = () => {
+    if (!activeCompareMemoryItem) {
+      return (
+        <article className="memory-item-card">
+          <p className="memory-drill-empty">No Memory Items available for comparison.</p>
+        </article>
+      )
+    }
+
+    const ngItem = resolveMemoryItemForAircraft(activeCompareMemoryItem, MEMORY_AIRCRAFT.NG)
+    const maxItem = resolveMemoryItemForAircraft(activeCompareMemoryItem, MEMORY_AIRCRAFT.MAX)
+    const ngStepLines = flattenMemoryStepsForCompare(ngItem)
+    const maxStepLines = flattenMemoryStepsForCompare(maxItem)
+    const memoryItemsIdentical =
+      ngStepLines.length === maxStepLines.length &&
+      ngStepLines.every((line, index) => normalizeMemoryCompareLine(line) === normalizeMemoryCompareLine(maxStepLines[index]))
+
+    return (
+      <div className="memory-compare-view">
+        <label className="field-label memory-compare-selector">
+          Select checklist
+          <select value={activeCompareMemoryItemId} onChange={(event) => setCompareMemoryItemId(event.target.value)}>
+            {comparableMemoryItems.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.titleSecondary ? `${item.titlePrimary || item.title} or ${item.titleSecondary}` : item.title}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <article className="memory-item-card">
+          {renderMemoryTitle(ngItem)}
+          <div className="memory-compare-grid memory-compare-grid-head">
+            <div className="memory-compare-column">
+              <h3>{MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.NG]}</h3>
+              {renderMemoryCueGroups(getMemoryCompareCueGroups(activeCompareMemoryItem, MEMORY_AIRCRAFT.NG), `${ngItem.title} NG`)}
+            </div>
+            <div className="memory-compare-column">
+              <h3>{MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.MAX]}</h3>
+              {renderMemoryCueGroups(getMemoryCompareCueGroups(activeCompareMemoryItem, MEMORY_AIRCRAFT.MAX), `${maxItem.title} MAX`)}
+            </div>
+          </div>
+
+          {renderCompareLineSection(
+            'Condition',
+            getMemoryCompareLines(activeCompareMemoryItem, 'conditions', MEMORY_AIRCRAFT.NG),
+            getMemoryCompareLines(activeCompareMemoryItem, 'conditions', MEMORY_AIRCRAFT.MAX),
+          )}
+
+          {renderCompareLineSection(
+            'Objective',
+            getMemoryCompareLines(activeCompareMemoryItem, 'objectives', MEMORY_AIRCRAFT.NG),
+            getMemoryCompareLines(activeCompareMemoryItem, 'objectives', MEMORY_AIRCRAFT.MAX),
+          )}
+
+          <section className="memory-compare-section">
+            <h4>Memory Items</h4>
+            {memoryItemsIdentical ? (
+              <p className="memory-compare-identical">Memory items are identical.</p>
+            ) : (
+              <div className="memory-compare-lines">
+                {Array.from({ length: Math.max(ngStepLines.length, maxStepLines.length) }, (_, index) => renderCompareLinePair(ngStepLines[index], maxStepLines[index], index))}
+              </div>
+            )}
+          </section>
+        </article>
+      </div>
+    )
+  }
 
   const getMemorySavedResultKey = (mode, item) => `${mode}-${getMemoryStatsKey(item.id, item.selectedAircraft || selectedMemoryAircraft)}`
 
@@ -2711,6 +2888,7 @@ function App() {
                   [MEMORY_MODES.ACTION_DRILL, 'Action Drill'],
                   [MEMORY_MODES.ORDER_DRILL, 'Order Drill'],
                   [MEMORY_MODES.MIXED_TEST, 'Mixed Test'],
+                  [MEMORY_MODES.COMPARE, 'Compare NG / MAX'],
                 ].map(([mode, label]) => (
                   <button
                     key={mode}
@@ -2780,7 +2958,9 @@ function App() {
               {filteredMemoryStatsSummary.testedCount > 0 && ` · Average error: ${filteredMemoryStatsSummary.averageErrorRate}%`}
             </div>
 
-            {memoryMode === MEMORY_MODES.MIXED_TEST ? (
+            {memoryMode === MEMORY_MODES.COMPARE ? (
+              renderMemoryCompareMode()
+            ) : memoryMode === MEMORY_MODES.MIXED_TEST ? (
               <div className="memory-item-list">
                 {!mixedSession && (
                   <article className="memory-item-card">
