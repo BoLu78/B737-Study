@@ -1,17 +1,19 @@
 # Question Import Sources
 
-Canonical source:
-T73 R01 TEST 737_R01..xlsx
+## Active files
 
-Overrides:
-question-overrides.json
+- Canonical source: `T73 R01 TEST 737_R01..xlsx`
+- Overrides: `question-overrides.json`
+- Generated runtime output: `../generated/questions.json`
 
-Generated output:
-../generated/questions.json
+`npm run build:questions` reads only the canonical Excel source and the overrides file above.
 
-Deprecated / ignored files:
-questions.csv
-questions.xlsx
-T73_R01_TES.pdf
+## Archived legacy files
 
-The build script must not read deprecated/ignored files.
+The following deprecated files were moved to `_archive/` for reference only:
+
+- `_archive/questions.csv`
+- `_archive/questions.xlsx`
+- `_archive/T73_R01_TES.pdf`
+
+Archived files are not used by the question build.

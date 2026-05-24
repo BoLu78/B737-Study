@@ -158,13 +158,12 @@ The dashboard is focused on the core study actions only:
 - Practice by Topic opens the full Topics page.
 - Final Test starts an exam-style run from the loaded question bank.
 - Compact metrics show loaded questions, answered questions, accuracy, and weak-topic count.
-- Topic Performance shows strengths, weak areas, and topics not studied yet.
 
-Topic selection lives in the Topics page so the dashboard does not show a partial or confusing topic list.
+Topic selection and per-topic performance live in the Topics page so the dashboard stays focused.
 
 Topic performance is stored locally in the browser using completed practice sessions. No Supabase progress tables are required.
 
-The active question bank is generated from `data/import/T73 R01 TEST 737_R01..xlsx` with `npm run build:questions`. `data/import/question-overrides.json` is applied during the build, and `data/generated/questions.json` is the app runtime output. Deprecated files such as `data/import/questions.csv`, `data/import/questions.xlsx`, and `data/import/T73_R01_TES.pdf` may remain in the import folder, but they are ignored by the question build. Supabase still stores manual reference data. Personal progress, topic results, studied counts, accuracy, final test session state, and wrong-answer review state stay in the current browser/device only. Sharing the app link does not mix results across different devices or browser profiles. Results can mix only when people use the same browser profile on the same device.
+The active question bank is generated from `data/import/T73 R01 TEST 737_R01..xlsx` with `npm run build:questions`. `data/import/question-overrides.json` is applied during the build, and `data/generated/questions.json` is the app runtime output. Deprecated legacy files are archived in `data/import/_archive/` and are ignored by the question build. Supabase still stores manual reference data. Personal progress, topic results, studied counts, accuracy, final test session state, and wrong-answer review state stay in the current browser/device only. Sharing the app link does not mix results across different devices or browser profiles. Results can mix only when people use the same browser profile on the same device.
 
 Visible question IDs use the original NEOS PDF/table source ID (`source_id`) rather than the internal Supabase row ID. The database row ID stays internal for storage and UI keys only. To verify imported source ID coverage, run:
 

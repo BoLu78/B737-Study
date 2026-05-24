@@ -7,9 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# generated locally
+node_modules/
+dist/
+dist-ssr/
 .env
 .env.local
 .env.*.local
