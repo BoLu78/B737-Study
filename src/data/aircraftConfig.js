@@ -2,6 +2,7 @@ import b737QuestionBank from '../../data/generated/questions.json'
 import b787QuestionBank from '../../data/aircraft/b787/generated/questions.json'
 import { getCanonicalTopic } from '../utils/topicNormalizer'
 import { MEMORY_ITEMS } from './memoryItems'
+import { B787_MEMORY_ITEMS } from './b787MemoryItems'
 
 const ANSWER_KEYS = ['A', 'B', 'C', 'D']
 
@@ -65,8 +66,8 @@ export const AIRCRAFT_CONFIGS = {
       canonicalizeTopic: false,
       sourceDocument: 'T78 R03 Excel question bank',
     }),
-    memoryItems: [],
-    memoryItemsAvailable: false,
+    memoryItems: B787_MEMORY_ITEMS,
+    memoryItemsAvailable: true,
     supportsAircraftSystemsScope: false,
   },
 }

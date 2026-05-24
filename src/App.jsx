@@ -21,7 +21,7 @@ import {
   shuffleArray,
 } from './utils/finalTestSelection'
 
-const APP_VERSION = 'v8.29'
+const APP_VERSION = 'v8.30'
 const SELECTED_AIRCRAFT_STORAGE_KEY = 'bsa.selectedAircraft'
 const LEGACY_STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const LEGACY_TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
@@ -701,12 +701,20 @@ function flattenMemoryStepsForCompare(item) {
   })
 }
 
+function flattenMemorySubstepSearchText(substep) {
+  if (substep.type === 'bullet-list') {
+    return [substep.label, ...(substep.bullets || [])]
+  }
+
+  return [substep.left, substep.right]
+}
+
 function getMemoryItemSearchText(item) {
   const stepTexts = item.steps.flatMap((step) => [
     step.text,
     step.left,
     step.right,
-    ...(step.substeps || []).flatMap((substep) => [substep.left, substep.right]),
+    ...(step.substeps || []).flatMap(flattenMemorySubstepSearchText),
   ])
 
   return [
@@ -717,6 +725,8 @@ function getMemoryItemSearchText(item) {
     item.subtitle,
     item.topic,
     item.category,
+    ...(item.conditions || []),
+    ...(item.objectives || []),
     ...getMemoryVisualCueSearchText(item),
     ...stepTexts,
   ]
@@ -848,6 +858,7 @@ function App() {
   const activeMemoryItems = activeAircraft?.memoryItems || []
   const dataSource = activeAircraft?.questionBankSource || ''
   const supportsAircraftSystemsScope = Boolean(activeAircraft?.supportsAircraftSystemsScope)
+  const isB737MemoryModule = activeAircraft?.id === AIRCRAFT_IDS.B737
   const aircraftAppTitle = activeAircraft ? `${activeAircraft.label} Study App` : 'Aircraft Study App'
 
   useEffect(() => {
@@ -970,6 +981,12 @@ function App() {
   }, [finalTestScope, supportsAircraftSystemsScope])
 
   useEffect(() => {
+    if (!isB737MemoryModule && memoryMode === MEMORY_MODES.COMPARE) {
+      setMemoryMode(MEMORY_MODES.STUDY)
+    }
+  }, [isB737MemoryModule, memoryMode])
+
+  useEffect(() => {
     let isMounted = true
 
     const checkManualChunks = async () => {
@@ -1061,10 +1078,12 @@ function App() {
   const activeQuestions = questions.filter((item) => item.status === 'active').length
   const sourceDocuments = getUniqueReferenceValues(questions, 'sourceDocument')
   const referenceTopics = getUniqueReferenceValues(questions, 'topic')
-  const selectedMemoryAircraftLabel = MEMORY_AIRCRAFT_LABELS[selectedMemoryAircraft]
-  const applicableMemoryItems = activeMemoryItems
-    .filter((item) => isMemoryItemApplicableToAircraft(item, selectedMemoryAircraft))
-    .map((item) => resolveMemoryItemForAircraft(item, selectedMemoryAircraft))
+  const selectedMemoryAircraftLabel = isB737MemoryModule ? MEMORY_AIRCRAFT_LABELS[selectedMemoryAircraft] : activeAircraft?.shortLabel || ''
+  const applicableMemoryItems = isB737MemoryModule
+    ? activeMemoryItems
+      .filter((item) => isMemoryItemApplicableToAircraft(item, selectedMemoryAircraft))
+      .map((item) => resolveMemoryItemForAircraft(item, selectedMemoryAircraft))
+    : activeMemoryItems
   const comparableMemoryItems = activeMemoryItems.filter((item) => (
     isMemoryItemApplicableToAircraft(item, MEMORY_AIRCRAFT.NG) &&
     isMemoryItemApplicableToAircraft(item, MEMORY_AIRCRAFT.MAX)
@@ -1614,6 +1633,28 @@ function App() {
     </div>
   )
 
+  const renderMemorySubstep = (step, substep, index) => {
+    if (substep.type === 'bullet-list') {
+      return (
+        <div className="memory-substep-bullet-block" key={`${step.number}-${index}-${substep.label}`}>
+          {substep.label && <span className="memory-substep-bullet-label">{substep.label}</span>}
+          <ul>
+            {(substep.bullets || []).map((bullet) => (
+              <li key={bullet}>{renderMemoryText(bullet, substep)}</li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+
+    return (
+      <div key={`${step.number}-${index}-${substep.left}`}>
+        {renderMemoryLine(substep, 'memory-substep-line')}
+        {substep.dividerAfter && renderMemoryDivider(`${step.number}-${index}-divider`)}
+      </div>
+    )
+  }
+
   const renderMemorySteps = (item) => (
     <ol className="memory-step-list">
       {item.steps.map((step, stepIndex) => (
@@ -1622,12 +1663,7 @@ function App() {
             {renderMemoryLine(step, 'memory-step-line')}
             {step.substeps?.length > 0 && (
               <div className="memory-substep-list">
-                {step.substeps.map((substep, index) => (
-                  <div key={`${step.number}-${index}-${substep.left}`}>
-                    {renderMemoryLine(substep, 'memory-substep-line')}
-                    {substep.dividerAfter && renderMemoryDivider(`${step.number}-${index}-divider`)}
-                  </div>
-                ))}
+                {step.substeps.map((substep, index) => renderMemorySubstep(step, substep, index))}
               </div>
             )}
             {step.dividerAfter && renderMemoryDivider(`${step.number}-divider`)}
@@ -1685,8 +1721,8 @@ function App() {
 
   const renderMemoryInfoPanels = (item, aircraft = selectedMemoryAircraft) => (
     <>
-      {renderMemoryInfoPanel('Condition', getMemoryCompareLines(item, 'conditions', aircraft), 'memory-condition-panel')}
-      {renderMemoryInfoPanel('Objective', getMemoryCompareLines(item, 'objectives', aircraft), 'memory-objective-panel')}
+      {renderMemoryInfoPanel('Condition', item.conditions || getMemoryCompareLines(item, 'conditions', aircraft), 'memory-condition-panel')}
+      {renderMemoryInfoPanel('Objective', item.objectives || getMemoryCompareLines(item, 'objectives', aircraft), 'memory-objective-panel')}
     </>
   )
 
@@ -1869,7 +1905,7 @@ function App() {
         <div>
           {renderMemoryTitle(item)}
           <span className="memory-aircraft-badge">{selectedMemoryAircraftLabel}</span>
-          <span className="memory-applicability-badge">{getMemoryAircraftBadgeLabel(item)}</span>
+          {isB737MemoryModule && <span className="memory-applicability-badge">{getMemoryAircraftBadgeLabel(item)}</span>}
         </div>
       </div>
     )
@@ -2356,7 +2392,11 @@ function App() {
                 <h3 className="memory-title-critical">MEMORY ITEMS</h3>
                 {activeAircraft.memoryItemsAvailable ? (
                   <>
-                    <span className="memory-aircraft-badge">{`${MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.NG]} / ${MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.MAX]}`}</span>
+                    <span className="memory-aircraft-badge">
+                      {isB737MemoryModule
+                        ? `${MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.NG]} / ${MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.MAX]}`
+                        : activeAircraft.shortLabel}
+                    </span>
                     <p>{activeMemoryItems.length} checklists</p>
                     <p>QRH recall items</p>
                   </>
@@ -2573,17 +2613,15 @@ function App() {
             <div className="section-header">
               <div>
                 <p className="eyebrow">Memory Items</p>
-                <h2>{activeAircraft.memoryItemsAvailable ? 'Memory Items' : `${activeAircraft.shortLabel} Memory Items`}</h2>
+                <h2>{isB737MemoryModule ? 'Memory Items' : `${activeAircraft.shortLabel} Memory Items`}</h2>
                 {activeAircraft.memoryItemsAvailable && (
                   <div className="memory-header-badges">
                     <span className="memory-aircraft-badge">{selectedMemoryAircraftLabel}</span>
-                    <span className="memory-critical-badge">CRITICAL RECALL ITEMS</span>
+                    {isB737MemoryModule && <span className="memory-critical-badge">CRITICAL RECALL ITEMS</span>}
                   </div>
                 )}
                 <p className="subtitle">
-                  {activeAircraft.memoryItemsAvailable
-                    ? 'QRH-style checklist reference for critical recall items.'
-                    : `Memory Items for ${activeAircraft.shortLabel} are not loaded yet.`}
+                  {isB737MemoryModule ? 'QRH-style checklist reference for critical recall items.' : 'QRH recall items'}
                 </p>
               </div>
               <button className="button button-ghost" onClick={handleBackToDashboard}>
@@ -2600,7 +2638,7 @@ function App() {
               </article>
             ) : (
               <>
-            <div className="memory-aircraft-selector">
+            {isB737MemoryModule && <div className="memory-aircraft-selector">
               <span>Aircraft:</span>
               <div className="segmented-control">
                 {MEMORY_AIRCRAFT_OPTIONS.map((aircraft) => (
@@ -2613,9 +2651,9 @@ function App() {
                   </button>
                 ))}
               </div>
-            </div>
+            </div>}
 
-            <div className="memory-mode-row">
+            {isB737MemoryModule && <div className="memory-mode-row">
               <div className="segmented-control">
                 {[
                   [MEMORY_MODES.STUDY, 'Memory Items'],
@@ -2630,7 +2668,7 @@ function App() {
                   </button>
                 ))}
               </div>
-            </div>
+            </div>}
 
             <div className="memory-filters">
               <button className="button button-secondary" onClick={handleResetMemoryFilters}>
@@ -2673,7 +2711,7 @@ function App() {
               Showing {filteredMemoryItems.length} of {applicableMemoryItems.length} {selectedMemoryAircraftLabel} memory items
             </div>
 
-            {memoryMode === MEMORY_MODES.COMPARE ? (
+            {isB737MemoryModule && memoryMode === MEMORY_MODES.COMPARE ? (
               renderMemoryCompareMode()
             ) : (
               <div className="memory-item-list">
