@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.26'
+const APP_VERSION = 'v8.27'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -542,9 +542,13 @@ function clearStoredStudyProgress() {
 
 function getTopicStatus(totalAnswered, accuracy) {
   if (!totalAnswered) return 'Not Studied'
-  if (accuracy >= 85) return 'Strong'
+  if (accuracy >= 90) return 'Strong'
   if (accuracy >= 70) return 'Good'
   return 'Needs Focus'
+}
+
+function getTopicStatusClassName(status) {
+  return String(status || 'Not Studied').toLowerCase().replace(/\s+/g, '-')
 }
 
 function createManualChunkExcerpt(text, query) {
@@ -1085,23 +1089,9 @@ function App() {
       status,
     }
   })
-  const statusOrder = {
-    'Needs Focus': 0,
-    'Not Studied': 1,
-    Good: 2,
-    Strong: 3,
-  }
-  const sortedTopicPerformanceRows = [...topicPerformanceRows].sort((first, second) => {
-    const statusDifference = statusOrder[first.status] - statusOrder[second.status]
-
-    if (statusDifference !== 0) return statusDifference
-    if (first.status === 'Needs Focus') return (first.accuracy || 0) - (second.accuracy || 0)
-    if (first.status === 'Strong' || first.status === 'Good') return (second.accuracy || 0) - (first.accuracy || 0)
-    return first.topic.localeCompare(second.topic)
-  })
+  const topicPerformanceByTopic = new Map(topicPerformanceRows.map((row) => [row.topic, row]))
   const totalTopicAnswered = topicPerformanceRows.reduce((sum, row) => sum + row.totalAnswered, 0)
   const totalTopicCorrect = topicPerformanceRows.reduce((sum, row) => sum + row.correctCount, 0)
-  const practicedTopicCount = topicPerformanceRows.filter((row) => row.totalAnswered > 0).length
   const studiedToday = totalTopicAnswered > 0 ? totalTopicAnswered : '—'
   const accuracyLabel = totalTopicAnswered > 0 ? `${Math.round((totalTopicCorrect / totalTopicAnswered) * 100)}%` : '—'
   const weakTopicCount = topicPerformanceRows.filter((row) => row.status === 'Needs Focus').length
@@ -2288,50 +2278,6 @@ function App() {
               </div>
             </div>
 
-            <section className="topic-performance-section">
-              <div className="section-header section-header-compact">
-                <div>
-                  <p className="eyebrow">Topic Performance</p>
-                  <h2>Topic Performance</h2>
-                  <p className="subtitle">See where to focus next.</p>
-                </div>
-                {practicedTopicCount > 0 && (
-                  <button className="button button-ghost button-small" onClick={handleResetStudyProgress}>
-                    Reset study progress
-                  </button>
-                )}
-              </div>
-
-              {practicedTopicCount === 0 ? (
-                <div className="topic-performance-empty">
-                  No topic results yet. Complete a topic practice session to see strengths and weak areas.
-                </div>
-              ) : (
-                <div className="topic-performance-list">
-                  {sortedTopicPerformanceRows.map((row) => (
-                    <div className="topic-performance-row" key={row.topic}>
-                      <div className="topic-performance-main">
-                        <strong>{row.topic}</strong>
-                        <span>{row.totalAnswered > 0 ? `${row.correctCount}/${row.totalAnswered} correct` : 'Not practiced'}</span>
-                      </div>
-                      <div className="topic-performance-meter" aria-label={`${row.topic} accuracy`}>
-                        <span style={{ width: `${row.accuracy || 0}%` }} />
-                      </div>
-                      <div className="topic-performance-score">
-                        <strong>{row.accuracy === null ? '—' : `${row.accuracy}%`}</strong>
-                        <span>{row.wrongCount} wrong</span>
-                      </div>
-                      <span className={`topic-status topic-status-${row.status.toLowerCase().replace(/\s+/g, '-')}`}>
-                        {row.status}
-                      </span>
-                      <button className="button button-secondary button-small" onClick={() => handleStartQuiz(row.topic)}>
-                        Practice
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
           </section>
         )}
 
@@ -2349,12 +2295,36 @@ function App() {
             </div>
             <div className="topic-grid topic-grid-full">
               {topics.map((topic) => {
-                const count = questions.filter((item) => item.topic === topic).length
+                const count = topicQuestionCounts.get(topic) || 0
                 const markedCount = getMarkedQuestionsForTopic(topic).length
+                const performance = topicPerformanceByTopic.get(topic) || {
+                  totalAnswered: 0,
+                  correctCount: 0,
+                  wrongCount: 0,
+                  accuracy: null,
+                  status: 'Not Studied',
+                }
+                const hasStudiedTopic = performance.totalAnswered > 0
+                const progressWidth = hasStudiedTopic ? performance.accuracy || 0 : 0
+                const statusClassName = getTopicStatusClassName(performance.status)
+
                 return (
                   <article className="topic-card" key={topic}>
                     <h3>{topic}</h3>
                     <p>{count} questions</p>
+                    <div className="topic-card-progress">
+                      <div className="topic-card-progress-row">
+                        <span>{hasStudiedTopic ? `${performance.correctCount}/${performance.totalAnswered} correct` : 'Not studied'}</span>
+                        <span>{hasStudiedTopic ? `${performance.accuracy}%` : '—'}</span>
+                      </div>
+                      <div className="topic-progress-track" aria-label={`${topic} progress`}>
+                        <span className="topic-progress-fill" style={{ width: `${progressWidth}%` }} />
+                      </div>
+                      <div className="topic-card-progress-meta">
+                        {hasStudiedTopic && <span>{performance.wrongCount} wrong</span>}
+                        <span className={`topic-status-badge ${statusClassName}`}>{performance.status}</span>
+                      </div>
+                    </div>
                     <button
                       className="button button-secondary"
                       onClick={() => handleStartQuiz(topic)}
@@ -3445,9 +3415,16 @@ function App() {
                 <h2>Study bank summary</h2>
                 <p className="subtitle">Basic insights for your pilot review workflow.</p>
               </div>
-              <button className="button button-ghost" onClick={handleBackToDashboard}>
-                Back to dashboard
-              </button>
+              <div className="stats-header-actions">
+                {totalTopicAnswered > 0 && (
+                  <button className="button button-ghost" onClick={handleResetStudyProgress}>
+                    Reset study progress
+                  </button>
+                )}
+                <button className="button button-ghost" onClick={handleBackToDashboard}>
+                  Back to dashboard
+                </button>
+              </div>
             </div>
 
             <div className="stats-grid">
