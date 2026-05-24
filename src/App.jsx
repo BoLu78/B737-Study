@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useDeferredValue, useMemo } from 'react'
 import './App.css'
 import generatedQuestionBank from '../data/generated/questions.json'
 import { MEMORY_ITEMS } from './data/memoryItems'
@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.24'
+const APP_VERSION = 'v8.25'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -46,6 +46,29 @@ const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Train
 const DATA_SOURCE_GENERATED = 'T73 R01 Excel question bank'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
 const ANSWER_KEYS = ['A', 'B', 'C', 'D']
+const QUESTION_BANK_TOPIC_COLORS = [
+  '#fed7aa',
+  '#bfdbfe',
+  '#a5f3fc',
+  '#ddd6fe',
+  '#e5e7eb',
+  '#fef08a',
+  '#fecaca',
+  '#fca5a5',
+  '#bbf7d0',
+  '#e9d5ff',
+  '#fde68a',
+  '#99f6e4',
+  '#ccfbf1',
+  '#f5e8c7',
+  '#fbcfe8',
+  '#fed7c3',
+  '#e0e7ff',
+  '#d9f99d',
+  '#cbd5e1',
+  '#facc15',
+  '#fdba74',
+]
 const PLACEHOLDER_ANSWERS = new Set(['not applicable', 'n/a', 'na'])
 const STATUS_OPTIONS = ['active', 'draft', 'to_verify', 'obsolete']
 const DIFFICULTY_OPTIONS = ['easy', 'normal', 'hard']
@@ -227,15 +250,24 @@ function displayQuestionSourceId(question) {
   return displayReferenceValue(question?.sourceId)
 }
 
-function normalizeSearchValue(value) {
-  return String(value ?? '').replace(/\s+/g, ' ').trim().toLowerCase()
+function normalizeText(value) {
+  return String(value ?? '')
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
 }
 
-function parseQuestionBankSearchQuery(query) {
-  const normalizedQuery = String(query || '').replace(/\s+/g, ' ').trim()
+function tokenizeSearchText(value) {
+  return normalizeText(value).match(/[\p{L}\p{N}]+/gu) || []
+}
+
+function parseSearchQuery(query) {
+  const normalizedQuery = normalizeText(query)
   const phrases = []
   const remainingQuery = normalizedQuery.replace(/"([^"]+)"/g, (_, phrase) => {
-    const normalizedPhrase = normalizeSearchValue(phrase)
+    const normalizedPhrase = normalizeText(phrase)
     if (normalizedPhrase) {
       phrases.push(normalizedPhrase)
     }
@@ -243,32 +275,107 @@ function parseQuestionBankSearchQuery(query) {
   })
   const terms = remainingQuery
     .split(' ')
-    .map(normalizeSearchValue)
+    .map(normalizeText)
     .filter(Boolean)
 
-  return { phrases, terms }
+  return {
+    phrases,
+    terms,
+    allTerms: [...phrases, ...terms],
+    phraseRegexes: phrases.map(createWholeWordRegex),
+    isActive: phrases.length > 0 || terms.length > 0,
+  }
 }
 
-function getQuestionBankSearchFields(question) {
-  const options = normalizeQuizOptions(question)
-  const correctAnswerKey = getCorrectAnswerKey(question)
-  const correctAnswerText = options.find((option) => option.key === correctAnswerKey)?.text || ''
-
-  return [
-    question?.id,
-    question?.sourceId,
-    question?.topic,
-    cleanQuestionText(question?.question || ''),
-    ...ANSWER_KEYS.map((_, index) => cleanAnswerText(question?.answers?.[index] || '')),
-    correctAnswerText,
-    question?.manualReference,
-    question?.sourceDocument,
-  ]
+function createWholeWordRegex(value) {
+  return new RegExp(`(^|[^\\p{L}\\p{N}])(${escapeRegExp(value)})(?=$|[^\\p{L}\\p{N}])`, 'iu')
 }
 
-function questionMatchesSearchQuery(question, parsedQuery) {
-  const searchText = normalizeSearchValue(getQuestionBankSearchFields(question).join(' '))
-  return [...parsedQuery.phrases, ...parsedQuery.terms].every((term) => searchText.includes(term))
+function buildSearchIndex(questions) {
+  return questions.map((question, index) => {
+    const idText = displayQuestionSourceId(question)
+    const topicText = question.topic || ''
+    const questionText = cleanQuestionText(question.question || '')
+    const answerTexts = ANSWER_KEYS.map((_, answerIndex) => cleanAnswerText(question.answers?.[answerIndex] || ''))
+    const correctLetter = getCorrectAnswerKey(question)
+    const correctAnswerIndex = ANSWER_KEYS.indexOf(correctLetter)
+    const correctText = correctAnswerIndex >= 0 ? answerTexts[correctAnswerIndex] : ''
+    const searchFields = [
+      idText,
+      question?.id,
+      topicText,
+      questionText,
+      ...answerTexts,
+      correctLetter,
+      correctText,
+    ]
+    const searchBlob = normalizeText(searchFields.join(' '))
+
+    return {
+      question,
+      index,
+      idText,
+      topicText,
+      questionText,
+      answerTexts,
+      correctLetter,
+      correctText,
+      normalizedTopic: normalizeText(topicText),
+      normalizedCorrectLetter: normalizeText(correctLetter),
+      searchBlob,
+      tokenSet: new Set(tokenizeSearchText(searchBlob)),
+    }
+  })
+}
+
+function matchesSearch(indexEntry, parsedQuery, wholeWords) {
+  if (!parsedQuery.isActive) return true
+
+  if (!wholeWords) {
+    return parsedQuery.allTerms.every((term) => indexEntry.searchBlob.includes(term))
+  }
+
+  const termMatches = parsedQuery.terms.every((term) => indexEntry.tokenSet.has(term))
+  const phraseMatches = parsedQuery.phraseRegexes.every((regex) => regex.test(indexEntry.searchBlob))
+
+  return termMatches && phraseMatches
+}
+
+function buildQuestionBankGroups(indexEntries) {
+  return indexEntries.reduce((groups, entry) => {
+    const topic = entry.topicText || 'Uncategorized'
+    const existingGroup = groups.find((group) => group.topic === topic)
+
+    if (existingGroup) {
+      existingGroup.entries.push(entry)
+    } else {
+      groups.push({ topic, entries: [entry] })
+    }
+
+    return groups
+  }, [])
+}
+
+function createTopicColorMap(topics) {
+  return new Map(
+    topics.map((topic, index) => [
+      topic,
+      QUESTION_BANK_TOPIC_COLORS[index % QUESTION_BANK_TOPIC_COLORS.length],
+    ]),
+  )
+}
+
+function createHighlightMatchers(query, wholeWords) {
+  const parsedQuery = parseSearchQuery(query)
+  if (!parsedQuery.isActive) return []
+
+  return parsedQuery.allTerms
+    .filter(Boolean)
+    .sort((first, second) => second.length - first.length)
+    .map((term) => ({
+      term,
+      regex: wholeWords ? createWholeWordRegex(term) : null,
+    }))
 }
 
 function compareQuestionIds(firstQuestion, secondQuestion) {
@@ -283,35 +390,30 @@ function compareQuestionIds(firstQuestion, secondQuestion) {
   return 0
 }
 
-function getHighlightTerms(query) {
-  const parsedQuery = parseQuestionBankSearchQuery(query)
-  return [...parsedQuery.phrases, ...parsedQuery.terms]
-    .filter(Boolean)
-    .sort((first, second) => second.length - first.length)
-}
-
-function highlightSearchMatches(text, query) {
+function highlightSearchMatches(text, matchers = []) {
   const sourceText = String(text ?? '')
-  const terms = getHighlightTerms(query)
 
-  if (!sourceText || terms.length === 0) return sourceText
+  if (!sourceText || matchers.length === 0) return sourceText
 
-  return terms.reduce((parts, term) => (
+  return matchers.reduce((parts, matcher) => (
     parts.flatMap((part, partIndex) => {
       if (typeof part !== 'string') return part
 
       const lowerPart = part.toLowerCase()
-      const lowerTerm = term.toLowerCase()
-      const termIndex = lowerPart.indexOf(lowerTerm)
+      const lowerTerm = matcher.term.toLowerCase()
+      const regexMatch = matcher.regex ? part.match(matcher.regex) : null
+      const termIndex = regexMatch?.index !== undefined
+        ? regexMatch.index + regexMatch[1].length
+        : lowerPart.indexOf(lowerTerm)
       if (termIndex < 0) return part
 
       const before = part.slice(0, termIndex)
-      const match = part.slice(termIndex, termIndex + term.length)
-      const after = part.slice(termIndex + term.length)
+      const match = part.slice(termIndex, termIndex + matcher.term.length)
+      const after = part.slice(termIndex + matcher.term.length)
 
       return [
         before,
-        <mark key={`${term}-${partIndex}-${termIndex}`}>{match}</mark>,
+        <mark key={`${matcher.term}-${partIndex}-${termIndex}`}>{match}</mark>,
         after,
       ].filter((item) => item !== '')
     })
@@ -700,6 +802,8 @@ function App() {
   const [questionBankTopicFilter, setQuestionBankTopicFilter] = useState('')
   const [questionBankCorrectFilter, setQuestionBankCorrectFilter] = useState('')
   const [questionBankActiveOnly, setQuestionBankActiveOnly] = useState(false)
+  const [questionBankWholeWords, setQuestionBankWholeWords] = useState(false)
+  const [questionBankGroupByTopic, setQuestionBankGroupByTopic] = useState(false)
   const [manualDocuments, setManualDocuments] = useState([])
   const [isManualCatalogLoading, setIsManualCatalogLoading] = useState(true)
   const [manualSession, setManualSession] = useState(null)
@@ -812,6 +916,19 @@ function App() {
   }, [])
 
   const topics = Array.from(new Set(questions.map((item) => item.topic)))
+  const questionBankIndex = useMemo(() => buildSearchIndex(questions), [questions])
+  const topicColorMap = useMemo(() => createTopicColorMap([...topics].sort((first, second) =>
+    first.localeCompare(second, undefined, { numeric: true }),
+  )), [questions])
+  const deferredQuestionBankSearch = useDeferredValue(questionBankSearch)
+  const parsedQuestionBankSearch = useMemo(
+    () => parseSearchQuery(deferredQuestionBankSearch),
+    [deferredQuestionBankSearch],
+  )
+  const questionBankHighlightMatchers = useMemo(
+    () => createHighlightMatchers(deferredQuestionBankSearch, questionBankWholeWords),
+    [deferredQuestionBankSearch, questionBankWholeWords],
+  )
   const topicQuestionCounts = questions.reduce((counts, question) => {
     counts.set(question.topic, (counts.get(question.topic) || 0) + 1)
     return counts
@@ -902,19 +1019,30 @@ function App() {
 
     return matchesSource && matchesTopic && matchesSearch
   })
-  const parsedQuestionBankSearch = parseQuestionBankSearchQuery(questionBankSearch)
-  const questionBankResults = questions
-    .map((question, index) => ({ question, index }))
-    .filter(({ question }) => {
-      const matchesTopic = !questionBankTopicFilter || question.topic === questionBankTopicFilter
-      const matchesCorrectAnswer = !questionBankCorrectFilter || getCorrectAnswerKey(question) === questionBankCorrectFilter
-      const matchesStatus = !questionBankActiveOnly || question.status === 'active'
-      const matchesSearch = questionMatchesSearchQuery(question, parsedQuestionBankSearch)
+  const questionBankResults = useMemo(() => (
+    questionBankIndex
+      .filter((entry) => {
+        const matchesTopic = !questionBankTopicFilter || entry.topicText === questionBankTopicFilter
+        const matchesCorrectAnswer = !questionBankCorrectFilter || entry.correctLetter === questionBankCorrectFilter
+        const matchesStatus = !questionBankActiveOnly || entry.question.status === 'active'
+        const matchesSearchQuery = matchesSearch(entry, parsedQuestionBankSearch, questionBankWholeWords)
 
-      return matchesTopic && matchesCorrectAnswer && matchesStatus && matchesSearch
-    })
-    .sort((first, second) => compareQuestionIds(first.question, second.question) || first.index - second.index)
-    .map(({ question }) => question)
+        return matchesTopic && matchesCorrectAnswer && matchesStatus && matchesSearchQuery
+      })
+      .sort((first, second) => compareQuestionIds(first.question, second.question) || first.index - second.index)
+  ), [
+    parsedQuestionBankSearch,
+    questionBankActiveOnly,
+    questionBankCorrectFilter,
+    questionBankIndex,
+    questionBankTopicFilter,
+    questionBankWholeWords,
+  ])
+  const shouldGroupQuestionBankResults = !parsedQuestionBankSearch.isActive || questionBankGroupByTopic
+  const questionBankResultGroups = useMemo(
+    () => buildQuestionBankGroups(questionBankResults),
+    [questionBankResults],
+  )
   const hasManualCatalog = manualDocuments.length > 0
   const isManualSignedIn = Boolean(manualSession)
   const manualSearchManualTypes = getUniqueReferenceValues(manualDocuments, 'manual_type')
@@ -1664,57 +1792,73 @@ function App() {
     </article>
   )
 
-  const renderQuestionBankResultCard = (question) => {
-    const correctAnswerKey = getCorrectAnswerKey(question)
+  const renderQuestionBankResultCard = (entry) => {
+    const topicColor = topicColorMap.get(entry.topicText) || '#e5e7eb'
 
     return (
-      <article className="question-bank-card" key={`question-bank-${question.id}`}>
+      <article
+        className="question-bank-card"
+        key={`question-bank-${entry.question.id}`}
+        style={{ '--question-topic-color': topicColor }}
+      >
         <div className="question-bank-card-header">
-          <span className="question-id">Question ID: {highlightSearchMatches(displayQuestionSourceId(question), questionBankSearch)}</span>
-          <span>Topic: {highlightSearchMatches(question.topic, questionBankSearch)}</span>
+          <span className="question-bank-id">ID {highlightSearchMatches(entry.idText, questionBankHighlightMatchers)}</span>
+          <span className="question-bank-topic-badge">{highlightSearchMatches(entry.topicText, questionBankHighlightMatchers)}</span>
+          <span className="question-bank-correct-badge">Correct: {entry.correctLetter}</span>
         </div>
 
         <div className="question-bank-question">
           <span>Question:</span>
-          <h3>{highlightSearchMatches(cleanQuestionText(question.question), questionBankSearch)}</h3>
+          <h3>{highlightSearchMatches(entry.questionText, questionBankHighlightMatchers)}</h3>
         </div>
 
         <div className="question-bank-answers">
           {ANSWER_KEYS.map((key, index) => {
-            const answerText = cleanAnswerText(question.answers?.[index] || '')
-            const isCorrectAnswer = correctAnswerKey === key
+            const answerText = entry.answerTexts[index] || ''
+            const isCorrectAnswer = entry.correctLetter === key
 
             return (
-              <div className={isCorrectAnswer ? 'question-bank-answer question-bank-answer-correct' : 'question-bank-answer'} key={`${question.id}-${key}`}>
+              <div className={isCorrectAnswer ? 'question-bank-answer question-bank-answer-correct' : 'question-bank-answer'} key={`${entry.question.id}-${key}`}>
                 <span className="answer-key">{key}</span>
-                <span className="answer-text">{highlightSearchMatches(answerText || '—', questionBankSearch)}</span>
+                <span className="answer-text">{highlightSearchMatches(answerText || '—', questionBankHighlightMatchers)}</span>
+                {isCorrectAnswer && <span className="question-bank-answer-label">Correct</span>}
               </div>
             )
           })}
         </div>
-
-        <div className="question-bank-correct">
-          Correct answer: <strong>{correctAnswerKey}</strong>
-        </div>
-
-        {(displayReferenceValue(question.manualReference) !== '—' || displayReferenceValue(question.sourceDocument) !== '—') && (
-          <dl className="reference-meta question-bank-meta">
-            {displayReferenceValue(question.manualReference) !== '—' && (
-              <div>
-                <dt>Manual reference</dt>
-                <dd>{highlightSearchMatches(question.manualReference, questionBankSearch)}</dd>
-              </div>
-            )}
-            {displayReferenceValue(question.sourceDocument) !== '—' && (
-              <div>
-                <dt>Source</dt>
-                <dd>{highlightSearchMatches(question.sourceDocument, questionBankSearch)}</dd>
-              </div>
-            )}
-          </dl>
-        )}
       </article>
     )
+  }
+
+  const renderQuestionBankResults = () => {
+    if (questionBankResults.length === 0) {
+      return (
+        <article className="question-bank-card">
+          <p className="question-bank-empty">No questions match the current search.</p>
+        </article>
+      )
+    }
+
+    if (!shouldGroupQuestionBankResults) {
+      return questionBankResults.map(renderQuestionBankResultCard)
+    }
+
+    return questionBankResultGroups.map((group) => {
+      const topicColor = topicColorMap.get(group.topic) || '#e5e7eb'
+
+      return (
+        <section
+          className="question-bank-topic-group"
+          key={`question-bank-topic-${group.topic}`}
+          style={{ '--question-topic-color': topicColor }}
+        >
+          <h3>{group.topic.toUpperCase()} — {group.entries.length} questions</h3>
+          <div className="question-bank-topic-results">
+            {group.entries.map(renderQuestionBankResultCard)}
+          </div>
+        </section>
+      )
+    })
   }
 
   const handleManualSignIn = async (event) => {
@@ -2167,61 +2311,88 @@ function App() {
               </button>
             </div>
 
-            <div className="question-bank-filters">
-              <label className="field-label question-bank-search-field">
-                Search
-                <input
-                  type="search"
-                  value={questionBankSearch}
-                  onChange={(event) => setQuestionBankSearch(event.target.value)}
-                  placeholder="Search word or phrase..."
-                />
-              </label>
-              <label className="field-label">
-                Topic
-                <select value={questionBankTopicFilter} onChange={(event) => setQuestionBankTopicFilter(event.target.value)}>
-                  <option value="">All topics</option>
-                  {topics.map((topic) => (
-                    <option key={topic} value={topic}>
-                      {topic}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field-label">
-                Correct answer
-                <select value={questionBankCorrectFilter} onChange={(event) => setQuestionBankCorrectFilter(event.target.value)}>
-                  <option value="">All</option>
-                  {ANSWER_KEYS.map((key) => (
-                    <option key={key} value={key}>
-                      {key}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="question-bank-active-toggle">
-                <input
-                  type="checkbox"
-                  checked={questionBankActiveOnly}
-                  onChange={(event) => setQuestionBankActiveOnly(event.target.checked)}
-                />
-                <span>Active only</span>
-              </label>
-            </div>
+            <div className="question-bank-document">
+              <div className="question-bank-toolbar">
+                <label className="field-label question-bank-search-field">
+                  Search
+                  <span className="question-bank-search-wrap">
+                    <input
+                      type="search"
+                      value={questionBankSearch}
+                      onChange={(event) => setQuestionBankSearch(event.target.value)}
+                      placeholder="Search word or phrase..."
+                    />
+                    {questionBankSearch && (
+                      <button
+                        className="question-bank-clear-search"
+                        type="button"
+                        onClick={() => setQuestionBankSearch('')}
+                        aria-label="Clear search"
+                      >
+                        x
+                      </button>
+                    )}
+                  </span>
+                </label>
+                <label className="field-label">
+                  Topic
+                  <select value={questionBankTopicFilter} onChange={(event) => setQuestionBankTopicFilter(event.target.value)}>
+                    <option value="">All topics</option>
+                    {topics.map((topic) => (
+                      <option key={topic} value={topic}>
+                        {topic}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field-label">
+                  Correct answer
+                  <select value={questionBankCorrectFilter} onChange={(event) => setQuestionBankCorrectFilter(event.target.value)}>
+                    <option value="">All</option>
+                    {ANSWER_KEYS.map((key) => (
+                      <option key={key} value={key}>
+                        {key}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="question-bank-toggle-row">
+                  <label className="question-bank-toggle">
+                    <input
+                      type="checkbox"
+                      checked={questionBankWholeWords}
+                      onChange={(event) => setQuestionBankWholeWords(event.target.checked)}
+                    />
+                    <span>Whole words</span>
+                  </label>
+                  <label className="question-bank-toggle">
+                    <input
+                      type="checkbox"
+                      checked={questionBankGroupByTopic}
+                      onChange={(event) => setQuestionBankGroupByTopic(event.target.checked)}
+                    />
+                    <span>Group by topic</span>
+                  </label>
+                  <label className="question-bank-toggle">
+                    <input
+                      type="checkbox"
+                      checked={questionBankActiveOnly}
+                      onChange={(event) => setQuestionBankActiveOnly(event.target.checked)}
+                    />
+                    <span>Active only</span>
+                  </label>
+                </div>
+              </div>
 
-            <div className="question-bank-summary">
-              <span>{questions.length} questions</span>
-              <strong>{questionBankResults.length} results</strong>
-            </div>
+              <div className="question-bank-summary">
+                <span>Total questions: <strong>{questions.length}</strong></span>
+                <span>Results: <strong>{questionBankResults.length}</strong></span>
+                <span>Source: <strong>{DATA_SOURCE_GENERATED}</strong></span>
+              </div>
 
-            <div className="question-bank-results">
-              {questionBankResults.length === 0 ? (
-                <article className="question-bank-card">
-                  <p className="memory-drill-empty">No questions match the current search.</p>
-                </article>
-              ) : (
-                questionBankResults.map(renderQuestionBankResultCard)
-              )}
+              <div className="question-bank-results">
+                {renderQuestionBankResults()}
+              </div>
             </div>
           </section>
         )}
