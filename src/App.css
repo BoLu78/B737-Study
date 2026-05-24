@@ -85,6 +85,85 @@ code {
   padding: 32px 0 40px;
 }
 
+.theme-b737 {
+  --accent: #60a5fa;
+  --accent-strong: #38bdf8;
+  --success: #2dd4bf;
+}
+
+.theme-b787 {
+  --accent: #34d399;
+  --accent-strong: #22c55e;
+  --success: #a7f3d0;
+}
+
+.theme-b787 .version-badge,
+.theme-b787 .database-badge {
+  background: rgba(52, 211, 153, 0.14);
+  color: #bbf7d0;
+}
+
+.aircraft-selection-shell {
+  max-width: 980px;
+}
+
+.aircraft-selection-view {
+  margin-top: 20px;
+}
+
+.aircraft-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.aircraft-selection-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 28px;
+  min-height: 260px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: rgba(7, 16, 34, 0.92);
+  box-shadow: var(--shadow);
+}
+
+.aircraft-selection-card h2 {
+  margin-top: 6px;
+  color: #f8fafc;
+  font-size: 1.7rem;
+}
+
+.aircraft-selection-card p:not(.eyebrow) {
+  margin-top: 10px;
+  color: var(--text-muted);
+}
+
+.aircraft-selection-card.theme-b787 {
+  border-color: rgba(52, 211, 153, 0.34);
+}
+
+.aircraft-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.12);
+  color: #dbeafe;
+  border: 1px solid rgba(96, 165, 250, 0.22);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.theme-b787 .aircraft-badge {
+  background: rgba(52, 211, 153, 0.14);
+  color: #bbf7d0;
+  border-color: rgba(52, 211, 153, 0.28);
+}
+
 .app-header {
   display: flex;
   align-items: center;
@@ -1245,6 +1324,26 @@ code {
   margin: 0 auto;
   object-fit: contain;
   border-radius: 10px;
+}
+
+.memory-unavailable-card {
+  display: grid;
+  gap: 10px;
+  max-width: 680px;
+  padding: 24px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.78);
+}
+
+.memory-unavailable-card h3 {
+  color: #f8fafc;
+  font-size: 1.35rem;
+}
+
+.memory-unavailable-card p,
+.memory-unavailable-card span {
+  color: var(--text-muted);
 }
 
 .memory-note-list-item {
@@ -2632,6 +2731,10 @@ td:nth-child(10) {
   .memory-filters,
   .question-bank-toolbar,
   .memory-order-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .aircraft-selection-grid {
     grid-template-columns: 1fr;
   }
 

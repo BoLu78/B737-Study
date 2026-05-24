@@ -7,10 +7,12 @@ import { fileURLToPath } from 'node:url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..')
-const questionJsonPath = path.join(repoRoot, 'data/generated/questions.json')
 const buildScriptPath = path.join(repoRoot, 'scripts/build-questions.mjs')
 const ANSWER_KEYS = ['A', 'B', 'C', 'D']
 const QUESTION_SOURCE_FILE = 'data/import/T73 R01 TEST 737_R01..xlsx'
+const B787_QUESTION_SOURCE_FILE = 'data/aircraft/b787/import/T78 R03 TEST 787.xlsx'
+const B737_QUESTION_FILE = 'data/generated/questions.json'
+const B787_QUESTION_FILE = 'data/aircraft/b787/generated/questions.json'
 const DEPRECATED_SOURCE_FILE = 'data/import/questions.csv'
 const TARGET_QUESTION_ID = 450
 const SOURCE_442_ID = 442
@@ -42,7 +44,7 @@ function addFinding(findings, severity, message) {
   findings.push({ severity, message })
 }
 
-async function loadQuestions() {
+async function loadQuestions(questionJsonPath) {
   const fileText = await fs.readFile(questionJsonPath, 'utf8')
   return JSON.parse(fileText)
 }
@@ -55,8 +57,32 @@ async function auditBuildSource() {
     addFinding(findings, 'error', `Question build script does not reference canonical source ${QUESTION_SOURCE_FILE}.`)
   }
 
+  if (!buildScript.includes(B787_QUESTION_SOURCE_FILE)) {
+    addFinding(findings, 'error', `Question build script does not reference B787 source ${B787_QUESTION_SOURCE_FILE}.`)
+  }
+
+  if (!buildScript.includes(B737_QUESTION_FILE)) {
+    addFinding(findings, 'error', `Question build script does not generate B737 output ${B737_QUESTION_FILE}.`)
+  }
+
+  if (!buildScript.includes(B787_QUESTION_FILE)) {
+    addFinding(findings, 'error', `Question build script does not generate B787 output ${B787_QUESTION_FILE}.`)
+  }
+
   if (buildScript.includes(DEPRECATED_SOURCE_FILE)) {
     addFinding(findings, 'error', `Question build script still references deprecated source ${DEPRECATED_SOURCE_FILE}.`)
+  }
+
+  return findings
+}
+
+async function auditGeneratedFileExists(relativePath, label) {
+  const findings = []
+
+  try {
+    await fs.access(path.join(repoRoot, relativePath))
+  } catch {
+    addFinding(findings, 'error', `${label} generated file is missing: ${relativePath}.`)
   }
 
   return findings
@@ -129,6 +155,16 @@ function auditQuestionShape(questions) {
   return findings
 }
 
+function auditHasQuestions(questions, label) {
+  const findings = []
+
+  if (!Array.isArray(questions) || questions.length === 0) {
+    addFinding(findings, 'error', `${label} generated question bank is empty.`)
+  }
+
+  return findings
+}
+
 function auditQuestion450(questions) {
   const findings = []
   const q450Matches = questions.filter((question) => question.id === TARGET_QUESTION_ID)
@@ -178,19 +214,27 @@ function summarize(findings, severity) {
 }
 
 async function main() {
-  const questions = await loadQuestions()
+  const b737Questions = await loadQuestions(path.join(repoRoot, B737_QUESTION_FILE))
+  const b787Questions = await loadQuestions(path.join(repoRoot, B787_QUESTION_FILE))
   const findings = [
     ...await auditBuildSource(),
-    ...auditQuestionShape(questions),
-    ...auditQuestion450(questions),
+    ...await auditGeneratedFileExists(B737_QUESTION_FILE, 'B737'),
+    ...await auditGeneratedFileExists(B787_QUESTION_FILE, 'B787'),
+    ...auditHasQuestions(b737Questions, 'B737'),
+    ...auditHasQuestions(b787Questions, 'B787'),
+    ...auditQuestionShape(b737Questions),
+    ...auditQuestion450(b737Questions),
+    ...auditQuestionShape(b787Questions),
   ]
   const errors = summarize(findings, 'error')
   const warnings = summarize(findings, 'warning')
 
   console.log('Question bank audit')
   console.log('-------------------')
-  console.log(`source: ${path.relative(repoRoot, questionJsonPath)}`)
-  console.log(`total questions: ${questions.length}`)
+  console.log(`B737 source: ${B737_QUESTION_FILE}`)
+  console.log(`B737 total questions: ${b737Questions.length}`)
+  console.log(`B787 source: ${B787_QUESTION_FILE}`)
+  console.log(`B787 total questions: ${b787Questions.length}`)
   console.log(`errors: ${errors.length}`)
   console.log(`warnings: ${warnings.length}`)
 

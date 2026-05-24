@@ -6,15 +6,29 @@ import xlsx from 'xlsx'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const repoRoot = path.resolve(__dirname, '..')
-const QUESTION_SOURCE_FILE = 'data/import/T73 R01 TEST 737_R01..xlsx'
-const QUESTION_OVERRIDES_FILE = 'data/import/question-overrides.json'
-const GENERATED_QUESTIONS_FILE = 'data/generated/questions.json'
-const inputPath = path.join(repoRoot, QUESTION_SOURCE_FILE)
-const overridePath = path.join(repoRoot, QUESTION_OVERRIDES_FILE)
-const outputPath = path.join(repoRoot, GENERATED_QUESTIONS_FILE)
-
-const REQUIRED_HEADERS = ['ID', 'Question', 'AnswerOne', 'AnswerTwo', 'AnswerThree', 'AnswerFour', 'Correct', 'Argument']
-const ANSWER_COLUMNS = ['AnswerOne', 'AnswerTwo', 'AnswerThree', 'AnswerFour']
+const AIRCRAFT_QUESTION_BUILDS = [
+  {
+    id: 'b737',
+    label: 'B737 NG / MAX',
+    sourceFile: 'data/import/T73 R01 TEST 737_R01..xlsx',
+    overridesFile: 'data/import/question-overrides.json',
+    outputFile: 'data/generated/questions.json',
+    requiredHeaders: ['ID', 'Question', 'AnswerOne', 'AnswerTwo', 'AnswerThree', 'AnswerFour', 'Correct', 'Argument'],
+    answerColumns: ['AnswerOne', 'AnswerTwo', 'AnswerThree', 'AnswerFour'],
+    topicColumn: 'Argument',
+    correctMode: 'number',
+  },
+  {
+    id: 'b787',
+    label: 'B787',
+    sourceFile: 'data/aircraft/b787/import/T78 R03 TEST 787.xlsx',
+    outputFile: 'data/aircraft/b787/generated/questions.json',
+    requiredHeaders: ['ID', 'SUBJECT', 'Question', 'Correct', 'A', 'B', 'C', 'D'],
+    answerColumns: ['A', 'B', 'C', 'D'],
+    topicColumn: 'SUBJECT',
+    correctMode: 'letter-or-number',
+  },
+]
 const ANSWER_KEYS = ['A', 'B', 'C', 'D']
 const SHEET_NAME = 'Table 1'
 const SHORT_ANSWER_WHITELIST = new Set([
@@ -62,11 +76,13 @@ function rowToRecord(headers, row) {
   return Object.fromEntries(headers.map((header, index) => [header, normalizeCell(row[index])]))
 }
 
-async function loadExcelRecords() {
+async function loadExcelRecords(config) {
+  const inputPath = path.join(repoRoot, config.sourceFile)
+
   try {
     await fs.access(inputPath)
   } catch {
-    throw new Error(`Missing canonical Excel source: ${QUESTION_SOURCE_FILE}`)
+    throw new Error(`Missing canonical Excel source: ${config.sourceFile}`)
   }
 
   const workbook = xlsx.readFile(inputPath)
@@ -80,7 +96,7 @@ async function loadExcelRecords() {
     .sheet_to_json(sheet, { header: 1, defval: '', blankrows: false, raw: false })
     .filter((candidate) => candidate.some((value) => normalizeCell(value)))
   const headers = rows[0].map(normalizeCell)
-  const missingHeaders = REQUIRED_HEADERS.filter((header) => !headers.includes(header))
+  const missingHeaders = config.requiredHeaders.filter((header) => !headers.includes(header))
 
   if (missingHeaders.length > 0) {
     throw new Error(`Missing Excel headers: ${missingHeaders.join(', ')}`)
@@ -89,7 +105,11 @@ async function loadExcelRecords() {
   return rows.slice(1).map((row) => rowToRecord(headers, row))
 }
 
-async function loadOverrides() {
+async function loadOverrides(config) {
+  if (!config.overridesFile) return []
+
+  const overridePath = path.join(repoRoot, config.overridesFile)
+
   try {
     const overrideText = await fs.readFile(overridePath, 'utf8')
     const overrides = JSON.parse(overrideText)
@@ -114,7 +134,7 @@ function applyOverrides(records, overrides) {
 
     return {
       ...record,
-      ...Object.fromEntries(REQUIRED_HEADERS.map((header) => [header, normalizeCell(override[header] ?? record[header])])),
+      ...Object.fromEntries(Object.keys(record).map((header) => [header, normalizeCell(override[header] ?? record[header])])),
     }
   })
 }
@@ -196,15 +216,27 @@ export function validateQuestionBank(questions) {
   }
 }
 
-function buildQuestion(record) {
-  const rawOptions = ANSWER_COLUMNS.map((column, index) => ({
+function normalizeCorrectAnswer(value, mode) {
+  const text = normalizeCell(value).toUpperCase()
+
+  if (ANSWER_KEYS.includes(text)) return text
+
+  if (mode === 'number' || mode === 'letter-or-number') {
+    const correctNumber = Number(text)
+    return ANSWER_KEYS[correctNumber - 1] || ''
+  }
+
+  return ''
+}
+
+function buildQuestion(record, config) {
+  const rawOptions = config.answerColumns.map((column, index) => ({
     key: ANSWER_KEYS[index],
     text: normalizeCell(record[column]),
   }))
   const options = rawOptions.filter((option) => option.text)
-  const correctNumber = Number(normalizeCell(record.Correct))
-  const correct = ANSWER_KEYS[correctNumber - 1] || ''
-  const rawTopic = normalizeCell(record.Argument)
+  const correct = normalizeCorrectAnswer(record.Correct, config.correctMode)
+  const rawTopic = normalizeCell(record[config.topicColumn])
 
   return {
     id: Number(normalizeCell(record.ID)),
@@ -215,11 +247,14 @@ function buildQuestion(record) {
   }
 }
 
-async function main() {
-  const sourceRecords = await loadExcelRecords()
-  const overrides = await loadOverrides()
+async function buildAircraftQuestionBank(config) {
+  const inputPath = path.join(repoRoot, config.sourceFile)
+  const outputPath = path.join(repoRoot, config.outputFile)
+  const overridePath = config.overridesFile ? path.join(repoRoot, config.overridesFile) : null
+  const sourceRecords = await loadExcelRecords(config)
+  const overrides = await loadOverrides(config)
   const records = applyOverrides(sourceRecords, overrides)
-  const questions = records.map(buildQuestion)
+  const questions = records.map((record) => buildQuestion(record, config))
   const validation = validateQuestionBank(questions)
   const generatedQuestions = validation.validQuestions
   const answerCountSummary = generatedQuestions.reduce((summary, question) => {
@@ -238,9 +273,10 @@ async function main() {
 
   console.log('Question bank build report')
   console.log('--------------------------')
+  console.log(`aircraft: ${config.label}`)
   console.log(`source: ${path.relative(repoRoot, inputPath)}`)
   console.log(`sheet: ${SHEET_NAME}`)
-  console.log(`overrides: ${path.relative(repoRoot, overridePath)} (${overrides.length})`)
+  console.log(`overrides: ${overridePath ? path.relative(repoRoot, overridePath) : 'none'} (${overrides.length})`)
   console.log(`output: ${path.relative(repoRoot, outputPath)}`)
   console.log(`total imported rows: ${records.length}`)
   console.log(`total generated questions: ${generatedQuestions.length}`)
@@ -256,6 +292,14 @@ async function main() {
 
   if (validation.invalidQuestions.length > 0) {
     process.exitCode = 1
+  }
+
+  console.log('')
+}
+
+async function main() {
+  for (const config of AIRCRAFT_QUESTION_BUILDS) {
+    await buildAircraftQuestionBank(config)
   }
 }
 

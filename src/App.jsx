@@ -1,7 +1,6 @@
 import { useState, useEffect, useDeferredValue, useMemo } from 'react'
 import './App.css'
-import generatedQuestionBank from '../data/generated/questions.json'
-import { MEMORY_ITEMS } from './data/memoryItems'
+import { AIRCRAFT_IDS, AIRCRAFT_OPTIONS, getAircraftConfig } from './data/aircraftConfig'
 import {
   countManualChunks,
   createSignedManualUrl,
@@ -21,13 +20,19 @@ import {
   selectFinalTestQuestions,
   shuffleArray,
 } from './utils/finalTestSelection'
-import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.28'
-const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
-const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
-const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
-const MARKED_QUESTIONS_STORAGE_KEY = 'b737StudyMarkedQuestions_v8_2'
+const APP_VERSION = 'v8.29'
+const SELECTED_AIRCRAFT_STORAGE_KEY = 'bsa.selectedAircraft'
+const LEGACY_STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
+const LEGACY_TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
+const LEGACY_IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
+const LEGACY_MARKED_QUESTIONS_STORAGE_KEY = 'b737StudyMarkedQuestions_v8_2'
+const AIRCRAFT_STORAGE_KEY_NAMES = {
+  studyProgress: 'studyProgress',
+  topicStats: 'topicStats',
+  inProgressTopicSessions: 'inProgressTopicSessions',
+  markedQuestions: 'markedQuestions',
+}
 const MEMORY_MODES = {
   STUDY: 'study',
   COMPARE: 'compare',
@@ -43,7 +48,6 @@ const MEMORY_AIRCRAFT_LABELS = {
 const MEMORY_AIRCRAFT_OPTIONS = [MEMORY_AIRCRAFT.NG, MEMORY_AIRCRAFT.MAX]
 const DEFAULT_MEMORY_AIRCRAFT = MEMORY_AIRCRAFT.NG
 const PLANNED_MANUAL_TYPES = ['FCOM', 'FCTM', 'QRH', 'MEL', 'OM-B', 'CBT / Training Notes', 'T73 Question Bank']
-const DATA_SOURCE_GENERATED = 'T73 R01 Excel question bank'
 const CORRECT_ANSWER_OPTIONS = ['A', 'B', 'C', 'D']
 const ANSWER_KEYS = ['A', 'B', 'C', 'D']
 const QUESTION_BANK_TOPIC_COLORS = [
@@ -100,31 +104,6 @@ const EMPTY_ADMIN_FORM = {
   status: 'draft',
   difficulty: 'normal',
 }
-
-const GENERATED_QUESTIONS = generatedQuestionBank.map((question) => {
-  const correctAnswerLetter = String(question.correct || '').trim().toUpperCase()
-  const correctAnswerIndex = ANSWER_KEYS.indexOf(correctAnswerLetter)
-  const answers = ANSWER_KEYS.map((key) => question.options?.find((option) => option.key === key)?.text || '')
-
-  return {
-    id: question.id,
-    sourceId: question.id,
-    rawTopic: question.topic,
-    topic: getCanonicalTopic(question.topic),
-    subtopic: null,
-    question: question.question,
-    answers,
-    options: question.options || [],
-    correctAnswer: correctAnswerIndex >= 0 ? correctAnswerIndex : 0,
-    correctAnswerLetter,
-    explanation: '',
-    manualReference: null,
-    sourceDocument: DATA_SOURCE_GENERATED,
-    sourcePage: null,
-    status: 'active',
-    difficulty: null,
-  }
-})
 
 function normalizeTopicDisplayName(topic) {
   return String(topic || '').replace(/\s+/g, ' ').trim()
@@ -487,57 +466,94 @@ function getManualSearchHighlightTerms(query) {
     .sort((first, second) => second.length - first.length)
 }
 
-function loadStoredTopicStats() {
-  if (typeof window === 'undefined') return {}
+function getInitialSelectedAircraftId() {
+  if (typeof window === 'undefined') return ''
+  const storedAircraftId = window.localStorage.getItem(SELECTED_AIRCRAFT_STORAGE_KEY)
+  return getAircraftConfig(storedAircraftId) ? storedAircraftId : ''
+}
+
+function getAircraftStorageKey(aircraftId, keyName) {
+  return aircraftId ? `bsa.${aircraftId}.${keyName}` : ''
+}
+
+function loadJsonStorage(key, fallback) {
+  if (typeof window === 'undefined' || !key) return fallback
 
   try {
-    const parsedStats = JSON.parse(window.localStorage.getItem(TOPIC_STATS_STORAGE_KEY) || '{}')
-    return parsedStats && typeof parsedStats === 'object' && !Array.isArray(parsedStats) ? parsedStats : {}
+    const parsedValue = JSON.parse(window.localStorage.getItem(key) || JSON.stringify(fallback))
+    return parsedValue && typeof parsedValue === 'object' && !Array.isArray(parsedValue) ? parsedValue : fallback
   } catch {
-    return {}
+    return fallback
   }
 }
 
-function saveStoredTopicStats(stats) {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(TOPIC_STATS_STORAGE_KEY, JSON.stringify(stats))
+function saveJsonStorage(key, value) {
+  if (typeof window === 'undefined' || !key) return
+  window.localStorage.setItem(key, JSON.stringify(value))
 }
 
-function loadStoredInProgressTopicSessions() {
-  if (typeof window === 'undefined') return {}
+function migrateLegacyB737Storage() {
+  if (typeof window === 'undefined') return
 
-  try {
-    return JSON.parse(window.localStorage.getItem(IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY) || '{}')
-  } catch {
-    return {}
+  const migrations = [
+    [LEGACY_STUDY_PROGRESS_STORAGE_KEY, getAircraftStorageKey(AIRCRAFT_IDS.B737, AIRCRAFT_STORAGE_KEY_NAMES.studyProgress)],
+    [LEGACY_TOPIC_STATS_STORAGE_KEY, getAircraftStorageKey(AIRCRAFT_IDS.B737, AIRCRAFT_STORAGE_KEY_NAMES.topicStats)],
+    [LEGACY_IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY, getAircraftStorageKey(AIRCRAFT_IDS.B737, AIRCRAFT_STORAGE_KEY_NAMES.inProgressTopicSessions)],
+    [LEGACY_MARKED_QUESTIONS_STORAGE_KEY, getAircraftStorageKey(AIRCRAFT_IDS.B737, AIRCRAFT_STORAGE_KEY_NAMES.markedQuestions)],
+  ]
+
+  migrations.forEach(([legacyKey, namespacedKey]) => {
+    if (window.localStorage.getItem(namespacedKey) !== null) return
+
+    const legacyValue = window.localStorage.getItem(legacyKey)
+    if (legacyValue !== null) {
+      window.localStorage.setItem(namespacedKey, legacyValue)
+    }
+  })
+}
+
+function loadStoredTopicStats(aircraftId) {
+  if (aircraftId === AIRCRAFT_IDS.B737) migrateLegacyB737Storage()
+  return loadJsonStorage(getAircraftStorageKey(aircraftId, AIRCRAFT_STORAGE_KEY_NAMES.topicStats), {})
+}
+
+function saveStoredTopicStats(aircraftId, stats) {
+  saveJsonStorage(getAircraftStorageKey(aircraftId, AIRCRAFT_STORAGE_KEY_NAMES.topicStats), stats)
+}
+
+function loadStoredInProgressTopicSessions(aircraftId) {
+  if (aircraftId === AIRCRAFT_IDS.B737) migrateLegacyB737Storage()
+  return loadJsonStorage(getAircraftStorageKey(aircraftId, AIRCRAFT_STORAGE_KEY_NAMES.inProgressTopicSessions), {})
+}
+
+function saveStoredInProgressTopicSessions(aircraftId, sessions) {
+  saveJsonStorage(getAircraftStorageKey(aircraftId, AIRCRAFT_STORAGE_KEY_NAMES.inProgressTopicSessions), sessions)
+}
+
+function loadStoredMarkedQuestions(aircraftId) {
+  if (aircraftId === AIRCRAFT_IDS.B737) migrateLegacyB737Storage()
+  return loadJsonStorage(getAircraftStorageKey(aircraftId, AIRCRAFT_STORAGE_KEY_NAMES.markedQuestions), {})
+}
+
+function saveStoredMarkedQuestions(aircraftId, markedQuestions) {
+  saveJsonStorage(getAircraftStorageKey(aircraftId, AIRCRAFT_STORAGE_KEY_NAMES.markedQuestions), markedQuestions)
+}
+
+function clearStoredStudyProgress(aircraftId) {
+  if (typeof window === 'undefined') return
+  window.localStorage.removeItem(getAircraftStorageKey(aircraftId, AIRCRAFT_STORAGE_KEY_NAMES.studyProgress))
+  window.localStorage.removeItem(getAircraftStorageKey(aircraftId, AIRCRAFT_STORAGE_KEY_NAMES.topicStats))
+  window.localStorage.removeItem(getAircraftStorageKey(aircraftId, AIRCRAFT_STORAGE_KEY_NAMES.inProgressTopicSessions))
+}
+
+function saveSelectedAircraft(aircraftId) {
+  if (typeof window === 'undefined') return
+
+  if (aircraftId) {
+    window.localStorage.setItem(SELECTED_AIRCRAFT_STORAGE_KEY, aircraftId)
+  } else {
+    window.localStorage.removeItem(SELECTED_AIRCRAFT_STORAGE_KEY)
   }
-}
-
-function saveStoredInProgressTopicSessions(sessions) {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY, JSON.stringify(sessions))
-}
-
-function loadStoredMarkedQuestions() {
-  if (typeof window === 'undefined') return {}
-
-  try {
-    return JSON.parse(window.localStorage.getItem(MARKED_QUESTIONS_STORAGE_KEY) || '{}')
-  } catch {
-    return {}
-  }
-}
-
-function saveStoredMarkedQuestions(markedQuestions) {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(MARKED_QUESTIONS_STORAGE_KEY, JSON.stringify(markedQuestions))
-}
-
-function clearStoredStudyProgress() {
-  if (typeof window === 'undefined') return
-  window.localStorage.removeItem(STUDY_PROGRESS_STORAGE_KEY)
-  window.localStorage.removeItem(TOPIC_STATS_STORAGE_KEY)
-  window.localStorage.removeItem(IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY)
 }
 
 function getTopicStatus(totalAnswered, accuracy) {
@@ -761,10 +777,9 @@ function renderMemoryText(value, options = {}) {
 }
 
 function App() {
-  const [questions] = useState(GENERATED_QUESTIONS)
+  const [selectedAircraftId, setSelectedAircraftId] = useState(getInitialSelectedAircraftId)
   const [isLoading] = useState(false)
   const [loadError, setLoadError] = useState(null)
-  const [dataSource] = useState(DATA_SOURCE_GENERATED)
   const [view, setView] = useState('dashboard')
   const [selectedTopic, setSelectedTopic] = useState('')
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -786,9 +801,9 @@ function App() {
   })
   const [topicSessionQuestions, setTopicSessionQuestions] = useState([])
   const [pendingResumeTopic, setPendingResumeTopic] = useState('')
-  const [markedQuestions, setMarkedQuestions] = useState(loadStoredMarkedQuestions)
+  const [markedQuestions, setMarkedQuestions] = useState(() => loadStoredMarkedQuestions(selectedAircraftId))
   const [markedReviewQuestions, setMarkedReviewQuestions] = useState([])
-  const [topicStats, setTopicStats] = useState(loadStoredTopicStats)
+  const [topicStats, setTopicStats] = useState(() => loadStoredTopicStats(selectedAircraftId))
   const [adminForm, setAdminForm] = useState(null)
   const [adminMode, setAdminMode] = useState(null)
   const [adminFormError, setAdminFormError] = useState('')
@@ -828,6 +843,12 @@ function App() {
   const [hasManualChunks, setHasManualChunks] = useState(false)
   const [manualChunksCount, setManualChunksCount] = useState(null)
   const [hasManualSearchRun, setHasManualSearchRun] = useState(false)
+  const activeAircraft = getAircraftConfig(selectedAircraftId)
+  const questions = activeAircraft?.questions || []
+  const activeMemoryItems = activeAircraft?.memoryItems || []
+  const dataSource = activeAircraft?.questionBankSource || ''
+  const supportsAircraftSystemsScope = Boolean(activeAircraft?.supportsAircraftSystemsScope)
+  const aircraftAppTitle = activeAircraft ? `${activeAircraft.label} Study App` : 'Aircraft Study App'
 
   useEffect(() => {
     let isMounted = true
@@ -838,7 +859,7 @@ function App() {
       if (isMounted) {
         setManualDocuments(manualResult.data || [])
         setIsManualCatalogLoading(false)
-        if (GENERATED_QUESTIONS.length === 0) {
+        if (activeAircraft && questions.length === 0) {
           setLoadError('Generated question bank is empty. Run npm run build:questions.')
         }
       }
@@ -849,7 +870,7 @@ function App() {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [activeAircraft, questions.length])
 
   useEffect(() => {
     let isMounted = true
@@ -909,6 +930,46 @@ function App() {
   }, [selectedMemoryVisualAid])
 
   useEffect(() => {
+    if (!selectedAircraftId) {
+      setTopicStats({})
+      setMarkedQuestions({})
+      return
+    }
+
+    setTopicStats(loadStoredTopicStats(selectedAircraftId))
+    setMarkedQuestions(loadStoredMarkedQuestions(selectedAircraftId))
+    setView('dashboard')
+    setSelectedTopic('')
+    setQuestionIndex(0)
+    setSelectedAnswer(null)
+    setAnswered(false)
+    setCorrect(false)
+    setPracticeMode('topic')
+    setIsReviewingWrongAnswers(false)
+    setIsSessionComplete(false)
+    setSessionResults([])
+    setFinalTestScope(FINAL_TEST_SCOPES.ALL)
+    setFinalTestSelectedTopics([])
+    setFinalTestSessionQuestions([])
+    setTopicSessionQuestions([])
+    setPendingResumeTopic('')
+    setMarkedReviewQuestions([])
+    setQuestionBankTopicFilter('')
+    setQuestionBankCorrectFilter('')
+    setQuestionBankSearch('')
+    setMemoryTopicFilter('')
+    setMemoryCategoryFilter('')
+    setMemorySearch('')
+    setMemoryMode(MEMORY_MODES.STUDY)
+  }, [selectedAircraftId])
+
+  useEffect(() => {
+    if (!supportsAircraftSystemsScope && finalTestScope === FINAL_TEST_SCOPES.AIRCRAFT_SYSTEMS) {
+      setFinalTestScope(FINAL_TEST_SCOPES.ALL)
+    }
+  }, [finalTestScope, supportsAircraftSystemsScope])
+
+  useEffect(() => {
     let isMounted = true
 
     const checkManualChunks = async () => {
@@ -956,10 +1017,16 @@ function App() {
   }, new Map())
   const questionLookup = createQuestionLookup(questions)
   const currentTopic = topics.includes(selectedTopic) ? selectedTopic : topics[0] || ''
-  const finalTestEligibleQuestions = getEligibleFinalTestQuestions(questions, finalTestScope, finalTestSelectedTopics)
+  const effectiveFinalTestScope = supportsAircraftSystemsScope || finalTestScope !== FINAL_TEST_SCOPES.AIRCRAFT_SYSTEMS
+    ? finalTestScope
+    : FINAL_TEST_SCOPES.ALL
+  const finalTestScopeOptions = Object.entries(FINAL_TEST_SCOPE_LABELS).filter(([scope]) => (
+    supportsAircraftSystemsScope || scope !== FINAL_TEST_SCOPES.AIRCRAFT_SYSTEMS
+  ))
+  const finalTestEligibleQuestions = getEligibleFinalTestQuestions(questions, effectiveFinalTestScope, finalTestSelectedTopics)
   const finalTestAvailableCount = finalTestEligibleQuestions.length
   const finalTestPlannedCount = Math.min(finalTestCount, finalTestAvailableCount)
-  const finalTestScopeLabel = FINAL_TEST_SCOPE_LABELS[finalTestScope] || FINAL_TEST_SCOPE_LABELS[FINAL_TEST_SCOPES.ALL]
+  const finalTestScopeLabel = FINAL_TEST_SCOPE_LABELS[effectiveFinalTestScope] || FINAL_TEST_SCOPE_LABELS[FINAL_TEST_SCOPES.ALL]
   const activeFinalTestScopeLabel =
     FINAL_TEST_SCOPE_LABELS[finalTestSessionConfig.scope] || FINAL_TEST_SCOPE_LABELS[FINAL_TEST_SCOPES.ALL]
   const wrongResults = sessionResults.filter((result) => !result.isCorrect)
@@ -995,10 +1062,10 @@ function App() {
   const sourceDocuments = getUniqueReferenceValues(questions, 'sourceDocument')
   const referenceTopics = getUniqueReferenceValues(questions, 'topic')
   const selectedMemoryAircraftLabel = MEMORY_AIRCRAFT_LABELS[selectedMemoryAircraft]
-  const applicableMemoryItems = MEMORY_ITEMS
+  const applicableMemoryItems = activeMemoryItems
     .filter((item) => isMemoryItemApplicableToAircraft(item, selectedMemoryAircraft))
     .map((item) => resolveMemoryItemForAircraft(item, selectedMemoryAircraft))
-  const comparableMemoryItems = MEMORY_ITEMS.filter((item) => (
+  const comparableMemoryItems = activeMemoryItems.filter((item) => (
     isMemoryItemApplicableToAircraft(item, MEMORY_AIRCRAFT.NG) &&
     isMemoryItemApplicableToAircraft(item, MEMORY_AIRCRAFT.MAX)
   ))
@@ -1096,6 +1163,7 @@ function App() {
   const accuracyLabel = totalTopicAnswered > 0 ? `${Math.round((totalTopicCorrect / totalTopicAnswered) * 100)}%` : '—'
   const weakTopicCount = topicPerformanceRows.filter((row) => row.status === 'Needs Focus').length
   const weakTopicsLabel = totalTopicAnswered > 0 ? weakTopicCount : '—'
+  const memoryItemsDashboardValue = activeAircraft?.memoryItemsAvailable ? activeMemoryItems.length : 'Coming soon'
   const progressPercent = isSessionComplete
     ? 100
     : completedCount > 0
@@ -1123,7 +1191,7 @@ function App() {
     .filter(Boolean)
 
   const getValidStoredTopicSession = (topic) => {
-    const storedSession = loadStoredInProgressTopicSessions()[topic]
+    const storedSession = loadStoredInProgressTopicSessions(selectedAircraftId)[topic]
 
     if (!storedSession || storedSession.completed) return null
     if (!Array.isArray(storedSession.questionKeys) || storedSession.questionKeys.length === 0) return null
@@ -1145,9 +1213,9 @@ function App() {
   const clearInProgressSession = (topic) => {
     if (!topic) return
 
-    const next = { ...loadStoredInProgressTopicSessions() }
+    const next = { ...loadStoredInProgressTopicSessions(selectedAircraftId) }
     delete next[topic]
-    saveStoredInProgressTopicSessions(next)
+    saveStoredInProgressTopicSessions(selectedAircraftId, next)
   }
 
   const startNewTopicSession = (topic = currentTopic) => {
@@ -1201,7 +1269,7 @@ function App() {
   const handleStartFinalTest = () => {
     const selectedQuestions = selectFinalTestQuestions({
       questions,
-      scope: finalTestScope,
+      scope: effectiveFinalTestScope,
       selectedTopics: finalTestSelectedTopics,
       requestedCount: finalTestCount,
     })
@@ -1214,7 +1282,7 @@ function App() {
     setTopicSessionQuestions([])
     setMarkedReviewQuestions([])
     setFinalTestSessionConfig({
-      scope: finalTestScope,
+      scope: effectiveFinalTestScope,
       count: finalTestCount,
       selectedTopics: [...finalTestSelectedTopics],
     })
@@ -1226,10 +1294,14 @@ function App() {
   }
 
   const handleRetrySession = () => {
+    const retryScope = supportsAircraftSystemsScope || finalTestSessionConfig.scope !== FINAL_TEST_SCOPES.AIRCRAFT_SYSTEMS
+      ? finalTestSessionConfig.scope
+      : FINAL_TEST_SCOPES.ALL
+
     if (practiceMode === 'final') {
       const selectedQuestions = selectFinalTestQuestions({
         questions,
-        scope: finalTestSessionConfig.scope,
+        scope: retryScope,
         selectedTopics: finalTestSessionConfig.selectedTopics,
         requestedCount: finalTestSessionConfig.count,
       })
@@ -1311,7 +1383,7 @@ function App() {
         },
       }
 
-      saveStoredTopicStats(nextStats)
+      saveStoredTopicStats(selectedAircraftId, nextStats)
       return nextStats
     })
   }
@@ -1382,7 +1454,19 @@ function App() {
   }
 
   const handleFinalTestScopeChange = (scope) => {
+    if (!supportsAircraftSystemsScope && scope === FINAL_TEST_SCOPES.AIRCRAFT_SYSTEMS) return
     setFinalTestScope(scope)
+  }
+
+  const handleSelectAircraft = (aircraftId) => {
+    if (!getAircraftConfig(aircraftId)) return
+    saveSelectedAircraft(aircraftId)
+    setSelectedAircraftId(aircraftId)
+  }
+
+  const handleChangeAircraft = () => {
+    saveSelectedAircraft('')
+    setSelectedAircraftId('')
   }
 
   const handleFinalTestTopicToggle = (topic) => {
@@ -1399,7 +1483,7 @@ function App() {
     if (!shouldReset) return
 
     setTopicStats({})
-    clearStoredStudyProgress()
+    clearStoredStudyProgress(selectedAircraftId)
   }
 
   const handleToggleMarkForReview = () => {
@@ -1424,7 +1508,7 @@ function App() {
         delete next[topic]
       }
 
-      saveStoredMarkedQuestions(next)
+      saveStoredMarkedQuestions(selectedAircraftId, next)
       return next
     })
   }
@@ -2053,6 +2137,7 @@ function App() {
 
   useEffect(() => {
     if (
+      !selectedAircraftId ||
       view !== 'quiz' ||
       practiceMode !== 'topic' ||
       isReviewingWrongAnswers ||
@@ -2074,8 +2159,8 @@ function App() {
       completed: false,
     }
 
-    saveStoredInProgressTopicSessions({
-      ...loadStoredInProgressTopicSessions(),
+    saveStoredInProgressTopicSessions(selectedAircraftId, {
+      ...loadStoredInProgressTopicSessions(selectedAircraftId),
       [currentTopic]: {
         ...storedSession,
         updatedAt: new Date().toISOString(),
@@ -2090,19 +2175,22 @@ function App() {
     practiceMode,
     questionIndex,
     selectedAnswer,
+    selectedAircraftId,
     sessionResults,
     topicSessionQuestions,
     view,
   ])
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${activeAircraft?.themeClass || 'aircraft-selection-shell'}`}>
       <header className="app-header">
         <div>
-          <p className="eyebrow">B737 Study App</p>
-          <h1>Study Questions</h1>
+          <p className="eyebrow">{activeAircraft ? activeAircraft.shortLabel : 'Aircraft Study App'}</p>
+          <h1>{activeAircraft ? aircraftAppTitle : 'Aircraft Study App'}</h1>
           <p className="subtitle">
-            Practice the question bank with focused and randomized sessions.
+            {activeAircraft
+              ? 'Practice the question bank with focused and randomized sessions.'
+              : 'Choose aircraft'}
           </p>
         </div>
         <div className="header-status">
@@ -2112,6 +2200,11 @@ function App() {
             </span>
           )}
           <span className="version-badge">{APP_VERSION}</span>
+          {activeAircraft && (
+            <button className="button button-secondary button-small" onClick={handleChangeAircraft}>
+              Change aircraft
+            </button>
+          )}
         </div>
       </header>
 
@@ -2173,6 +2266,26 @@ function App() {
         </div>
       )}
 
+      {!activeAircraft ? (
+        <main className="aircraft-selection-view">
+          <div className="aircraft-selection-grid">
+            {AIRCRAFT_OPTIONS.map((aircraft) => (
+              <article className={`aircraft-selection-card ${aircraft.themeClass}`} key={aircraft.id}>
+                <div>
+                  <p className="eyebrow">{aircraft.shortLabel}</p>
+                  <h2>{aircraft.label}</h2>
+                  <p>{aircraft.id === AIRCRAFT_IDS.B737
+                    ? 'B737 question bank, Memory Items, NG/MAX comparison.'
+                    : 'B787 question bank and study tools.'}</p>
+                </div>
+                <button className="button button-primary" onClick={() => handleSelectAircraft(aircraft.id)}>
+                  Open {aircraft.shortLabel}
+                </button>
+              </article>
+            ))}
+          </div>
+        </main>
+      ) : (
       <div className="app-layout">
         <aside className="sidebar-nav" aria-label="Primary navigation">
           {[
@@ -2241,9 +2354,18 @@ function App() {
 
               <article className="action-card memory-card memory-card-neutral">
                 <h3 className="memory-title-critical">MEMORY ITEMS</h3>
-                <span className="memory-aircraft-badge">{`${MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.NG]} / ${MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.MAX]}`}</span>
-                <p>{MEMORY_ITEMS.length} checklists</p>
-                <p>QRH recall items</p>
+                {activeAircraft.memoryItemsAvailable ? (
+                  <>
+                    <span className="memory-aircraft-badge">{`${MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.NG]} / ${MEMORY_AIRCRAFT_LABELS[MEMORY_AIRCRAFT.MAX]}`}</span>
+                    <p>{activeMemoryItems.length} checklists</p>
+                    <p>QRH recall items</p>
+                  </>
+                ) : (
+                  <>
+                    <span className="memory-aircraft-badge">Coming soon</span>
+                    <p>B787 memory items will be added later.</p>
+                  </>
+                )}
                 <div className="card-actions">
                   <button
                     className="button button-secondary"
@@ -2274,7 +2396,7 @@ function App() {
               </div>
               <div>
                 <span>Memory Items</span>
-                <strong>{MEMORY_ITEMS.length}</strong>
+                <strong>{memoryItemsDashboardValue}</strong>
               </div>
             </div>
 
@@ -2352,6 +2474,7 @@ function App() {
               <div>
                 <p className="eyebrow">Question Bank</p>
                 <h2>Question Bank</h2>
+                <span className="aircraft-badge">{activeAircraft.label}</span>
                 <p className="subtitle">Search all questions, answers, topics, and IDs.</p>
               </div>
               <button className="button button-ghost" onClick={handleBackToDashboard}>
@@ -2435,7 +2558,7 @@ function App() {
               <div className="question-bank-summary">
                 <span>Total questions: <strong>{questions.length}</strong></span>
                 <span>Results: <strong>{questionBankResults.length}</strong></span>
-                <span>Source: <strong>{DATA_SOURCE_GENERATED}</strong></span>
+                <span>Source: <strong>{dataSource}</strong></span>
               </div>
 
               <div className="question-bank-results">
@@ -2450,18 +2573,33 @@ function App() {
             <div className="section-header">
               <div>
                 <p className="eyebrow">Memory Items</p>
-                <h2>Memory Items</h2>
-                <div className="memory-header-badges">
-                  <span className="memory-aircraft-badge">{selectedMemoryAircraftLabel}</span>
-                  <span className="memory-critical-badge">CRITICAL RECALL ITEMS</span>
-                </div>
-                <p className="subtitle">QRH-style checklist reference for critical recall items.</p>
+                <h2>{activeAircraft.memoryItemsAvailable ? 'Memory Items' : `${activeAircraft.shortLabel} Memory Items`}</h2>
+                {activeAircraft.memoryItemsAvailable && (
+                  <div className="memory-header-badges">
+                    <span className="memory-aircraft-badge">{selectedMemoryAircraftLabel}</span>
+                    <span className="memory-critical-badge">CRITICAL RECALL ITEMS</span>
+                  </div>
+                )}
+                <p className="subtitle">
+                  {activeAircraft.memoryItemsAvailable
+                    ? 'QRH-style checklist reference for critical recall items.'
+                    : `Memory Items for ${activeAircraft.shortLabel} are not loaded yet.`}
+                </p>
               </div>
               <button className="button button-ghost" onClick={handleBackToDashboard}>
                 Back to dashboard
               </button>
             </div>
 
+            {!activeAircraft.memoryItemsAvailable ? (
+              <article className="memory-unavailable-card">
+                <p className="eyebrow">{activeAircraft.shortLabel}</p>
+                <h3>{activeAircraft.shortLabel} Memory Items</h3>
+                <p>Memory Items for {activeAircraft.shortLabel} are not loaded yet.</p>
+                <span>Add {activeAircraft.shortLabel} memory items later.</span>
+              </article>
+            ) : (
+              <>
             <div className="memory-aircraft-selector">
               <span>Aircraft:</span>
               <div className="segmented-control">
@@ -2552,6 +2690,8 @@ function App() {
                 )}
               </div>
             )}
+              </>
+            )}
           </section>
         )}
 
@@ -2566,7 +2706,7 @@ function App() {
                 <div className="setup-group">
                   <span>Study scope</span>
                   <div className="segmented-control">
-                    {Object.entries(FINAL_TEST_SCOPE_LABELS).map(([scope, label]) => (
+                    {finalTestScopeOptions.map(([scope, label]) => (
                       <button
                         key={scope}
                         className={finalTestScope === scope ? 'segmented-option segmented-option-active' : 'segmented-option'}
@@ -3458,16 +3598,17 @@ function App() {
               </div>
               <div className="stat-card">
                 <span>Total Memory Items</span>
-                <strong>{MEMORY_ITEMS.length}</strong>
+                <strong>{memoryItemsDashboardValue}</strong>
               </div>
             </div>
           </section>
         )}
       </main>
       </div>
+      )}
 
       <footer className="app-footer">
-        B737 Study App {APP_VERSION}
+        {activeAircraft ? aircraftAppTitle : 'Aircraft Study App'} {APP_VERSION}
       </footer>
     </div>
   )
