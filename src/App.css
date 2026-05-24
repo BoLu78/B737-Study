@@ -1085,6 +1085,57 @@ code {
   margin-top: 0;
 }
 
+.memory-visual-aid-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.62);
+  border: 1px solid rgba(125, 211, 252, 0.18);
+}
+
+.memory-visual-aid-panel-compact {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 0;
+}
+
+.memory-visual-aid-panel h4 {
+  margin: 0;
+  color: #bae6fd;
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.memory-visual-aid-list {
+  display: grid;
+  gap: 10px;
+}
+
+.memory-visual-aid-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
+}
+
+.memory-visual-aid-title {
+  display: block;
+  color: #e0f2fe;
+  font-size: 0.98rem;
+  overflow-wrap: anywhere;
+}
+
+.memory-visual-aid-description,
+.memory-diagram-description {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
 .memory-step-list {
   display: grid;
   gap: 12px;
@@ -1151,6 +1202,65 @@ code {
 .memory-step-list li::marker {
   color: #bae6fd;
   font-weight: 700;
+}
+
+.memory-diagram-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow-y: auto;
+  background: rgba(2, 6, 23, 0.78);
+}
+
+.memory-diagram-modal {
+  width: min(1100px, 100%);
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  border-radius: 18px;
+  background: rgba(7, 16, 34, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: var(--shadow);
+}
+
+.memory-diagram-modal-content {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.memory-diagram-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.memory-diagram-header h2 {
+  margin: 4px 0 0;
+  color: #dbeafe;
+  font-size: 1.25rem;
+}
+
+.memory-diagram-image-wrap {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  text-align: center;
+}
+
+.memory-diagram-image {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 80vh;
+  margin: 0 auto;
+  object-fit: contain;
+  border-radius: 10px;
 }
 
 .memory-note-list-item {
@@ -2628,8 +2738,27 @@ td:nth-child(10) {
     flex-direction: column;
   }
 
-  .memory-item-header {
+  .memory-item-header,
+  .memory-visual-aid-item,
+  .memory-diagram-header {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .memory-diagram-modal-backdrop {
+    padding: 12px;
+  }
+
+  .memory-diagram-modal {
+    max-height: calc(100vh - 24px);
+  }
+
+  .memory-diagram-modal-content {
+    padding: 14px;
+  }
+
+  .memory-diagram-image-wrap {
+    padding: 8px;
   }
 
   .memory-status-list,

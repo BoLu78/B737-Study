@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.25'
+const APP_VERSION = 'v8.26'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -798,6 +798,7 @@ function App() {
   const [memoryTopicFilter, setMemoryTopicFilter] = useState('')
   const [memoryCategoryFilter, setMemoryCategoryFilter] = useState('')
   const [memorySearch, setMemorySearch] = useState('')
+  const [selectedMemoryVisualAid, setSelectedMemoryVisualAid] = useState(null)
   const [questionBankSearch, setQuestionBankSearch] = useState('')
   const [questionBankTopicFilter, setQuestionBankTopicFilter] = useState('')
   const [questionBankCorrectFilter, setQuestionBankCorrectFilter] = useState('')
@@ -886,6 +887,22 @@ function App() {
       window.clearTimeout(timeoutId)
     }
   }, [fallbackManualLink])
+
+  useEffect(() => {
+    if (!selectedMemoryVisualAid) return undefined
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setSelectedMemoryVisualAid(null)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [selectedMemoryVisualAid])
 
   useEffect(() => {
     let isMounted = true
@@ -1763,6 +1780,7 @@ function App() {
         </label>
 
         {memoryItemsIdentical && <p className="memory-identical-badge">Memory items identical</p>}
+        {renderMemoryVisualAidPanel(activeCompareMemoryItem.visualAids, { compact: true })}
         <div className="memory-compare-grid">
           {renderCompareChecklistCard(ngItem, MEMORY_AIRCRAFT.NG, MEMORY_AIRCRAFT.MAX, ngStepLines, maxStepLines)}
           {renderCompareChecklistCard(maxItem, MEMORY_AIRCRAFT.MAX, MEMORY_AIRCRAFT.NG, maxStepLines, ngStepLines)}
@@ -1789,8 +1807,34 @@ function App() {
       {renderMemoryVisualCues(item)}
       {renderMemoryInfoPanels(item)}
       {renderMemorySteps(item)}
+      {renderMemoryVisualAidPanel(item.visualAids)}
     </article>
   )
+
+  const renderMemoryVisualAidPanel = (visualAids, options = {}) => {
+    if (!Array.isArray(visualAids) || visualAids.length === 0) return null
+
+    return (
+      <section className={options.compact ? 'memory-visual-aid-panel memory-visual-aid-panel-compact' : 'memory-visual-aid-panel'}>
+        <h4>{options.compact ? 'Visual aid available' : 'Visual aid'}</h4>
+        <div className="memory-visual-aid-list">
+          {visualAids.map((visualAid) => (
+            <div className="memory-visual-aid-item" key={`${visualAid.title}-${visualAid.imageSrc}`}>
+              {!options.compact && (
+                <div>
+                  <strong className="memory-visual-aid-title">{visualAid.title}</strong>
+                  {visualAid.description && <p className="memory-visual-aid-description">{visualAid.description}</p>}
+                </div>
+              )}
+              <button className="button button-secondary button-small" onClick={() => setSelectedMemoryVisualAid(visualAid)}>
+                Open diagram
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   const renderQuestionBankResultCard = (entry) => {
     const topicColor = topicColorMap.get(entry.topicText) || '#e5e7eb'
@@ -2100,6 +2144,40 @@ function App() {
               <button className="button button-secondary" onClick={handleRestartTopicSession}>
                 Restart
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedMemoryVisualAid && (
+        <div className="memory-diagram-modal-backdrop" role="presentation" onClick={() => setSelectedMemoryVisualAid(null)}>
+          <div
+            className="memory-diagram-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="memory-diagram-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="memory-diagram-modal-content">
+              <div className="memory-diagram-header">
+                <div>
+                  <p className="eyebrow">Visual aid</p>
+                  <h2 id="memory-diagram-title">{selectedMemoryVisualAid.title}</h2>
+                </div>
+                <button className="button button-ghost memory-diagram-close" onClick={() => setSelectedMemoryVisualAid(null)}>
+                  Close
+                </button>
+              </div>
+              {selectedMemoryVisualAid.description && (
+                <p className="memory-diagram-description">{selectedMemoryVisualAid.description}</p>
+              )}
+              <div className="memory-diagram-image-wrap">
+                <img
+                  className="memory-diagram-image"
+                  src={selectedMemoryVisualAid.imageSrc}
+                  alt={`${selectedMemoryVisualAid.title} diagram`}
+                />
+              </div>
             </div>
           </div>
         </div>

@@ -1,3 +1,5 @@
+const MEMORY_DIAGRAM_BASE_PATH = `${import.meta.env?.BASE_URL || '/B737-Study/'}assets/memory-items/diagrams`
+
 export const MEMORY_ITEMS = [
   {
     id: 'aborted-engine-start',
@@ -194,6 +196,13 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Pressurization',
     priority: 'critical',
+    visualAids: [
+      {
+        title: 'Emergency Descent flow',
+        imageSrc: `${MEMORY_DIAGRAM_BASE_PATH}/emergency-descent-flow.png`,
+        description: 'PF/PM emergency descent flow diagram.',
+      },
+    ],
     compare: {
       conditions: {
         '737NG': [
@@ -261,6 +270,13 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Fire Protection',
     priority: 'critical',
+    visualAids: [
+      {
+        title: 'Engine Failure After V1',
+        imageSrc: `${MEMORY_DIAGRAM_BASE_PATH}/Engine-Failure-After-V1.png`,
+        description: 'Engine failure after V1 visual flow.',
+      },
+    ],
     compare: {
       conditions: {
         '737NG': [
@@ -742,6 +758,13 @@ export const MEMORY_ITEMS = [
     category: 'Non-Normal Checklist',
     topic: 'Engines',
     priority: 'critical',
+    visualAids: [
+      {
+        title: 'Drift Down',
+        imageSrc: `${MEMORY_DIAGRAM_BASE_PATH}/Drift-Down.png`,
+        description: 'Drift down visual flow.',
+      },
+    ],
     compare: {
       conditions: {
         '737NG': [
