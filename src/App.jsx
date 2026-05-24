@@ -23,7 +23,7 @@ import {
 } from './utils/finalTestSelection'
 import { getCanonicalTopic } from './utils/topicNormalizer'
 
-const APP_VERSION = 'v8.23'
+const APP_VERSION = 'v8.24'
 const STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
 const IN_PROGRESS_TOPIC_SESSIONS_STORAGE_KEY = 'b737StudyInProgressTopicSessions_v8_2'
@@ -225,6 +225,97 @@ function displayReferenceValue(value) {
 
 function displayQuestionSourceId(question) {
   return displayReferenceValue(question?.sourceId)
+}
+
+function normalizeSearchValue(value) {
+  return String(value ?? '').replace(/\s+/g, ' ').trim().toLowerCase()
+}
+
+function parseQuestionBankSearchQuery(query) {
+  const normalizedQuery = String(query || '').replace(/\s+/g, ' ').trim()
+  const phrases = []
+  const remainingQuery = normalizedQuery.replace(/"([^"]+)"/g, (_, phrase) => {
+    const normalizedPhrase = normalizeSearchValue(phrase)
+    if (normalizedPhrase) {
+      phrases.push(normalizedPhrase)
+    }
+    return ' '
+  })
+  const terms = remainingQuery
+    .split(' ')
+    .map(normalizeSearchValue)
+    .filter(Boolean)
+
+  return { phrases, terms }
+}
+
+function getQuestionBankSearchFields(question) {
+  const options = normalizeQuizOptions(question)
+  const correctAnswerKey = getCorrectAnswerKey(question)
+  const correctAnswerText = options.find((option) => option.key === correctAnswerKey)?.text || ''
+
+  return [
+    question?.id,
+    question?.sourceId,
+    question?.topic,
+    cleanQuestionText(question?.question || ''),
+    ...ANSWER_KEYS.map((_, index) => cleanAnswerText(question?.answers?.[index] || '')),
+    correctAnswerText,
+    question?.manualReference,
+    question?.sourceDocument,
+  ]
+}
+
+function questionMatchesSearchQuery(question, parsedQuery) {
+  const searchText = normalizeSearchValue(getQuestionBankSearchFields(question).join(' '))
+  return [...parsedQuery.phrases, ...parsedQuery.terms].every((term) => searchText.includes(term))
+}
+
+function compareQuestionIds(firstQuestion, secondQuestion) {
+  const firstId = Number(displayQuestionSourceId(firstQuestion))
+  const secondId = Number(displayQuestionSourceId(secondQuestion))
+  const firstHasNumericId = Number.isFinite(firstId)
+  const secondHasNumericId = Number.isFinite(secondId)
+
+  if (firstHasNumericId && secondHasNumericId) return firstId - secondId
+  if (firstHasNumericId) return -1
+  if (secondHasNumericId) return 1
+  return 0
+}
+
+function getHighlightTerms(query) {
+  const parsedQuery = parseQuestionBankSearchQuery(query)
+  return [...parsedQuery.phrases, ...parsedQuery.terms]
+    .filter(Boolean)
+    .sort((first, second) => second.length - first.length)
+}
+
+function highlightSearchMatches(text, query) {
+  const sourceText = String(text ?? '')
+  const terms = getHighlightTerms(query)
+
+  if (!sourceText || terms.length === 0) return sourceText
+
+  return terms.reduce((parts, term) => (
+    parts.flatMap((part, partIndex) => {
+      if (typeof part !== 'string') return part
+
+      const lowerPart = part.toLowerCase()
+      const lowerTerm = term.toLowerCase()
+      const termIndex = lowerPart.indexOf(lowerTerm)
+      if (termIndex < 0) return part
+
+      const before = part.slice(0, termIndex)
+      const match = part.slice(termIndex, termIndex + term.length)
+      const after = part.slice(termIndex + term.length)
+
+      return [
+        before,
+        <mark key={`${term}-${partIndex}-${termIndex}`}>{match}</mark>,
+        after,
+      ].filter((item) => item !== '')
+    })
+  ), [sourceText])
 }
 
 function getQuestionStorageKey(question) {
@@ -605,6 +696,10 @@ function App() {
   const [memoryTopicFilter, setMemoryTopicFilter] = useState('')
   const [memoryCategoryFilter, setMemoryCategoryFilter] = useState('')
   const [memorySearch, setMemorySearch] = useState('')
+  const [questionBankSearch, setQuestionBankSearch] = useState('')
+  const [questionBankTopicFilter, setQuestionBankTopicFilter] = useState('')
+  const [questionBankCorrectFilter, setQuestionBankCorrectFilter] = useState('')
+  const [questionBankActiveOnly, setQuestionBankActiveOnly] = useState(false)
   const [manualDocuments, setManualDocuments] = useState([])
   const [isManualCatalogLoading, setIsManualCatalogLoading] = useState(true)
   const [manualSession, setManualSession] = useState(null)
@@ -807,6 +902,19 @@ function App() {
 
     return matchesSource && matchesTopic && matchesSearch
   })
+  const parsedQuestionBankSearch = parseQuestionBankSearchQuery(questionBankSearch)
+  const questionBankResults = questions
+    .map((question, index) => ({ question, index }))
+    .filter(({ question }) => {
+      const matchesTopic = !questionBankTopicFilter || question.topic === questionBankTopicFilter
+      const matchesCorrectAnswer = !questionBankCorrectFilter || getCorrectAnswerKey(question) === questionBankCorrectFilter
+      const matchesStatus = !questionBankActiveOnly || question.status === 'active'
+      const matchesSearch = questionMatchesSearchQuery(question, parsedQuestionBankSearch)
+
+      return matchesTopic && matchesCorrectAnswer && matchesStatus && matchesSearch
+    })
+    .sort((first, second) => compareQuestionIds(first.question, second.question) || first.index - second.index)
+    .map(({ question }) => question)
   const hasManualCatalog = manualDocuments.length > 0
   const isManualSignedIn = Boolean(manualSession)
   const manualSearchManualTypes = getUniqueReferenceValues(manualDocuments, 'manual_type')
@@ -1310,17 +1418,48 @@ function App() {
     </ol>
   )
 
-  const renderMemoryInfoPanel = (title, lines, className) => {
+  const hasStructuredConditionLines = (title, lines) => (
+    title.toLowerCase() === 'condition' &&
+    lines.length > 1 &&
+    String(lines[0] || '').trim().endsWith(':')
+  )
+
+  const renderMemoryInfoLines = (title, lines, otherLines = null) => {
+    const getLineClassName = (line, index) => (
+      otherLines ? getCompareLineClassName(line, otherLines[index]) : undefined
+    )
+
+    if (hasStructuredConditionLines(title, lines)) {
+      return (
+        <div>
+          <p className={getLineClassName(lines[0], 0)}>{lines[0]}</p>
+          <ul className="memory-condition-list">
+            {lines.slice(1).map((line, index) => (
+              <li className={getLineClassName(line, index + 1)} key={`${title}-${line}-${index}`}>
+                {line}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+
+    return (
+      <div className={otherLines ? 'memory-compare-lines' : undefined}>
+        {lines.map((line, index) => (
+          <p className={getLineClassName(line, index)} key={`${title}-${index}`}>{line}</p>
+        ))}
+      </div>
+    )
+  }
+
+  const renderMemoryInfoPanel = (title, lines, className, otherLines = null) => {
     if (!lines?.length) return null
 
     return (
       <section className={className}>
-        <strong>{title}</strong>
-        <div>
-          {lines.map((line, index) => (
-            <p key={`${title}-${index}`}>{line}</p>
-          ))}
-        </div>
+        <strong className="memory-info-label">{title}</strong>
+        {renderMemoryInfoLines(title, lines, otherLines)}
       </section>
     )
   }
@@ -1448,18 +1587,8 @@ function App() {
         <h3 className="memory-compare-column-title">{MEMORY_AIRCRAFT_LABELS[aircraft]}</h3>
         {renderMemoryTitle(item)}
         {renderCompareCueGroups(cueGroups, otherCueGroups, `${item.title} ${aircraft}`)}
-        {conditionLines.length > 0 && (
-          <section className="memory-condition-panel">
-            <strong>Condition</strong>
-            {renderCompareChecklistLines(conditionLines, otherConditionLines)}
-          </section>
-        )}
-        {objectiveLines.length > 0 && (
-          <section className="memory-objective-panel">
-            <strong>Objective</strong>
-            {renderCompareChecklistLines(objectiveLines, otherObjectiveLines)}
-          </section>
-        )}
+        {renderMemoryInfoPanel('Condition', conditionLines, 'memory-condition-panel', otherConditionLines)}
+        {renderMemoryInfoPanel('Objective', objectiveLines, 'memory-objective-panel', otherObjectiveLines)}
         <section className="memory-compare-section">
           <h4>Memory Items</h4>
           {renderCompareChecklistLines(stepLines, otherStepLines)}
@@ -1534,6 +1663,59 @@ function App() {
       {renderMemorySteps(item)}
     </article>
   )
+
+  const renderQuestionBankResultCard = (question) => {
+    const correctAnswerKey = getCorrectAnswerKey(question)
+
+    return (
+      <article className="question-bank-card" key={`question-bank-${question.id}`}>
+        <div className="question-bank-card-header">
+          <span className="question-id">Question ID: {highlightSearchMatches(displayQuestionSourceId(question), questionBankSearch)}</span>
+          <span>Topic: {highlightSearchMatches(question.topic, questionBankSearch)}</span>
+        </div>
+
+        <div className="question-bank-question">
+          <span>Question:</span>
+          <h3>{highlightSearchMatches(cleanQuestionText(question.question), questionBankSearch)}</h3>
+        </div>
+
+        <div className="question-bank-answers">
+          {ANSWER_KEYS.map((key, index) => {
+            const answerText = cleanAnswerText(question.answers?.[index] || '')
+            const isCorrectAnswer = correctAnswerKey === key
+
+            return (
+              <div className={isCorrectAnswer ? 'question-bank-answer question-bank-answer-correct' : 'question-bank-answer'} key={`${question.id}-${key}`}>
+                <span className="answer-key">{key}</span>
+                <span className="answer-text">{highlightSearchMatches(answerText || '—', questionBankSearch)}</span>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="question-bank-correct">
+          Correct answer: <strong>{correctAnswerKey}</strong>
+        </div>
+
+        {(displayReferenceValue(question.manualReference) !== '—' || displayReferenceValue(question.sourceDocument) !== '—') && (
+          <dl className="reference-meta question-bank-meta">
+            {displayReferenceValue(question.manualReference) !== '—' && (
+              <div>
+                <dt>Manual reference</dt>
+                <dd>{highlightSearchMatches(question.manualReference, questionBankSearch)}</dd>
+              </div>
+            )}
+            {displayReferenceValue(question.sourceDocument) !== '—' && (
+              <div>
+                <dt>Source</dt>
+                <dd>{highlightSearchMatches(question.sourceDocument, questionBankSearch)}</dd>
+              </div>
+            )}
+          </dl>
+        )}
+      </article>
+    )
+  }
 
   const handleManualSignIn = async (event) => {
     event.preventDefault()
@@ -1785,6 +1967,7 @@ function App() {
             ['dashboard', 'Dashboard'],
             ['final-test', 'Study'],
             ['topics', 'Topics'],
+            ['question-bank', 'Question Bank'],
             ['memory-items', 'Memory Items'],
             ['stats', 'Stats'],
           ].map(([targetView, label]) => (
@@ -1826,6 +2009,20 @@ function App() {
                     disabled={isLoading}
                   >
                     Topics
+                  </button>
+                </div>
+              </article>
+
+              <article className="action-card">
+                <h3>Question Bank</h3>
+                <p>Search the full question database.</p>
+                <div className="card-actions">
+                  <button
+                    className="button button-secondary"
+                    onClick={() => setView('question-bank')}
+                    disabled={isLoading || questions.length === 0}
+                  >
+                    Search Questions
                   </button>
                 </div>
               </article>
@@ -1953,6 +2150,78 @@ function App() {
                   </article>
                 )
               })}
+            </div>
+          </section>
+        )}
+
+        {view === 'question-bank' && (
+          <section className="question-bank-view">
+            <div className="section-header">
+              <div>
+                <p className="eyebrow">Question Bank</p>
+                <h2>Question Bank</h2>
+                <p className="subtitle">Search all questions, answers, topics, and IDs.</p>
+              </div>
+              <button className="button button-ghost" onClick={handleBackToDashboard}>
+                Back to dashboard
+              </button>
+            </div>
+
+            <div className="question-bank-filters">
+              <label className="field-label question-bank-search-field">
+                Search
+                <input
+                  type="search"
+                  value={questionBankSearch}
+                  onChange={(event) => setQuestionBankSearch(event.target.value)}
+                  placeholder="Search word or phrase..."
+                />
+              </label>
+              <label className="field-label">
+                Topic
+                <select value={questionBankTopicFilter} onChange={(event) => setQuestionBankTopicFilter(event.target.value)}>
+                  <option value="">All topics</option>
+                  {topics.map((topic) => (
+                    <option key={topic} value={topic}>
+                      {topic}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="field-label">
+                Correct answer
+                <select value={questionBankCorrectFilter} onChange={(event) => setQuestionBankCorrectFilter(event.target.value)}>
+                  <option value="">All</option>
+                  {ANSWER_KEYS.map((key) => (
+                    <option key={key} value={key}>
+                      {key}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="question-bank-active-toggle">
+                <input
+                  type="checkbox"
+                  checked={questionBankActiveOnly}
+                  onChange={(event) => setQuestionBankActiveOnly(event.target.checked)}
+                />
+                <span>Active only</span>
+              </label>
+            </div>
+
+            <div className="question-bank-summary">
+              <span>{questions.length} questions</span>
+              <strong>{questionBankResults.length} results</strong>
+            </div>
+
+            <div className="question-bank-results">
+              {questionBankResults.length === 0 ? (
+                <article className="question-bank-card">
+                  <p className="memory-drill-empty">No questions match the current search.</p>
+                </article>
+              ) : (
+                questionBankResults.map(renderQuestionBankResultCard)
+              )}
             </div>
           </section>
         )}
