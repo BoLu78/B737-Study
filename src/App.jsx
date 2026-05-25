@@ -21,7 +21,7 @@ import {
   shuffleArray,
 } from './utils/finalTestSelection'
 
-const APP_VERSION = 'v8.30'
+const APP_VERSION = 'v8.31'
 const SELECTED_AIRCRAFT_STORAGE_KEY = 'bsa.selectedAircraft'
 const LEGACY_STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const LEGACY_TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
@@ -2294,7 +2294,7 @@ function App() {
                 <img
                   className="memory-diagram-image"
                   src={selectedMemoryVisualAid.imageSrc}
-                  alt={`${selectedMemoryVisualAid.title} diagram`}
+                  alt={selectedMemoryVisualAid.alt || `${selectedMemoryVisualAid.title} diagram`}
                 />
               </div>
             </div>

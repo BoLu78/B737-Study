@@ -1,3 +1,5 @@
+const B787_MEMORY_DIAGRAM_BASE_PATH = `${import.meta.env?.BASE_URL || '/B737-Study/'}assets/memory-items/diagrams/b787`
+
 export const B787_MEMORY_ITEMS = [
   {
     id: 'b787-aborted-engine-start-l-r',
@@ -65,6 +67,14 @@ export const B787_MEMORY_ITEMS = [
     topic: 'Memory Items',
     priority: 'critical',
     conditions: ['Cabin altitude is excessive.'],
+    visualAids: [
+      {
+        title: 'Emergency Descent',
+        imageSrc: `${B787_MEMORY_DIAGRAM_BASE_PATH}/b787-emergency-descent.png`,
+        description: 'B787 emergency descent maneuver flow.',
+        alt: 'B787 Emergency Descent maneuver flow',
+      },
+    ],
     steps: [
       {
         number: '1',
@@ -118,6 +128,14 @@ export const B787_MEMORY_ITEMS = [
     topic: 'Memory Items',
     priority: 'critical',
     conditions: ['Engine speed for both engines is below idle.'],
+    visualAids: [
+      {
+        title: 'Drift Down',
+        imageSrc: `${B787_MEMORY_DIAGRAM_BASE_PATH}/b787-drift-down.png`,
+        description: 'B787 drift down / engine out cruise flow.',
+        alt: 'B787 Drift Down maneuver flow',
+      },
+    ],
     steps: [
       {
         number: '1',
@@ -201,6 +219,14 @@ export const B787_MEMORY_ITEMS = [
       'Airframe vibrations with abnormal engine indications',
       'Engine separation',
     ],
+    visualAids: [
+      {
+        title: 'Engine Failure After V1',
+        imageSrc: `${B787_MEMORY_DIAGRAM_BASE_PATH}/b787-engine-failure-after-v1.png`,
+        description: 'B787 engine failure after V1 maneuver flow.',
+        alt: 'B787 Engine Failure After V1 maneuver flow',
+      },
+    ],
     steps: [
       {
         number: '1',
@@ -232,6 +258,14 @@ export const B787_MEMORY_ITEMS = [
     topic: 'Memory Items',
     priority: 'critical',
     conditions: ['Fire is detected in the affected engine.'],
+    visualAids: [
+      {
+        title: 'Engine Failure After V1',
+        imageSrc: `${B787_MEMORY_DIAGRAM_BASE_PATH}/b787-engine-failure-after-v1.png`,
+        description: 'B787 engine failure after V1 maneuver flow.',
+        alt: 'B787 Engine Failure After V1 maneuver flow',
+      },
+    ],
     steps: [
       {
         number: '1',
