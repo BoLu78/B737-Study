@@ -21,7 +21,7 @@ import {
   shuffleArray,
 } from './utils/finalTestSelection'
 
-const APP_VERSION = 'v8.33'
+const APP_VERSION = 'v8.34'
 const APP_NAME = '737/787 Study'
 const SELECTED_AIRCRAFT_STORAGE_KEY = 'bsa.selectedAircraft'
 const LEGACY_STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
