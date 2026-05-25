@@ -1,0 +1,23 @@
+{
+  "name": "737/787 Study",
+  "short_name": "737/787",
+  "description": "Question banks, memory items and QRH flows for B737 and B787 study.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#0b1120",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

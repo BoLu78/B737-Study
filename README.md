@@ -1,6 +1,6 @@
-# B737 Study App
+# 737/787 Study
 
-Pilot-focused B737 question study app for topic practice and final-test preparation, with protected manual catalog access and raw manual chunk search as secondary support.
+Pilot-focused B737 and B787 question study app for topic practice, final-test preparation, memory items, QRH flows, protected manual catalog access, and raw manual chunk search as secondary support.
 
 ## Local Setup
 
@@ -163,7 +163,7 @@ Topic selection and per-topic performance live in the Topics page so the dashboa
 
 Topic performance is stored locally in the browser using completed practice sessions. No Supabase progress tables are required.
 
-The active question bank is generated from `data/import/T73 R01 TEST 737_R01..xlsx` with `npm run build:questions`. `data/import/question-overrides.json` is applied during the build, and `data/generated/questions.json` is the app runtime output. Deprecated legacy files are archived in `data/import/_archive/` and are ignored by the question build. Supabase still stores manual reference data. Personal progress, topic results, studied counts, accuracy, final test session state, and wrong-answer review state stay in the current browser/device only. Sharing the app link does not mix results across different devices or browser profiles. Results can mix only when people use the same browser profile on the same device.
+The B737 question bank is generated from `data/import/T73 R01 TEST 737_R01..xlsx` with `npm run build:questions`. `data/import/question-overrides.json` is applied during the build, and `data/generated/questions.json` is the B737 runtime output. The B787 question bank uses `data/aircraft/b787/import/T78 R03 TEST 787.xlsx`, with runtime output at `data/aircraft/b787/generated/questions.json`. Deprecated legacy B737 import files are archived in `data/import/_archive/` and are ignored by the question build. Supabase still stores manual reference data. Personal progress, topic results, studied counts, accuracy, final test session state, and wrong-answer review state stay in the current browser/device only. Sharing the app link does not mix results across different devices or browser profiles. Results can mix only when people use the same browser profile on the same device.
 
 Visible question IDs use the original NEOS PDF/table source ID (`source_id`) rather than the internal Supabase row ID. The database row ID stays internal for storage and UI keys only. To verify imported source ID coverage, run:
 

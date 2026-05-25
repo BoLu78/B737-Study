@@ -21,7 +21,8 @@ import {
   shuffleArray,
 } from './utils/finalTestSelection'
 
-const APP_VERSION = 'v8.31'
+const APP_VERSION = 'v8.32'
+const APP_NAME = '737/787 Study'
 const SELECTED_AIRCRAFT_STORAGE_KEY = 'bsa.selectedAircraft'
 const LEGACY_STUDY_PROGRESS_STORAGE_KEY = 'b737StudyProgress_v8_2'
 const LEGACY_TOPIC_STATS_STORAGE_KEY = 'b737StudyTopicStats_v8_2'
@@ -859,7 +860,7 @@ function App() {
   const dataSource = activeAircraft?.questionBankSource || ''
   const supportsAircraftSystemsScope = Boolean(activeAircraft?.supportsAircraftSystemsScope)
   const isB737MemoryModule = activeAircraft?.id === AIRCRAFT_IDS.B737
-  const aircraftAppTitle = activeAircraft ? `${activeAircraft.label} Study App` : 'Aircraft Study App'
+  const aircraftAppTitle = activeAircraft ? `${activeAircraft.label} Study` : APP_NAME
 
   useEffect(() => {
     let isMounted = true
@@ -2221,12 +2222,12 @@ function App() {
     <div className={`app-shell ${activeAircraft?.themeClass || 'aircraft-selection-shell'}`}>
       <header className="app-header">
         <div>
-          <p className="eyebrow">{activeAircraft ? activeAircraft.shortLabel : 'Aircraft Study App'}</p>
-          <h1>{activeAircraft ? aircraftAppTitle : 'Aircraft Study App'}</h1>
+          <p className="eyebrow">{activeAircraft ? activeAircraft.shortLabel : APP_NAME}</p>
+          <h1>{aircraftAppTitle}</h1>
           <p className="subtitle">
             {activeAircraft
               ? 'Practice the question bank with focused and randomized sessions.'
-              : 'Choose aircraft'}
+              : 'Question banks, memory items and QRH flows.'}
           </p>
         </div>
         <div className="header-status">
@@ -3646,7 +3647,7 @@ function App() {
       )}
 
       <footer className="app-footer">
-        {activeAircraft ? aircraftAppTitle : 'Aircraft Study App'} {APP_VERSION}
+        {APP_NAME} {APP_VERSION}
       </footer>
     </div>
   )
